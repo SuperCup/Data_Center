@@ -13,6 +13,8 @@ import CustomRequestManagement from './pages/business/CustomRequestManagement';
 // 客户端页面
 import Dashboard from './pages/client/Dashboard';
 import ActivityAnalysis from './pages/client/ActivityAnalysis';
+import CouponAnalysis from './pages/client/CouponAnalysis';
+import CouponDetail from './pages/client/CouponDetail';
 import MechanismEffect from './pages/client/MechanismEffect';
 import ChannelAnalysis from './pages/client/ChannelAnalysis';
 import RequestCenter from './pages/client/RequestCenter';
@@ -37,7 +39,8 @@ function App() {
         <Route path="/client" element={<ClientLayout />}>
           <Route path="sales-analysis" element={<Dashboard />} />
           <Route path="activity-analysis" element={<ActivityAnalysis />} />
-          <Route path="coupon-analysis" element={<div>优惠券分析页面</div>} />
+          <Route path="coupon-analysis" element={<CouponAnalysis />} />
+          <Route path="coupon-detail/:couponId" element={<CouponDetail />} />
           <Route path="instant-retail" element={<div>即时零售页面</div>} />
           <Route path="custom-service" element={<div>专属定制页面</div>} />
           <Route index element={<Dashboard />} />
