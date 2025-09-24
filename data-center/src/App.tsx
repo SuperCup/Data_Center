@@ -35,11 +35,11 @@ function App() {
 
         {/* 客户端路由 */}
         <Route path="/client" element={<ClientLayout />}>
-          <Route path="dashboard" element={<Dashboard />} />
-          <Route path="activity" element={<ActivityAnalysis />} />
-          <Route path="mechanism" element={<MechanismEffect />} />
-          <Route path="channel" element={<ChannelAnalysis />} />
-          <Route path="request" element={<RequestCenter />} />
+          <Route path="sales-analysis" element={<Dashboard />} />
+          <Route path="activity-analysis" element={<ActivityAnalysis />} />
+          <Route path="coupon-analysis" element={<div>优惠券分析页面</div>} />
+          <Route path="instant-retail" element={<div>即时零售页面</div>} />
+          <Route path="custom-service" element={<div>专属定制页面</div>} />
           <Route index element={<Dashboard />} />
         </Route>
 
