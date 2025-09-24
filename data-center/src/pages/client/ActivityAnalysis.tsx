@@ -99,7 +99,6 @@ const ActivityAnalysis: React.FC = () => {
       <Card style={{ marginBottom: 20 }}>
         <Row gutter={16}>
           <Col span={6}>
-            <div style={{ marginBottom: 8 }}>活动选择</div>
             <Select defaultValue={selectedActivity.id} style={{ width: '100%' }}>
               {activities.map(activity => (
                 <Option key={activity.id} value={activity.id}>{activity.name}</Option>
@@ -107,7 +106,6 @@ const ActivityAnalysis: React.FC = () => {
             </Select>
           </Col>
           <Col span={6}>
-            <div style={{ marginBottom: 8 }}>渠道</div>
             <Select defaultValue="all" style={{ width: '100%' }}>
               <Option value="all">全部渠道</Option>
               <Option value="wechat">微信</Option>
@@ -117,11 +115,9 @@ const ActivityAnalysis: React.FC = () => {
             </Select>
           </Col>
           <Col span={8}>
-            <div style={{ marginBottom: 8 }}>时间范围</div>
             <RangePicker style={{ width: '100%' }} />
           </Col>
           <Col span={4}>
-            <div style={{ marginBottom: 8 }}>活动类型</div>
             <Select defaultValue="all" style={{ width: '100%' }}>
               <Option value="all">全部类型</Option>
               <Option value="discount">折扣券</Option>

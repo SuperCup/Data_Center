@@ -3,13 +3,12 @@ import { Layout, Menu, theme } from 'antd';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import {
   DashboardOutlined,
-  LineChartOutlined,
-  AppstoreOutlined,
-  FundOutlined,
-  FileTextOutlined,
+  ShopOutlined,
+  SettingOutlined,
   MenuFoldOutlined,
   MenuUnfoldOutlined,
 } from '@ant-design/icons';
+import logo from '../assets/logo.svg';
 
 const { Header, Content, Sider } = Layout;
 
@@ -25,27 +24,17 @@ const ClientLayout: React.FC = () => {
     {
       key: 'dashboard',
       icon: <DashboardOutlined />,
-      label: '首页看板',
+      label: '到店营销',
     },
     {
-      key: 'activity',
-      icon: <LineChartOutlined />,
-      label: '活动分析',
+      key: 'instant-retail',
+      icon: <ShopOutlined />,
+      label: '即时零售',
     },
     {
-      key: 'mechanism',
-      icon: <AppstoreOutlined />,
-      label: '机制效果',
-    },
-    {
-      key: 'channel',
-      icon: <FundOutlined />,
-      label: '渠道分析',
-    },
-    {
-      key: 'request',
-      icon: <FileTextOutlined />,
-      label: '需求中心',
+      key: 'custom-service',
+      icon: <SettingOutlined />,
+      label: '专属定制',
     },
   ];
 
@@ -59,10 +48,18 @@ const ClientLayout: React.FC = () => {
   return (
     <Layout style={{ minHeight: '100vh' }}>
       <Sider trigger={null} collapsible collapsed={collapsed} width={200} style={{ background: colorBgContainer }}>
-        <div style={{ height: 64, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <h2 style={{ margin: 0, color: '#1890ff', fontSize: collapsed ? '14px' : '18px' }}>
-            {collapsed ? 'DC' : '数据中心'}
-          </h2>
+        <div style={{ height: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingLeft: 24, paddingRight: 24 }}>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <img src={logo} alt="Logo" style={{ width: 24, height: 24, marginRight: collapsed ? 0 : 8 }} />
+            <h2 style={{ margin: 0, color: '#1890ff', fontSize: collapsed ? '14px' : '18px' }}>
+              {collapsed ? 'MJ' : '明镜'}
+            </h2>
+          </div>
+          {React.createElement(collapsed ? MenuUnfoldOutlined : MenuFoldOutlined, {
+            className: 'trigger',
+            onClick: () => setCollapsed(!collapsed),
+            style: { fontSize: '18px', cursor: 'pointer' }
+          })}
         </div>
         <Menu
           mode="inline"
@@ -74,14 +71,6 @@ const ClientLayout: React.FC = () => {
       </Sider>
       <Layout>
         <Header style={{ padding: 0, background: colorBgContainer }}>
-          <div style={{ display: 'flex', alignItems: 'center' }}>
-            {React.createElement(collapsed ? MenuUnfoldOutlined : MenuFoldOutlined, {
-              className: 'trigger',
-              onClick: () => setCollapsed(!collapsed),
-              style: { fontSize: '18px', padding: '0 24px', cursor: 'pointer' }
-            })}
-            <h2 style={{ margin: 0 }}>数据中心-客户端</h2>
-          </div>
         </Header>
         <Content style={{ margin: '24px 16px', padding: 24, background: colorBgContainer, borderRadius: borderRadiusLG, minHeight: 280 }}>
           <Outlet />

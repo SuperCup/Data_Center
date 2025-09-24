@@ -18,7 +18,7 @@ import ChannelAnalysis from './pages/client/ChannelAnalysis';
 import RequestCenter from './pages/client/RequestCenter';
 
 // 模拟登录状态
-const isBusinessUser = true; // 切换为false可以查看客户端
+const isBusinessUser = false; // 设置为false以查看客户端
 
 function App() {
   return (
