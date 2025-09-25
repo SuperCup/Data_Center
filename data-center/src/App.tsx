@@ -46,6 +46,11 @@ function App() {
           <Route index element={<Dashboard />} />
         </Route>
 
+        {/* 根路径重定向 */}
+        <Route path="/" element={
+          <Navigate to={isBusinessUser ? "/business" : "/client"} replace />
+        } />
+        
         {/* 根据用户类型重定向 */}
         <Route path="*" element={
           <Navigate to={isBusinessUser ? "/business" : "/client"} replace />
