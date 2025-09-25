@@ -24,7 +24,7 @@ const isBusinessUser = false; // 设置为false以查看客户端
 
 function App() {
   return (
-    <Router basename={process.env.NODE_ENV === 'production' ? '/Data-Center' : ''}>
+    <Router basename={process.env.NODE_ENV === 'production' ? '/Data_Center' : ''}>
       <Routes>
         {/* 业务端路由 */}
         <Route path="/business" element={<BusinessLayout />}>
