@@ -8,6 +8,7 @@ import {
   BarChartOutlined,
   GiftOutlined,
   TagOutlined,
+  UnorderedListOutlined,
 } from '@ant-design/icons';
 import logo from '../assets/logo.svg';
 
@@ -32,6 +33,11 @@ const ClientLayout: React.FC = () => {
           label: '销售分析',
         },
         {
+          key: 'all-activities',
+          icon: <UnorderedListOutlined />,
+          label: '全量活动',
+        },
+        {
           key: 'activity-analysis',
           icon: <GiftOutlined />,
           label: '活动分析',
@@ -40,6 +46,11 @@ const ClientLayout: React.FC = () => {
           key: 'coupon-analysis',
           icon: <TagOutlined />,
           label: '优惠券分析',
+        },
+        {
+          key: 'user-analysis',
+          icon: <BarChartOutlined />,
+          label: '用户分析',
         },
       ],
     },

@@ -159,7 +159,7 @@ const CouponDetail: React.FC = () => {
               icon={<ArrowLeftOutlined />} 
               onClick={handleBack}
               type="text"
-              style={{ color: '#666', marginRight: '16px' }}
+              style={{ color: '#262626', marginRight: '16px' }}
             >
               返回
             </Button>

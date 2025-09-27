@@ -19,7 +19,7 @@ const MechanismEffect: React.FC = () => {
       conversion: 28.5,
       roi: 3.5,
       userSatisfaction: 88,
-      color: '#52c41a',
+      color: '#40a9ff',
     },
     {
       id: 3,
@@ -27,7 +27,7 @@ const MechanismEffect: React.FC = () => {
       conversion: 42.3,
       roi: 5.1,
       userSatisfaction: 95,
-      color: '#fa8c16',
+      color: '#096dd9',
     },
     {
       id: 4,
@@ -35,7 +35,7 @@ const MechanismEffect: React.FC = () => {
       conversion: 38.7,
       roi: 4.8,
       userSatisfaction: 90,
-      color: '#722ed1',
+      color: '#69c0ff',
     },
   ];
 
@@ -110,9 +110,9 @@ const MechanismEffect: React.FC = () => {
                 </div>
                 
                 <div style={{ width: 120, textAlign: 'center' }}>
-                  <div style={{ background: '#52c41a', color: '#fff', padding: '10px', borderRadius: '4px' }}>
-                    点击
-                  </div>
+                  <div style={{ background: '#40a9ff', color: '#fff', padding: '10px', borderRadius: '4px' }}>
+          点击
+        </div>
                   <div style={{ marginTop: 8 }}>75%</div>
                 </div>
                 
