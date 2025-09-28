@@ -205,7 +205,7 @@ const ChannelAnalysis: React.FC = () => {
               title="总点击量"
               value={channelData.reduce((sum, item) => sum + item.click, 0)}
               formatter={(value) => `${(value as number).toLocaleString()}`}
-              valueStyle={{ color: '#1890ff' }}
+              valueStyle={{ color: '#000000' }}
             />
           </Col>
           <Col span={6}>
@@ -213,7 +213,7 @@ const ChannelAnalysis: React.FC = () => {
               title="总转化量"
               value={channelData.reduce((sum, item) => sum + item.conversion, 0)}
               formatter={(value) => `${(value as number).toLocaleString()}`}
-              valueStyle={{ color: '#3f8600' }}
+              valueStyle={{ color: '#000000' }}
             />
           </Col>
           <Col span={6}>
@@ -221,7 +221,7 @@ const ChannelAnalysis: React.FC = () => {
               title="平均ROI"
               value={channelData.reduce((sum, item) => sum + item.roi, 0) / channelData.length}
               precision={2}
-              valueStyle={{ color: '#cf1322' }}
+              valueStyle={{ color: '#000000' }}
               prefix={<ArrowUpOutlined />}
             />
           </Col>

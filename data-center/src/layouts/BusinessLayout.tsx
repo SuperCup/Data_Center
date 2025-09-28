@@ -48,7 +48,7 @@ const BusinessLayout: React.FC = () => {
     <Layout style={{ minHeight: '100vh' }}>
       <Header style={{ background: '#fff', padding: 0 }}>
         <div style={{ float: 'left', width: 200, height: 31, margin: '16px 24px 16px 0', background: 'rgba(0, 0, 0, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <h2 style={{ margin: 0, color: '#fff' }}>数据中心-业务端</h2>
+          <h2 style={{ margin: 0, color: '#fff' }}>交付中台——品牌端-业务端</h2>
         </div>
       </Header>
       <Layout>
