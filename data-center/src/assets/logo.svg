@@ -1,5 +1,26 @@
-<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect width="32" height="32" rx="6" fill="#1890ff"/>
-  <path d="M8 12h16v2H8v-2zm0 4h16v2H8v-2zm0 4h12v2H8v-2z" fill="white"/>
-  <circle cx="24" cy="8" r="3" fill="#52c41a"/>
+<svg width="400" height="80" viewBox="0 0 400 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- 购物袋图标 -->
+  <g transform="translate(10, 10)">
+    <!-- 购物袋主体 -->
+    <path d="M8 20 L48 20 L45 55 C44.5 58 42 60 39 60 L17 60 C14 60 11.5 58 11 55 L8 20 Z" fill="#FF6B35" stroke="#FF6B35" stroke-width="2"/>
+    <!-- 购物袋手柄 -->
+    <path d="M15 20 C15 12 21 6 28 6 C35 6 41 12 41 20" fill="none" stroke="#FF6B35" stroke-width="3"/>
+    <!-- 对勾 -->
+    <path d="M20 35 L26 41 L36 28" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  
+  <!-- 精明购 文字 -->
+  <g transform="translate(70, 15)">
+    <text x="0" y="25" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="#FF6B35">精明购</text>
+    <text x="0" y="45" font-family="Arial, sans-serif" font-size="14" fill="#FF6B35">SmartGo.AI</text>
+  </g>
+  
+  <!-- 分隔线 -->
+  <line x1="200" y1="20" x2="200" y2="60" stroke="#FF6B35" stroke-width="2"/>
+  
+  <!-- DSM Cloud 文字 -->
+  <g transform="translate(220, 15)">
+    <text x="0" y="25" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#FF6B35">DSM Cloud</text>
+    <text x="0" y="45" font-family="Arial, sans-serif" font-size="12" fill="#FF6B35">Digital Shopper Marketing Cloud</text>
+  </g>
 </svg>

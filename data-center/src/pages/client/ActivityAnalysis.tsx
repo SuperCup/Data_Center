@@ -464,7 +464,7 @@ const ActivityAnalysis: React.FC = () => {
                       <div style={{ marginBottom: 8, fontWeight: 'bold' }}>该数据仅供参考，不作为最终结算依据</div>
                       <div style={{ marginBottom: 4 }}><strong>微信/支付宝平台：</strong></div>
                       <div style={{ marginBottom: 8 }}>所有订单的订单商品数量×商品价格之和（已扣除退款）</div>
-                      <div style={{ marginBottom: 4 }}><strong>抖音到店/美团到店：</strong></div>
+                      <div style={{ marginBottom: 4 }}><strong>抖音到店：</strong></div>
                       <div>待补充</div>
                     </div>
                   }
@@ -493,7 +493,7 @@ const ActivityAnalysis: React.FC = () => {
                     <div style={{ maxWidth: 300 }}>
                       <div style={{ marginBottom: 4 }}><strong>微信/支付宝：</strong></div>
                       <div style={{ marginBottom: 8 }}>平台下载的正向账单数量之和（无账单活动，取活动详情中统计的核销数量）</div>
-                      <div style={{ marginBottom: 4 }}><strong>抖音到店/美团到店：</strong></div>
+                      <div style={{ marginBottom: 4 }}><strong>抖音到店：</strong></div>
                       <div>待补充</div>
                     </div>
                   }
@@ -511,15 +511,15 @@ const ActivityAnalysis: React.FC = () => {
             </Card>
           </Col>
           
-          {/* 活动数 */}
+          {/* 批次数 */}
           <Col style={{ width: 'calc(20% - 8px)' }}>
             <Card>
               <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
-                <span style={{ fontSize: '14px', color: '#000000' }}>活动数</span>
+                <span style={{ fontSize: '14px', color: '#000000' }}>批次数</span>
                 <AntTooltip 
                   title={
                     <div style={{ maxWidth: 300 }}>
-                      <div>平台侧创建的活动数量之和</div>
+                      <div>平台侧创建的批次数量之和</div>
                     </div>
                   }
                   placement="topLeft"
@@ -546,7 +546,7 @@ const ActivityAnalysis: React.FC = () => {
                     <div style={{ maxWidth: 300 }}>
                       <div style={{ marginBottom: 4 }}><strong>微信/支付宝：</strong></div>
                       <div style={{ marginBottom: 8 }}>账单中返回的优惠金额之和（已扣除退款）</div>
-                      <div style={{ marginBottom: 4 }}><strong>抖音到店/美团到店：</strong></div>
+                      <div style={{ marginBottom: 4 }}><strong>抖音到店：</strong></div>
                       <div>待补充</div>
                     </div>
                   }
@@ -576,7 +576,7 @@ const ActivityAnalysis: React.FC = () => {
                       <div style={{ marginBottom: 8, fontWeight: 'bold' }}>仅供参考</div>
                       <div style={{ marginBottom: 4 }}><strong>微信/支付宝：</strong></div>
                       <div style={{ marginBottom: 8 }}>(未退款账单之和/平台活动详情中的领券数之和)×100%</div>
-                      <div style={{ marginBottom: 4 }}><strong>抖音到店/美团到店：</strong></div>
+                      <div style={{ marginBottom: 4 }}><strong>抖音到店：</strong></div>
                       <div>待补充</div>
                     </div>
                   }
@@ -604,7 +604,7 @@ const ActivityAnalysis: React.FC = () => {
           {[
             { key: 'gmv', label: '活动销售额', color: '#1890ff' },
         { key: 'usedCount', label: '核券数', color: '#40a9ff' },
-        { key: 'batchCount', label: '活动数', color: '#096dd9' },
+        { key: 'batchCount', label: '批次数', color: '#096dd9' },
         { key: 'discount', label: '优惠金额', color: '#69c0ff' },
         { key: 'usageRate', label: '核销率', color: '#91d5ff' }
           ].map(metric => (
@@ -720,7 +720,7 @@ const ActivityAnalysis: React.FC = () => {
                   stroke="#096dd9"
                   strokeWidth={2}
                   activeDot={{ r: 6 }}
-                  name="活动数"
+                  name="批次数"
                 />
               )}
               

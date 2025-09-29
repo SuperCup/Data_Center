@@ -25,8 +25,7 @@ const COLORS = [
 const PLATFORM_COLORS = {
   '微信': '#07C160',     // 微信绿色
   '支付宝': '#1677FF',   // 支付宝蓝色
-  '抖音到店': '#000000', // 抖音黑色
-  '美团到店': '#FFD100'  // 美团黄色
+  '抖音到店': '#000000'  // 抖音黑色
 };
 
 // 渐变高亮配色 - 蓝色系为主
@@ -95,14 +94,6 @@ const Dashboard: React.FC = () => {
       discount: 70200,
       usageRate: 80.0
     },
-    { 
-      name: '美团到店', 
-      issuedCount: 5000, 
-      usedCount: 4000, 
-      gmv: 58500, 
-      discount: 23400,
-      usageRate: 80.0
-    },
   ];
 
   // 各平台下的渠道数据
@@ -133,9 +124,6 @@ const Dashboard: React.FC = () => {
     ],
     '抖音到店': [
       { name: '社群', issuedCount: 80000, usedCount: 64000, gmv: 936000, discount: 374000, usageRate: 80.0 },
-    ],
-    '美团到店': [
-      { name: '社群', issuedCount: 40000, usedCount: 32000, gmv: 468000, discount: 187000, usageRate: 80.0 },
     ],
   };
 
@@ -221,7 +209,6 @@ const Dashboard: React.FC = () => {
       { name: '微信', value: 45, gmv: 2106000, discount: 841500, budget: 80, clientBudget: { total: 1000000, used: 800000 }, orders: 21060, usedCount: 144000 },
       { name: '支付宝', value: 25, gmv: 1170000, discount: 467500, budget: 70, clientBudget: { total: 800000, used: 560000 }, orders: 11700, usedCount: 80000 },
       { name: '抖音到店', value: 20, gmv: 936000, discount: 374000, budget: 65, clientBudget: { total: 600000, used: 390000 }, orders: 9360, usedCount: 64000 },
-      { name: '美团到店', value: 10, gmv: 468000, discount: 187000, budget: 85, clientBudget: { total: 400000, used: 340000 }, orders: 4680, usedCount: 32000 },
     ],
     // 趋势数据
     trends: [
@@ -277,16 +264,16 @@ const Dashboard: React.FC = () => {
     ],
     // SKU数据
     skus: [
-      { name: '金典有机纯牛奶', code69: '6901028089296', gmv: 240000, orderCount: 2400, discount: 24000, usedCount: 24000, salesVolume: 4800 },
-      { name: '安慕希希腊酸奶', code69: '6901028089302', gmv: 210000, orderCount: 2100, discount: 21000, usedCount: 21000, salesVolume: 4200 },
-      { name: 'QQ星儿童成长牛奶', code69: '6901028089319', gmv: 190000, orderCount: 1900, discount: 19000, usedCount: 19000, salesVolume: 3800 },
-      { name: '舒化无乳糖牛奶', code69: '6901028089326', gmv: 170000, orderCount: 1700, discount: 17000, usedCount: 17000, salesVolume: 3400 },
-      { name: '畅轻酸奶', code69: '6901028089333', gmv: 150000, orderCount: 1500, discount: 15000, usedCount: 15000, salesVolume: 3000 },
-      { name: '纯牛奶', code69: '6901028089340', gmv: 130000, orderCount: 1300, discount: 13000, usedCount: 13000, salesVolume: 2600 },
-      { name: '优酸乳', code69: '6901028089357', gmv: 110000, orderCount: 1100, discount: 11000, usedCount: 11000, salesVolume: 2200 },
-      { name: '巧乐兹冰淇淋', code69: '6901028089364', gmv: 90000, orderCount: 900, discount: 9000, usedCount: 9000, salesVolume: 1800 },
-      { name: '每益添活性乳酸菌饮品', code69: '6901028089371', gmv: 75000, orderCount: 750, discount: 7500, usedCount: 7500, salesVolume: 1500 },
-      { name: '味可滋', code69: '6901028089388', gmv: 60000, orderCount: 600, discount: 6000, usedCount: 6000, salesVolume: 1200 },
+      { name: '康师傅红烧牛肉面', code69: '6901028089296', gmv: 240000, orderCount: 2400, discount: 24000, usedCount: 24000, salesVolume: 4800 },
+      { name: '康师傅香辣牛肉面', code69: '6901028089302', gmv: 210000, orderCount: 2100, discount: 21000, usedCount: 21000, salesVolume: 4200 },
+      { name: '康师傅老坛酸菜面', code69: '6901028089319', gmv: 190000, orderCount: 1900, discount: 19000, usedCount: 19000, salesVolume: 3800 },
+      { name: '康师傅鲜虾鱼板面', code69: '6901028089326', gmv: 170000, orderCount: 1700, discount: 17000, usedCount: 17000, salesVolume: 3400 },
+      { name: '康师傅西红柿鸡蛋面', code69: '6901028089333', gmv: 150000, orderCount: 1500, discount: 15000, usedCount: 15000, salesVolume: 3000 },
+      { name: '康师傅麻辣牛肉面', code69: '6901028089340', gmv: 130000, orderCount: 1300, discount: 13000, usedCount: 13000, salesVolume: 2600 },
+      { name: '康师傅香菇炖鸡面', code69: '6901028089357', gmv: 110000, orderCount: 1100, discount: 11000, usedCount: 11000, salesVolume: 2200 },
+      { name: '康师傅酸辣牛肉面', code69: '6901028089364', gmv: 90000, orderCount: 900, discount: 9000, usedCount: 9000, salesVolume: 1800 },
+      { name: '康师傅绿茶 500ml', code69: '6901028089371', gmv: 75000, orderCount: 750, discount: 7500, usedCount: 7500, salesVolume: 1500 },
+      { name: '康师傅冰红茶 500ml', code69: '6901028089388', gmv: 60000, orderCount: 600, discount: 6000, usedCount: 6000, salesVolume: 1200 },
     ],
     // 购物行为时段数据 - 按图片样式显示销售金额
     shoppingHours: [
@@ -362,15 +349,7 @@ const Dashboard: React.FC = () => {
     setDateRange(dateStrings);
   };
 
-  // 处理平台变更
-  const handlePlatformChange = (value: string) => {
-    setPlatform(value);
-  };
 
-  // 处理趋势指标变更
-  const handleTrendMetricChange = (value: string) => {
-    setTrendMetric(value);
-  };
 
   // 处理零售商/机制指标变更
   const handleRetailerMetricChange = (value: string) => {
@@ -407,25 +386,7 @@ const Dashboard: React.FC = () => {
     return metricMap[metric as keyof typeof metricMap] || metricMap.usedCount;
   };
 
-  // 获取排名样式
-  const getRankStyle = (index: number) => {
-    switch(index) {
-      case 0: return { color: HIGHLIGHT_COLORS.first, fontWeight: 'bold' };
-      case 1: return { color: HIGHLIGHT_COLORS.second, fontWeight: 'bold' };
-      case 2: return { color: HIGHLIGHT_COLORS.third, fontWeight: 'bold' };
-      default: return { color: HIGHLIGHT_COLORS.normal };
-    }
-  };
 
-  // 获取时段排名样式
-  const getHourRankStyle = (rank: number) => {
-    switch(rank) {
-      case 1: return { color: HIGHLIGHT_COLORS.first, fontWeight: 'bold' };
-      case 2: return { color: HIGHLIGHT_COLORS.second, fontWeight: 'bold' };
-      case 3: return { color: HIGHLIGHT_COLORS.third, fontWeight: 'bold' };
-      default: return { color: HIGHLIGHT_COLORS.normal };
-    }
-  };
 
   return (
     <div className="dashboard-container">
@@ -461,7 +422,6 @@ const Dashboard: React.FC = () => {
               <Radio.Button value="wechat">微信</Radio.Button>
               <Radio.Button value="alipay">支付宝</Radio.Button>
               <Radio.Button value="douyin">抖音到店</Radio.Button>
-              <Radio.Button value="meituan">美团到店</Radio.Button>
             </Radio.Group>
           </Col>
         </Row>
@@ -481,7 +441,7 @@ const Dashboard: React.FC = () => {
                       <div style={{ marginBottom: 8, fontWeight: 'bold' }}>该数据仅供参考，不作为最终结算依据</div>
                       <div style={{ marginBottom: 4 }}><strong>微信/支付宝平台：</strong></div>
                       <div style={{ marginBottom: 8 }}>所有订单的订单商品数量×商品价格之和（已扣除退款）</div>
-                      <div style={{ marginBottom: 4 }}><strong>抖音到店/美团到店：</strong></div>
+                      <div style={{ marginBottom: 4 }}><strong>抖音到店：</strong></div>
                       <div>待补充</div>
                     </div>
                   }
@@ -537,7 +497,7 @@ const Dashboard: React.FC = () => {
                     <div style={{ maxWidth: 300 }}>
                       <div style={{ marginBottom: 4 }}><strong>微信/支付宝：</strong></div>
                       <div style={{ marginBottom: 8 }}>平台下载的正向账单数量之和（无账单活动，取活动详情中统计的核销数量）</div>
-                      <div style={{ marginBottom: 4 }}><strong>抖音到店/美团到店：</strong></div>
+                      <div style={{ marginBottom: 4 }}><strong>抖音到店：</strong></div>
                       <div>待补充</div>
                     </div>
                   }
@@ -638,7 +598,7 @@ const Dashboard: React.FC = () => {
                     <div style={{ maxWidth: 300 }}>
                       <div style={{ marginBottom: 4 }}><strong>微信/支付宝：</strong></div>
                       <div style={{ marginBottom: 8 }}>账单中返回的优惠金额之和（已扣除退款）</div>
-                      <div style={{ marginBottom: 4 }}><strong>抖音到店/美团到店：</strong></div>
+                      <div style={{ marginBottom: 4 }}><strong>抖音到店：</strong></div>
                       <div>待补充</div>
                     </div>
                   }
@@ -676,7 +636,7 @@ const Dashboard: React.FC = () => {
                       <div style={{ marginBottom: 8, fontWeight: 'bold' }}>仅供参考</div>
                       <div style={{ marginBottom: 4 }}><strong>微信/支付宝：</strong></div>
                       <div style={{ marginBottom: 8 }}>(未退款账单之和/平台活动详情中的领券数之和)×100%</div>
-                      <div style={{ marginBottom: 4 }}><strong>抖音到店/美团到店：</strong></div>
+                      <div style={{ marginBottom: 4 }}><strong>抖音到店：</strong></div>
                       <div>待补充</div>
                     </div>
                   }

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Table, Card, Input, Select, DatePicker, Button, Tag, Space, Typography, Modal } from 'antd';
+import { Table, Card, Input, Select, DatePicker, Button, Tag, Space, Typography, Modal, Drawer } from 'antd';
 import { SearchOutlined, DownloadOutlined, FilterOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import { useNavigate } from 'react-router-dom';
@@ -9,7 +9,7 @@ const { RangePicker } = DatePicker;
 const { Option } = Select;
 const { Title } = Typography;
 
-// 优惠券数据接口
+// 批次数据接口
 interface CouponData {
   key: string;
   couponId: string;
@@ -26,7 +26,7 @@ interface CouponData {
   activityName: string; // 所属活动名称
 }
 
-// 模拟优惠券数据
+// 模拟批次数据
 const mockCouponData: CouponData[] = [
   {
     key: '1',
@@ -192,6 +192,10 @@ const CouponAnalysis: React.FC = () => {
   const [receiveDetailVisible, setReceiveDetailVisible] = useState(false);
   const [verifyDetailVisible, setVerifyDetailVisible] = useState(false);
   const [selectedCouponId, setSelectedCouponId] = useState<string>('');
+  
+  // 搜索状态
+  const [receiveSearchText, setReceiveSearchText] = useState('');
+  const [verifySearchText, setVerifySearchText] = useState('');
 
   // 查看详情处理函数
   const handleViewDetail = (couponId: string) => {
@@ -216,6 +220,8 @@ const CouponAnalysis: React.FC = () => {
     { key: '1', couponId: 'C001', receiveTime: '2025-01-15 10:30:00' },
     { key: '2', couponId: 'C002', receiveTime: '2025-01-15 11:15:00' },
     { key: '3', couponId: 'C003', receiveTime: '2025-01-15 14:22:00' },
+    { key: '4', couponId: 'C004', receiveTime: '2025-01-15 16:45:00' },
+    { key: '5', couponId: 'C005', receiveTime: '2025-01-15 18:20:00' },
   ];
 
   // 模拟核销明细数据
@@ -223,7 +229,21 @@ const CouponAnalysis: React.FC = () => {
     { key: '1', verifyTime: '2025-01-15 16:45:00', isRefund: false, refundTime: '', orderAmount: 25.50, discountAmount: 2.50 },
     { key: '2', verifyTime: '2025-01-15 18:20:00', isRefund: true, refundTime: '2025-01-16 09:30:00', orderAmount: 18.00, discountAmount: 2.00 },
     { key: '3', verifyTime: '2025-01-15 20:10:00', isRefund: false, refundTime: '', orderAmount: 32.80, discountAmount: 3.00 },
+    { key: '4', verifyTime: '2025-01-16 10:15:00', isRefund: false, refundTime: '', orderAmount: 45.20, discountAmount: 4.50 },
+    { key: '5', verifyTime: '2025-01-16 14:30:00', isRefund: true, refundTime: '2025-01-17 11:20:00', orderAmount: 28.90, discountAmount: 2.80 },
   ];
+
+  // 筛选后的领券明细数据
+  const filteredReceiveData = mockReceiveData.filter(item =>
+    item.couponId.toLowerCase().includes(receiveSearchText.toLowerCase())
+  );
+
+  // 筛选后的核销明细数据
+  const filteredVerifyData = mockVerifyData.filter(item =>
+    item.verifyTime.toLowerCase().includes(verifySearchText.toLowerCase()) ||
+    item.orderAmount.toString().includes(verifySearchText.toLowerCase()) ||
+    item.discountAmount.toString().includes(verifySearchText.toLowerCase())
+  );
 
   // 搜索处理函数
   const handleSearch = (value: string) => {
@@ -277,7 +297,7 @@ const CouponAnalysis: React.FC = () => {
   // 表格列定义
   const columns: ColumnsType<CouponData> = [
     {
-      title: '优惠券编码',
+      title: '批次编码',
       dataIndex: 'couponId',
       key: 'couponId',
       width: 120,
@@ -301,13 +321,13 @@ const CouponAnalysis: React.FC = () => {
       width: 200,
     },
     {
-      title: '优惠券类型',
+      title: '批次类型',
       dataIndex: 'couponType',
       key: 'couponType',
       width: 100,
     },
     {
-      title: '优惠券状态',
+      title: '批次状态',
       dataIndex: 'couponStatus',
       key: 'couponStatus',
       width: 100,
@@ -333,7 +353,7 @@ const CouponAnalysis: React.FC = () => {
       width: 120,
     },
     {
-      title: '优惠券金额',
+      title: '批次金额',
       dataIndex: 'couponAmount',
       key: 'couponAmount',
       width: 100,
@@ -375,7 +395,7 @@ const CouponAnalysis: React.FC = () => {
 
   // 领券明细表格列
   const receiveColumns = [
-    { title: '优惠券编码', dataIndex: 'couponId', key: 'couponId' },
+    { title: '券码', dataIndex: 'couponId', key: 'couponId' },
     { title: '领取时间', dataIndex: 'receiveTime', key: 'receiveTime' },
   ];
 
@@ -409,61 +429,63 @@ const CouponAnalysis: React.FC = () => {
 
   return (
     <div style={{ padding: '24px', background: '#f5f5f5', minHeight: '100vh' }}>
-      <Title level={2} style={{ marginBottom: '24px' }}>优惠券分析</Title>
+      <Title level={2} style={{ marginBottom: '24px' }}>批次分析</Title>
 
       {/* 筛选区域 */}
       <Card style={{ marginBottom: '24px' }}>
-        <Space size="middle" wrap>
-          <Input
-            placeholder="搜索优惠券编码、标题、副标题"
-            prefix={<SearchOutlined />}
-            value={searchText}
-            onChange={(e) => handleSearch(e.target.value)}
-            style={{ width: 250 }}
-          />
-          <Select
-            placeholder="选择状态"
-            style={{ width: 120 }}
-            value={selectedStatus}
-            onChange={(value) => {
-              setSelectedStatus(value);
-              filterData(searchText, value, selectedActivity, dateRange);
-            }}
-            allowClear
-          >
-            <Option value="待开始">待开始</Option>
-            <Option value="进行中">进行中</Option>
-            <Option value="已结束">已结束</Option>
-          </Select>
-          <Select
-            placeholder="选择活动名称"
-            style={{ width: 200 }}
-            value={selectedActivity}
-            onChange={(value) => {
-              setSelectedActivity(value);
-              filterData(searchText, selectedStatus, value, dateRange);
-            }}
-            allowClear
-          >
-            <Option value="2025年9月秋季促销活动">2025年9月秋季促销活动</Option>
-            <Option value="2025年10月国庆特惠活动">2025年10月国庆特惠活动</Option>
-            <Option value="2025年8月夏日清凉活动">2025年8月夏日清凉活动</Option>
-            <Option value="2025年9月中秋节活动">2025年9月中秋节活动</Option>
-            <Option value="康师傅品牌专场活动">康师傅品牌专场活动</Option>
-            <Option value="鲜Q面新品推广活动">鲜Q面新品推广活动</Option>
-          </Select>
-          <RangePicker
-            value={dateRange}
-            onChange={(dates) => {
-              setDateRange(dates);
-              filterData(searchText, selectedStatus, selectedActivity, dates);
-            }}
-            placeholder={['开始日期', '结束日期']}
-          />
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+          <Space size="middle" wrap>
+            <Input
+              placeholder="搜索券码、标题、副标题"
+              prefix={<SearchOutlined />}
+              value={searchText}
+              onChange={(e) => handleSearch(e.target.value)}
+              style={{ width: 250 }}
+            />
+            <Select
+              placeholder="选择状态"
+              style={{ width: 120 }}
+              value={selectedStatus}
+              onChange={(value) => {
+                setSelectedStatus(value);
+                filterData(searchText, value, selectedActivity, dateRange);
+              }}
+              allowClear
+            >
+              <Option value="待开始">待开始</Option>
+              <Option value="进行中">进行中</Option>
+              <Option value="已结束">已结束</Option>
+            </Select>
+            <Select
+              placeholder="选择活动名称"
+              style={{ width: 200 }}
+              value={selectedActivity}
+              onChange={(value) => {
+                setSelectedActivity(value);
+                filterData(searchText, selectedStatus, value, dateRange);
+              }}
+              allowClear
+            >
+              <Option value="2025年9月秋季促销活动">2025年9月秋季促销活动</Option>
+              <Option value="2025年10月国庆特惠活动">2025年10月国庆特惠活动</Option>
+              <Option value="2025年8月夏日清凉活动">2025年8月夏日清凉活动</Option>
+              <Option value="2025年9月中秋节活动">2025年9月中秋节活动</Option>
+              <Option value="康师傅品牌专场活动">康师傅品牌专场活动</Option>
+              <Option value="鲜Q面新品推广活动">鲜Q面新品推广活动</Option>
+            </Select>
+            <RangePicker
+              value={dateRange}
+              onChange={(dates) => {
+                setDateRange(dates);
+                filterData(searchText, selectedStatus, selectedActivity, dates);
+              }}
+              placeholder={['开始日期', '结束日期']}
+            />
+          </Space>
           <Button type="primary" icon={<DownloadOutlined />}>
             导出数据
           </Button>
-        </Space>
+        </div>
       </Card>
 
       {/* 数据表格 */}
@@ -483,37 +505,65 @@ const CouponAnalysis: React.FC = () => {
         />
       </Card>
 
-      {/* 领券明细弹窗 */}
-      <Modal
+      {/* 领券明细抽屉 */}
+      <Drawer
         title="领券明细"
+        placement="right"
+        onClose={() => setReceiveDetailVisible(false)}
         open={receiveDetailVisible}
-        onCancel={() => setReceiveDetailVisible(false)}
-        footer={null}
         width={600}
       >
+        <div style={{ marginBottom: 16 }}>
+          <Input
+            placeholder="请输入券码搜索"
+            value={receiveSearchText}
+            onChange={(e) => setReceiveSearchText(e.target.value)}
+            prefix={<SearchOutlined />}
+            allowClear
+          />
+        </div>
         <Table
           columns={receiveColumns}
-          dataSource={mockReceiveData}
+          dataSource={filteredReceiveData}
           rowKey="key"
-          pagination={false}
+          pagination={{
+            pageSize: 10,
+            showSizeChanger: true,
+            showQuickJumper: true,
+            showTotal: (total, range) => `第 ${range[0]}-${range[1]} 条/总共 ${total} 条`,
+          }}
         />
-      </Modal>
+      </Drawer>
 
-      {/* 核销明细弹窗 */}
-      <Modal
+      {/* 核销明细抽屉 */}
+      <Drawer
         title="核销明细"
+        placement="right"
+        onClose={() => setVerifyDetailVisible(false)}
         open={verifyDetailVisible}
-        onCancel={() => setVerifyDetailVisible(false)}
-        footer={null}
         width={800}
       >
+        <div style={{ marginBottom: 16 }}>
+          <Input
+            placeholder="请输入券码搜索"
+            value={verifySearchText}
+            onChange={(e) => setVerifySearchText(e.target.value)}
+            prefix={<SearchOutlined />}
+            allowClear
+          />
+        </div>
         <Table
           columns={verifyColumns}
-          dataSource={mockVerifyData}
+          dataSource={filteredVerifyData}
           rowKey="key"
-          pagination={false}
+          pagination={{
+            pageSize: 10,
+            showSizeChanger: true,
+            showQuickJumper: true,
+            showTotal: (total, range) => `第 ${range[0]}-${range[1]} 条/总共 ${total} 条`,
+          }}
         />
-      </Modal>
+      </Drawer>
     </div>
   );
 };

@@ -10,7 +10,7 @@ const ReportTemplateConfig: React.FC = () => {
     {
       id: 1,
       title: '活动整体数据',
-      description: '展示活动的整体数据，包括覆盖人群、优惠券发放/核销量、预算消耗等',
+      description: '展示活动的整体数据，包括覆盖人群、批次发放/核销量、预算消耗等',
       tags: ['标准', '通用'],
     },
     {

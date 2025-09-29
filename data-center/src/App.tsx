@@ -20,6 +20,9 @@ import CouponDetail from './pages/client/CouponDetail';
 import MechanismEffect from './pages/client/MechanismEffect';
 import ChannelAnalysis from './pages/client/ChannelAnalysis';
 import RequestCenter from './pages/client/RequestCenter';
+import InstantRetail from './pages/client/InstantRetail';
+import QrMarketing from './pages/client/QrMarketing';
+import CustomService from './pages/client/CustomService';
 
 // 模拟登录状态
 const isBusinessUser = false; // 设置为false以查看客户端
@@ -45,9 +48,10 @@ function App() {
           <Route path="coupon-analysis" element={<CouponAnalysis />} />
           <Route path="user-analysis" element={<UserAnalysis />} />
           <Route path="coupon-detail/:couponId" element={<CouponDetail />} />
-          <Route path="instant-retail" element={<div>即时零售页面</div>} />
-          <Route path="custom-service" element={<div>专属定制页面</div>} />
-          <Route index element={<Dashboard />} />
+          <Route path="instant-retail" element={<InstantRetail />} />
+          <Route path="qr-marketing" element={<QrMarketing />} />
+          <Route path="custom-service" element={<CustomService />} />
+          <Route index element={<AllActivities />} />
         </Route>
 
         {/* 根路径重定向 */}

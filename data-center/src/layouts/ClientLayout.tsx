@@ -1,18 +1,23 @@
 import React from 'react';
-import { Layout, Menu, theme } from 'antd';
+import { Layout, Menu, Dropdown, Space, Avatar, theme } from 'antd';
+import { UserOutlined, LogoutOutlined, SettingOutlined, DownOutlined } from '@ant-design/icons';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
-import {
-  DashboardOutlined,
-  ShopOutlined,
-  SettingOutlined,
-  BarChartOutlined,
+import { 
+  ShopOutlined, 
+  BarChartOutlined, 
+  ShoppingCartOutlined, 
+  QrcodeOutlined, 
+  CrownOutlined,
+  ThunderboltOutlined,
+  TagsOutlined,
   GiftOutlined,
-  TagOutlined,
+  DashboardOutlined,
   UnorderedListOutlined,
+  TagOutlined
 } from '@ant-design/icons';
-import logo from '../assets/logo.svg';
+import logo from '../assets/system_logo.png';
 
-const { Header, Content, Sider } = Layout;
+const { Header, Content } = Layout;
 
 const ClientLayout: React.FC = () => {
   const navigate = useNavigate();
@@ -20,85 +25,191 @@ const ClientLayout: React.FC = () => {
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
+
+  // 根据当前路径确定选中的菜单项
+  const selectedKey = location.pathname.split('/').pop() || 'all-activities';
   
-  const menuItems = [
+  // 用户菜单项
+  const userMenuItems = [
+    {
+      key: 'account',
+      icon: <UserOutlined />,
+      label: '账号管理',
+    },
+    {
+      type: 'divider' as const,
+    },
+    {
+      key: 'logout',
+      icon: <LogoutOutlined />,
+      label: '退出登录',
+    },
+  ];
+
+  const handleUserMenuClick = ({ key }: { key: string }) => {
+    if (key === 'logout') {
+      // 处理退出登录逻辑
+      console.log('退出登录');
+    } else if (key === 'account') {
+      // 处理账号管理逻辑
+      console.log('账号管理');
+    }
+  };
+  
+  // 主菜单项配置
+  const mainMenuItems = [
     {
       key: 'dashboard',
-      icon: <DashboardOutlined />,
       label: '到店营销',
+      icon: <DashboardOutlined />,
       children: [
         {
-          key: 'sales-analysis',
-          icon: <BarChartOutlined />,
-          label: '销售分析',
+          key: 'all-activities',
+          label: '全量活动',
+          icon: <UnorderedListOutlined />,
         },
         {
-          key: 'all-activities',
-          icon: <UnorderedListOutlined />,
-          label: '全量活动',
+          key: 'sales-analysis',
+          label: '销售分析',
+          icon: <BarChartOutlined />,
         },
         {
           key: 'activity-analysis',
-          icon: <GiftOutlined />,
           label: '活动分析',
+          icon: <GiftOutlined />,
         },
         {
           key: 'coupon-analysis',
+          label: '批次分析',
           icon: <TagOutlined />,
-          label: '优惠券分析',
         },
         {
           key: 'user-analysis',
-          icon: <BarChartOutlined />,
           label: '用户分析',
+          icon: <BarChartOutlined />,
         },
       ],
     },
     {
       key: 'instant-retail',
-      icon: <ShopOutlined />,
       label: '即时零售',
+      icon: <ShopOutlined />,
+    },
+    {
+      key: 'qr-marketing',
+      label: '物码营销',
+      icon: <QrcodeOutlined />,
     },
     {
       key: 'custom-service',
-      icon: <SettingOutlined />,
       label: '专属定制',
+      icon: <SettingOutlined />,
     },
   ];
 
-  const handleMenuClick = (key: string) => {
+  // 处理主菜单点击
+  const handleMainMenuClick = ({ key }: { key: string }) => {
     navigate(`/client/${key}`);
   };
 
   // 获取当前选中的菜单项
-  const selectedKey = location.pathname.split('/')[2] || 'sales-analysis';
+  const currentSelectedKey = location.pathname.split('/')[2] || 'all-activities';
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
-      <Sider trigger={null} width={200} style={{ background: colorBgContainer }}>
-        <div style={{ height: 64, display: 'flex', alignItems: 'center', paddingLeft: 24, paddingRight: 24 }}>
-          <div style={{ display: 'flex', alignItems: 'center' }}>
-            <img src={logo} alt="Logo" style={{ width: 24, height: 24, marginRight: 8 }} />
-            <h2 style={{ margin: 0, color: '#1890ff', fontSize: '18px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              交付中台-品牌端
-            </h2>
-          </div>
+      <Header style={{ 
+        padding: '0 24px', 
+        background: colorBgContainer, 
+        position: 'fixed', 
+        top: 0, 
+        left: 0,
+        right: 0, 
+        zIndex: 100,
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        borderBottom: '1px solid #f0f0f0'
+      }}>
+        {/* Logo区域 */}
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          <img src={logo} alt="系统logo" style={{ height: 40, marginRight: 24 }} />
+          
+          {/* 主导航菜单 */}
+          <Menu
+            mode="horizontal"
+            selectedKeys={[currentSelectedKey]}
+            style={{ 
+              border: 'none',
+              backgroundColor: 'transparent',
+              flex: 1,
+              minWidth: 600
+            }}
+            items={mainMenuItems.map(item => ({
+              key: item.key,
+              label: item.children ? (
+                <Dropdown
+                  menu={{
+                    items: item.children.map(child => ({
+                      key: child.key,
+                      label: child.label,
+                      icon: child.icon,
+                      onClick: () => navigate(`/client/${child.key}`)
+                    }))
+                  }}
+                  placement="bottomLeft"
+                >
+                  <Space>
+                    {item.icon}
+                    {item.label}
+                    <DownOutlined />
+                  </Space>
+                </Dropdown>
+              ) : (
+                <Space onClick={() => navigate(`/client/${item.key}`)}>
+                  {item.icon}
+                  {item.label}
+                </Space>
+              )
+            }))}
+          />
         </div>
-        <Menu
-          mode="inline"
-          selectedKeys={[selectedKey]}
-          style={{ height: '100%', borderRight: 0 }}
-          items={menuItems}
-          onClick={({ key }) => handleMenuClick(key)}
-        />
-      </Sider>
-      <Layout>
-        <Header style={{ padding: 0, background: colorBgContainer }}>
-        </Header>
-        <Content style={{ margin: '24px 16px', padding: 24, background: colorBgContainer, borderRadius: borderRadiusLG, minHeight: 280 }}>
-          <Outlet />
-        </Content>
-      </Layout>
+
+        {/* 用户信息区域 */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <span style={{ 
+            fontSize: '16px', 
+            fontWeight: 'bold', 
+            color: '#1890ff',
+            borderRight: '1px solid #d9d9d9',
+            paddingRight: '16px'
+          }}>
+            康师傅
+          </span>
+          <Dropdown
+            menu={{
+              items: userMenuItems,
+              onClick: handleUserMenuClick,
+            }}
+            placement="bottomRight"
+            arrow
+          >
+            <Space style={{ cursor: 'pointer' }}>
+              <Avatar icon={<UserOutlined />} />
+              <span>luffy</span>
+            </Space>
+          </Dropdown>
+        </div>
+      </Header>
+      
+      <Content style={{ 
+        margin: '88px 16px 24px 16px', 
+        padding: 24, 
+        background: colorBgContainer, 
+        borderRadius: borderRadiusLG, 
+        minHeight: 'calc(100vh - 112px)' 
+      }}>
+        <Outlet />
+      </Content>
     </Layout>
   );
 };
