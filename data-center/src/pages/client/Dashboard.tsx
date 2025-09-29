@@ -395,8 +395,11 @@ const Dashboard: React.FC = () => {
         <AntTooltip title="数据统计范围为平台对一个所选时间段下在进行的批次（活动）的汇总">
           <QuestionCircleOutlined style={{ color: '#999', cursor: 'help' }} />
         </AntTooltip>
-        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 16 }}>
+        <div style={{ marginLeft: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
           <Text type="secondary">数据更新时间：{stats.budget.updateTime}</Text>
+          <Text type="secondary" style={{ fontSize: '12px', color: '#999' }}>
+            该数据仅作业务分析参考，不作为最终结算依据。
+          </Text>
         </div>
       </div>
       

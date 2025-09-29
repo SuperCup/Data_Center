@@ -23,6 +23,7 @@ import RequestCenter from './pages/client/RequestCenter';
 import InstantRetail from './pages/client/InstantRetail';
 import QrMarketing from './pages/client/QrMarketing';
 import CustomService from './pages/client/CustomService';
+import ProductList from './pages/client/ProductList';
 
 // 模拟登录状态
 const isBusinessUser = false; // 设置为false以查看客户端
@@ -45,9 +46,11 @@ function App() {
           <Route path="sales-analysis" element={<Dashboard />} />
           <Route path="all-activities" element={<AllActivities />} />
           <Route path="activity-analysis" element={<ActivityAnalysis />} />
+          <Route path="activity-analysis/:activityId" element={<ActivityAnalysis />} />
           <Route path="coupon-analysis" element={<CouponAnalysis />} />
           <Route path="user-analysis" element={<UserAnalysis />} />
           <Route path="coupon-detail/:couponId" element={<CouponDetail />} />
+          <Route path="product-list" element={<ProductList />} />
           <Route path="instant-retail" element={<InstantRetail />} />
           <Route path="qr-marketing" element={<QrMarketing />} />
           <Route path="custom-service" element={<CustomService />} />

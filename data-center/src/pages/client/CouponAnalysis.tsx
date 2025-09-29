@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
-import { Table, Card, Input, Select, DatePicker, Button, Tag, Space, Typography, Modal, Drawer } from 'antd';
-import { SearchOutlined, DownloadOutlined, FilterOutlined } from '@ant-design/icons';
+import { Table, Card, Input, Select, DatePicker, Button, Tag, Space, Typography, Modal, Drawer, Tooltip as AntTooltip } from 'antd';
+import { SearchOutlined, DownloadOutlined, FilterOutlined, QuestionCircleOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import { useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
 
 const { RangePicker } = DatePicker;
 const { Option } = Select;
-const { Title } = Typography;
+const { Title, Text } = Typography;
 
 // 批次数据接口
 interface CouponData {
@@ -428,8 +428,23 @@ const CouponAnalysis: React.FC = () => {
   ];
 
   return (
-    <div style={{ padding: '24px', background: '#f5f5f5', minHeight: '100vh' }}>
-      <Title level={2} style={{ marginBottom: '24px' }}>批次分析</Title>
+    <div style={{ 
+      padding: '0', 
+      minHeight: '100vh'
+    }}>
+      {/* 页面标题 */}
+      <div style={{ display: 'flex', alignItems: 'center', marginBottom: 16 }}>
+        <Title level={2} style={{ margin: 0, marginRight: 8 }}>批次列表</Title>
+        <AntTooltip title="显示所有批次的详细信息和统计数据">
+          <QuestionCircleOutlined style={{ color: '#999', cursor: 'help' }} />
+        </AntTooltip>
+        <div style={{ marginLeft: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
+          <Text type="secondary">数据更新时间：2025-01-27 14:30:00</Text>
+          <Text type="secondary" style={{ fontSize: '12px', color: '#999' }}>
+            该数据仅作业务分析参考，不作为最终结算依据。
+          </Text>
+        </div>
+      </div>
 
       {/* 筛选区域 */}
       <Card style={{ marginBottom: '24px' }}>

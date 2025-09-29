@@ -13,11 +13,12 @@ import {
   GiftOutlined,
   DashboardOutlined,
   UnorderedListOutlined,
-  TagOutlined
+  TagOutlined,
+  DatabaseOutlined
 } from '@ant-design/icons';
 import logo from '../assets/system_logo.png';
 
-const { Header, Content } = Layout;
+const { Header, Content, Sider } = Layout;
 
 const ClientLayout: React.FC = () => {
   const navigate = useNavigate();
@@ -56,39 +57,37 @@ const ClientLayout: React.FC = () => {
     }
   };
   
-  // 主菜单项配置
+  // 主菜单项配置 - 将一级菜单改为分区标题
   const mainMenuItems = [
     {
-      key: 'dashboard',
+      key: 'store-marketing-group',
       label: '到店营销',
-      icon: <DashboardOutlined />,
-      children: [
-        {
-          key: 'all-activities',
-          label: '全量活动',
-          icon: <UnorderedListOutlined />,
-        },
-        {
-          key: 'sales-analysis',
-          label: '销售分析',
-          icon: <BarChartOutlined />,
-        },
-        {
-          key: 'activity-analysis',
-          label: '活动分析',
-          icon: <GiftOutlined />,
-        },
-        {
-          key: 'coupon-analysis',
-          label: '批次分析',
-          icon: <TagOutlined />,
-        },
-        {
-          key: 'user-analysis',
-          label: '用户分析',
-          icon: <BarChartOutlined />,
-        },
-      ],
+      type: 'group' as const,
+    },
+    {
+      key: 'all-activities',
+      label: '全量活动',
+      icon: <UnorderedListOutlined />,
+    },
+    {
+      key: 'sales-analysis',
+      label: '销售分析',
+      icon: <BarChartOutlined />,
+    },
+    {
+      key: 'user-analysis',
+      label: '用户分析',
+      icon: <BarChartOutlined />,
+    },
+    {
+      key: 'coupon-analysis',
+      label: '批次列表',
+      icon: <TagOutlined />,
+    },
+    {
+      key: 'instant-retail-group',
+      label: '即时零售',
+      type: 'group' as const,
     },
     {
       key: 'instant-retail',
@@ -96,120 +95,144 @@ const ClientLayout: React.FC = () => {
       icon: <ShopOutlined />,
     },
     {
+      key: 'qr-marketing-group',
+      label: '物码营销',
+      type: 'group' as const,
+    },
+    {
       key: 'qr-marketing',
       label: '物码营销',
       icon: <QrcodeOutlined />,
+    },
+    {
+      key: 'custom-service-group',
+      label: '专属定制',
+      type: 'group' as const,
     },
     {
       key: 'custom-service',
       label: '专属定制',
       icon: <SettingOutlined />,
     },
+    {
+      key: 'data-asset-group',
+      label: '数据资产',
+      type: 'group' as const,
+    },
+    {
+      key: 'product-list',
+      label: '商品清单',
+      icon: <DatabaseOutlined />,
+    },
   ];
 
   // 处理主菜单点击
   const handleMainMenuClick = ({ key }: { key: string }) => {
+    // 如果是分组标题，不进行导航
+    if (key.endsWith('-group')) {
+      return;
+    }
+    
+    // 直接导航到对应页面
     navigate(`/client/${key}`);
   };
 
   // 获取当前选中的菜单项
   const currentSelectedKey = location.pathname.split('/')[2] || 'all-activities';
+  
+  // 根据当前路径确定选中的菜单项
+  const getSelectedKeys = () => {
+    const path = location.pathname.split('/')[2] || 'all-activities';
+    return [path];
+  };
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
-      <Header style={{ 
-        padding: '0 24px', 
-        background: colorBgContainer, 
-        position: 'fixed', 
-        top: 0, 
-        left: 0,
-        right: 0, 
-        zIndex: 100,
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        borderBottom: '1px solid #f0f0f0'
-      }}>
+      {/* 左侧菜单栏 */}
+      <Sider 
+        width={240} 
+        style={{ 
+          background: '#fff',
+          borderRight: '1px solid #f0f0f0',
+          position: 'fixed',
+          height: '100vh',
+          left: 0,
+          top: 0,
+          zIndex: 100
+        }}
+      >
         {/* Logo区域 */}
-        <div style={{ display: 'flex', alignItems: 'center' }}>
-          <img src={logo} alt="系统logo" style={{ height: 40, marginRight: 24 }} />
-          
-          {/* 主导航菜单 */}
-          <Menu
-            mode="horizontal"
-            selectedKeys={[currentSelectedKey]}
-            style={{ 
-              border: 'none',
-              backgroundColor: 'transparent',
-              flex: 1,
-              minWidth: 600
-            }}
-            items={mainMenuItems.map(item => ({
-              key: item.key,
-              label: item.children ? (
-                <Dropdown
-                  menu={{
-                    items: item.children.map(child => ({
-                      key: child.key,
-                      label: child.label,
-                      icon: child.icon,
-                      onClick: () => navigate(`/client/${child.key}`)
-                    }))
-                  }}
-                  placement="bottomLeft"
-                >
-                  <Space>
-                    {item.icon}
-                    {item.label}
-                    <DownOutlined />
-                  </Space>
-                </Dropdown>
-              ) : (
-                <Space onClick={() => navigate(`/client/${item.key}`)}>
-                  {item.icon}
-                  {item.label}
-                </Space>
-              )
-            }))}
-          />
+        <div style={{ 
+          height: 64, 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'center',
+          borderBottom: '1px solid #f0f0f0',
+          padding: '0 16px'
+        }}>
+          <img src={logo} alt="系统logo" style={{ height: 32, maxWidth: '100%' }} />
         </div>
+        
+        {/* 左侧菜单 */}
+        <Menu
+          mode="inline"
+          selectedKeys={getSelectedKeys()}
+          style={{ 
+            border: 'none',
+            height: 'calc(100vh - 64px)',
+            overflow: 'auto'
+          }}
+          items={mainMenuItems}
+          onClick={handleMainMenuClick}
+        />
+      </Sider>
 
-        {/* 用户信息区域 */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <span style={{ 
-            fontSize: '16px', 
-            fontWeight: 'bold', 
-            color: '#1890ff',
-            borderRight: '1px solid #d9d9d9',
-            paddingRight: '16px'
-          }}>
-            康师傅
-          </span>
-          <Dropdown
-            menu={{
-              items: userMenuItems,
-              onClick: handleUserMenuClick,
-            }}
-            placement="bottomRight"
-            arrow
-          >
-            <Space style={{ cursor: 'pointer' }}>
-              <Avatar icon={<UserOutlined />} />
-              <span>luffy</span>
-            </Space>
-          </Dropdown>
-        </div>
-      </Header>
-      
-      <Content style={{ 
-        margin: '88px 16px 24px 16px', 
-        padding: 24, 
-        background: colorBgContainer, 
-        borderRadius: borderRadiusLG, 
-        minHeight: 'calc(100vh - 112px)' 
-      }}>
-        <Outlet />
-      </Content>
+      <Layout style={{ marginLeft: 240 }}>
+        <Header style={{ 
+          padding: '0 24px', 
+          background: colorBgContainer, 
+          display: 'flex',
+          justifyContent: 'flex-end',
+          alignItems: 'center',
+          borderBottom: '1px solid #f0f0f0'
+        }}>
+          {/* 用户信息区域 */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <span style={{ 
+              fontSize: '16px', 
+              fontWeight: 'bold', 
+              color: '#1890ff',
+              borderRight: '1px solid #d9d9d9',
+              paddingRight: '16px'
+            }}>
+              康师傅
+            </span>
+            <Dropdown
+              menu={{
+                items: userMenuItems,
+                onClick: handleUserMenuClick,
+              }}
+              placement="bottomRight"
+              arrow
+            >
+              <Space style={{ cursor: 'pointer' }}>
+                <Avatar icon={<UserOutlined />} />
+                <span>luffy</span>
+              </Space>
+            </Dropdown>
+          </div>
+        </Header>
+        
+        <Content style={{ 
+          margin: '24px 16px', 
+          padding: 24, 
+          background: colorBgContainer, 
+          borderRadius: borderRadiusLG, 
+          minHeight: 'calc(100vh - 112px)' 
+        }}>
+          <Outlet />
+        </Content>
+      </Layout>
     </Layout>
   );
 };

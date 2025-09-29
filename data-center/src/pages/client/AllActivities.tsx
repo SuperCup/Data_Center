@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
-import { Table, Card, Input, Select, DatePicker, Button, Tag, Space, Typography, Row, Col, Drawer, Descriptions, Modal } from 'antd';
-import { SearchOutlined, DownloadOutlined, FilterOutlined } from '@ant-design/icons';
+import { Table, Card, Input, Select, DatePicker, Button, Tag, Space, Typography, Row, Col, Drawer, Descriptions, Tabs, Tooltip as AntTooltip, Modal } from 'antd';
+import { SearchOutlined, DownloadOutlined, FilterOutlined, QuestionCircleOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import { useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
 
 const { RangePicker } = DatePicker;
 const { Option } = Select;
-const { Title } = Typography;
+const { Title, Text } = Typography;
 
 // 活动数据接口
 interface ActivityData {
@@ -415,7 +415,7 @@ const AllActivities: React.FC = () => {
               size="small"
               onClick={() => handleZeroUsageRetailers(record.zeroUsageRetailers!)}
             >
-              0核销零售商
+              异常零售商
             </Button>
           )}
         </Space>
@@ -426,9 +426,18 @@ const AllActivities: React.FC = () => {
   return (
     <div className="all-activities-container">
       {/* 页面标题 */}
-      <Card style={{ marginBottom: 16 }}>
-        <Title level={2} style={{ margin: 0 }}>全量活动</Title>
-      </Card>
+      <div style={{ display: 'flex', alignItems: 'center', marginBottom: 16 }}>
+        <Title level={2} style={{ margin: 0, marginRight: 8 }}>全量活动</Title>
+        <AntTooltip title="显示所有活动的汇总信息和详细数据">
+          <QuestionCircleOutlined style={{ color: '#999', cursor: 'help' }} />
+        </AntTooltip>
+        <div style={{ marginLeft: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
+          <Text type="secondary">数据更新时间：2025-01-27 14:30:00</Text>
+          <Text type="secondary" style={{ fontSize: '12px', color: '#999' }}>
+            该数据仅作业务分析参考，不作为最终结算依据。
+          </Text>
+        </div>
+      </div>
 
       {/* 筛选条件 */}
       <Card style={{ marginBottom: 16 }}>

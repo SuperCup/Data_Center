@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Select, DatePicker, Row, Col, Statistic, Typography, Space, Radio } from 'antd';
+import { Card, Select, DatePicker, Row, Col, Statistic, Typography, Space, Radio, Tooltip as AntTooltip } from 'antd';
+import { QuestionCircleOutlined } from '@ant-design/icons';
 import ReactECharts from 'echarts-for-react';
 import dayjs from 'dayjs';
 
 const { Option } = Select;
 const { RangePicker } = DatePicker;
-const { Title } = Typography;
+const { Title, Text } = Typography;
 
 // 用户分析数据接口
 interface UserAnalysisData {
@@ -18,6 +19,7 @@ interface UserAnalysisData {
   usageUsers: number;   // 核销用户数
   conversionRate: number; // 转化率
   usageRate: number;    // 使用率
+  mechanisms?: string[]; // 活动机制
 }
 
 // 模拟用户分析数据
@@ -32,6 +34,7 @@ const mockUserAnalysisData: UserAnalysisData[] = [
     usageUsers: 7167,
     conversionRate: 94.09,
     usageRate: 92.99,
+    mechanisms: ['满5减0.5', '满8减0.8', '满10减1', '满12减1.2', '满15减1.5', '满18减1.8', '满20减2', '满25减2.5']
   },
   {
     key: '2',
@@ -43,6 +46,7 @@ const mockUserAnalysisData: UserAnalysisData[] = [
     usageUsers: 5980,
     conversionRate: 93.85,
     usageRate: 92.03,
+    mechanisms: ['满5减0.5', '满8减0.8', '满10减1', '满12减1.2', '满15减1.5', '满18减1.8', '满20减2', '满25减2.5']
   },
   {
     key: '3',
@@ -54,6 +58,7 @@ const mockUserAnalysisData: UserAnalysisData[] = [
     usageUsers: 5250,
     conversionRate: 93.10,
     usageRate: 90.52,
+    mechanisms: ['满6减0.6', '满9减0.9', '满12减1.2', '满15减1.5', '满18减1.8', '满21减2.1', '满24减2.4', '满30减3']
   },
   {
     key: '4',
@@ -65,6 +70,7 @@ const mockUserAnalysisData: UserAnalysisData[] = [
     usageUsers: 3650,
     conversionRate: 90.48,
     usageRate: 86.90,
+    mechanisms: ['满4减0.4', '满6减0.6', '满8减0.8', '满10减1', '满12减1.2', '满16减1.6', '满20减2', '满24减2.4']
   },
   {
     key: '5',
@@ -76,6 +82,7 @@ const mockUserAnalysisData: UserAnalysisData[] = [
     usageUsers: 3300,
     conversionRate: 89.74,
     usageRate: 84.62,
+    mechanisms: ['满3减0.3', '满5减0.5', '满8减0.8', '满10减1', '满15减1.5', '满18减1.8', '满22减2.2', '满28减2.8']
   },
   {
     key: '6',
@@ -87,6 +94,7 @@ const mockUserAnalysisData: UserAnalysisData[] = [
     usageUsers: 2200,
     conversionRate: 85.71,
     usageRate: 78.57,
+    mechanisms: ['满3减0.3', '满5减0.5', '满6减0.6', '满8减0.8', '满10减1', '满12减1.2', '满15减1.5', '满20减2']
   },
 ];
 
@@ -275,8 +283,20 @@ const UserAnalysis: React.FC = () => {
   };
 
   return (
-    <div style={{ padding: '24px', background: '#f5f5f5', minHeight: '100vh' }}>
-      <Title level={2} style={{ marginBottom: '24px' }}>用户分析</Title>
+    <div style={{ padding: '0', minHeight: '100vh' }}>
+      {/* 页面标题 */}
+      <div style={{ display: 'flex', alignItems: 'center', marginBottom: 16 }}>
+        <Title level={2} style={{ margin: 0, marginRight: 8 }}>用户分析</Title>
+        <AntTooltip title="分析用户访问、领券和核销行为数据">
+          <QuestionCircleOutlined style={{ color: '#999', cursor: 'help' }} />
+        </AntTooltip>
+        <div style={{ marginLeft: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
+          <Text type="secondary">数据更新时间：2025-01-27 14:30:00</Text>
+          <Text type="secondary" style={{ fontSize: '12px', color: '#999' }}>
+            该数据仅作业务分析参考，不作为最终结算依据。
+          </Text>
+        </div>
+      </div>
 
       {/* 筛选区域 */}
       <Card style={{ marginBottom: '24px' }}>
@@ -330,6 +350,32 @@ const UserAnalysis: React.FC = () => {
                 size="middle"
               />
             </Space>
+          </Col>
+        </Row>
+      </Card>
+
+      {/* 筛选结果显示 */}
+      <Card style={{ marginBottom: '24px', backgroundColor: '#f8f9fa' }}>
+        <Row gutter={24}>
+          <Col span={24}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+              <Text strong style={{ color: '#595959' }}>筛选结果：</Text>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Text style={{ color: '#595959' }}>批次数：</Text>
+                <Text strong style={{ color: '#595959' }}>
+                  {userAnalysisData.length}
+                </Text>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Text style={{ color: '#595959' }}>机制：</Text>
+                <Text strong style={{ color: '#595959' }}>
+                  {userAnalysisData.length > 0 && userAnalysisData[0].mechanisms 
+                    ? userAnalysisData[0].mechanisms.slice(0, 3).join('、') + (userAnalysisData[0].mechanisms.length > 3 ? '等' : '')
+                    : '暂无机制'
+                  }
+                </Text>
+              </div>
+            </div>
           </Col>
         </Row>
       </Card>
@@ -505,9 +551,9 @@ const UserAnalysis: React.FC = () => {
               </div>
             </div>
             
-            {/* 销售额与优惠金额显示在漏斗下方 */}
+            {/* 销售额、优惠金额与人均订单金额显示在漏斗下方 */}
             <Row gutter={[16, 16]} style={{ marginTop: '24px' }}>
-              <Col span={12}>
+              <Col span={8}>
                 <Card size="small" style={{ textAlign: 'center' }}>
                   <Statistic
                     title="销售额"
@@ -518,11 +564,22 @@ const UserAnalysis: React.FC = () => {
                   />
                 </Card>
               </Col>
-              <Col span={12}>
+              <Col span={8}>
                 <Card size="small" style={{ textAlign: 'center' }}>
                   <Statistic
                     title="优惠金额"
                     value={386000}
+                    precision={2}
+                    valueStyle={{ color: '#000000', fontSize: '24px' }}
+                    suffix="元"
+                  />
+                </Card>
+              </Col>
+              <Col span={8}>
+                <Card size="small" style={{ textAlign: 'center' }}>
+                  <Statistic
+                    title="人均订单金额"
+                    value={158.5}
                     precision={2}
                     valueStyle={{ color: '#000000', fontSize: '24px' }}
                     suffix="元"

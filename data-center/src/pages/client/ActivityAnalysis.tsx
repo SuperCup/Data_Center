@@ -3,7 +3,7 @@ import { Row, Col, Card, Statistic, Progress, Select, Typography, Button, Table,
 import { ShoppingOutlined, DollarOutlined, TagOutlined, AppstoreOutlined, QuestionCircleOutlined, SearchOutlined } from '@ant-design/icons';
 import { ScatterChart, Scatter, LineChart, Line as RechartsLine, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import dayjs from 'dayjs';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useParams } from 'react-router-dom';
 
 const { Option } = Select;
 const { Title, Text } = Typography;
@@ -133,6 +133,7 @@ const mockProducts = [
 
 const ActivityAnalysis: React.FC = () => {
   const location = useLocation();
+  const { activityId } = useParams<{ activityId?: string }>();
   const [selectedActivity, setSelectedActivity] = useState<string>('1');
   const [retailerType, setRetailerType] = useState<string>('all');
   const [retailerPage, setRetailerPage] = useState<number>(1);
@@ -150,8 +151,7 @@ const ActivityAnalysis: React.FC = () => {
   
   // 处理URL参数，设置默认选中的活动
   useEffect(() => {
-    const searchParams = new URLSearchParams(location.search);
-    const activityId = searchParams.get('activityId');
+    // 优先使用路由参数中的activityId
     if (activityId) {
       // 根据activityId映射到对应的活动ID
       const activityMapping: { [key: string]: string } = {
@@ -164,8 +164,25 @@ const ActivityAnalysis: React.FC = () => {
       };
       const mappedId = activityMapping[activityId] || '1';
       setSelectedActivity(mappedId);
+    } else {
+      // 如果没有路由参数，则检查查询参数
+      const searchParams = new URLSearchParams(location.search);
+      const queryActivityId = searchParams.get('activityId');
+      if (queryActivityId) {
+        // 根据activityId映射到对应的活动ID
+        const activityMapping: { [key: string]: string } = {
+          'ACT001': '1',
+          'ACT002': '2', 
+          'ACT003': '3',
+          'ACT004': '1', // 待开始活动映射到第一个活动
+          'ACT005': '1', // 待开始活动映射到第一个活动
+          'ACT006': '3'  // 已结束活动映射到第三个活动
+        };
+        const mappedId = activityMapping[queryActivityId] || '1';
+        setSelectedActivity(mappedId);
+      }
     }
-  }, [location.search]);
+  }, [location.search, activityId]);
   
   // 折线图可见性状态
   const [visibleLines, setVisibleLines] = useState({
@@ -353,9 +370,23 @@ const ActivityAnalysis: React.FC = () => {
 
   return (
       <div className="activity-analysis-container">
+        {/* 页面标题 */}
+        <div style={{ display: 'flex', alignItems: 'center', marginBottom: 16 }}>
+          <Title level={2} style={{ margin: 0, marginRight: 8 }}>活动分析</Title>
+          <AntTooltip title="分析单个活动的详细数据和趋势">
+            <QuestionCircleOutlined style={{ color: '#999', cursor: 'help' }} />
+          </AntTooltip>
+          <div style={{ marginLeft: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
+            <Text type="secondary">数据更新时间：2025-01-27 14:30:00</Text>
+            <Text type="secondary" style={{ fontSize: '12px', color: '#999' }}>
+              该数据仅作业务分析参考，不作为最终结算依据。
+            </Text>
+          </div>
+        </div>
+
+        {/* 筛选条件 */}
         <Card style={{ marginBottom: 16 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Title level={2} style={{ margin: 0 }}>活动分析</Title>
             <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <Text>时间筛选：</Text>
