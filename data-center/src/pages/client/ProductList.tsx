@@ -20,7 +20,7 @@ interface ProductData {
 const mockProductData: ProductData[] = [
   {
     key: '1',
-    productId: 'P001',
+    productId: '6901028089303',
     productName: '康师傅红烧牛肉面',
     category: '方便面',
     brand: '康师傅',
@@ -31,7 +31,7 @@ const mockProductData: ProductData[] = [
   },
   {
     key: '2',
-    productId: 'P002',
+    productId: '6901028089306',
     productName: '康师傅鲜虾鱼板面',
     category: '方便面',
     brand: '康师傅',
@@ -42,7 +42,7 @@ const mockProductData: ProductData[] = [
   },
   {
     key: '3',
-    productId: 'P003',
+    productId: '6901028089312',
     productName: '康师傅冰红茶',
     category: '饮料',
     brand: '康师傅',
@@ -53,7 +53,7 @@ const mockProductData: ProductData[] = [
   },
   {
     key: '4',
-    productId: 'P004',
+    productId: '6901028089311',
     productName: '康师傅绿茶',
     category: '饮料',
     brand: '康师傅',
@@ -64,7 +64,7 @@ const mockProductData: ProductData[] = [
   },
   {
     key: '5',
-    productId: 'P005',
+    productId: '6901028089305',
     productName: '康师傅酸菜牛肉面',
     category: '方便面',
     brand: '康师傅',
@@ -78,15 +78,14 @@ const mockProductData: ProductData[] = [
 const ProductList: React.FC = () => {
   const [searchText, setSearchText] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('');
-  const [selectedStatus, setSelectedStatus] = useState<string>('');
   const [filteredData, setFilteredData] = useState<ProductData[]>(mockProductData);
 
   const handleSearch = (value: string) => {
     setSearchText(value);
-    filterData(value, selectedCategory, selectedStatus);
+    filterData(value, selectedCategory);
   };
 
-  const filterData = (search: string, category: string, status: string) => {
+  const filterData = (search: string, category: string) => {
     let filtered = mockProductData;
 
     if (search) {
@@ -100,16 +99,12 @@ const ProductList: React.FC = () => {
       filtered = filtered.filter(item => item.category === category);
     }
 
-    if (status) {
-      filtered = filtered.filter(item => item.status === status);
-    }
-
     setFilteredData(filtered);
   };
 
   const columns = [
     {
-      title: '商品ID',
+      title: '商品69码',
       dataIndex: 'productId',
       key: 'productId',
       width: 100,
@@ -140,28 +135,6 @@ const ProductList: React.FC = () => {
       render: (price: number) => `¥${price.toFixed(2)}`,
     },
     {
-      title: '库存',
-      dataIndex: 'stock',
-      key: 'stock',
-      width: 100,
-      render: (stock: number) => (
-        <span style={{ color: stock === 0 ? '#ff4d4f' : '#52c41a' }}>
-          {stock}
-        </span>
-      ),
-    },
-    {
-      title: '状态',
-      dataIndex: 'status',
-      key: 'status',
-      width: 100,
-      render: (status: string) => (
-        <Tag color={status === '在售' ? 'green' : 'red'}>
-          {status}
-        </Tag>
-      ),
-    },
-    {
       title: '创建时间',
       dataIndex: 'createTime',
       key: 'createTime',
@@ -180,7 +153,7 @@ const ProductList: React.FC = () => {
       <Card style={{ marginBottom: 16 }}>
         <Space size="middle" wrap>
           <Input
-            placeholder="搜索商品名称或ID"
+            placeholder="搜索商品名称或69码"
             prefix={<SearchOutlined />}
             value={searchText}
             onChange={(e) => handleSearch(e.target.value)}
@@ -192,25 +165,12 @@ const ProductList: React.FC = () => {
             value={selectedCategory}
             onChange={(value) => {
               setSelectedCategory(value);
-              filterData(searchText, value, selectedStatus);
+              filterData(searchText, value);
             }}
             allowClear
           >
             <Option value="方便面">方便面</Option>
             <Option value="饮料">饮料</Option>
-          </Select>
-          <Select
-            placeholder="选择状态"
-            style={{ width: 120 }}
-            value={selectedStatus}
-            onChange={(value) => {
-              setSelectedStatus(value);
-              filterData(searchText, selectedCategory, value);
-            }}
-            allowClear
-          >
-            <Option value="在售">在售</Option>
-            <Option value="缺货">缺货</Option>
           </Select>
           <Button 
             type="primary" 

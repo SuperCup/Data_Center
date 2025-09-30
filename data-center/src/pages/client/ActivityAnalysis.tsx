@@ -373,9 +373,6 @@ const ActivityAnalysis: React.FC = () => {
         {/* 页面标题 */}
         <div style={{ display: 'flex', alignItems: 'center', marginBottom: 16 }}>
           <Title level={2} style={{ margin: 0, marginRight: 8 }}>活动分析</Title>
-          <AntTooltip title="分析单个活动的详细数据和趋势">
-            <QuestionCircleOutlined style={{ color: '#999', cursor: 'help' }} />
-          </AntTooltip>
           <div style={{ marginLeft: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
             <Text type="secondary">数据更新时间：2025-01-27 14:30:00</Text>
             <Text type="secondary" style={{ fontSize: '12px', color: '#999' }}>

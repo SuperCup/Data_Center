@@ -194,7 +194,13 @@ const ClientLayout: React.FC = () => {
           display: 'flex',
           justifyContent: 'flex-end',
           alignItems: 'center',
-          borderBottom: '1px solid #f0f0f0'
+          borderBottom: '1px solid #f0f0f0',
+          position: 'fixed',
+          top: 0,
+          right: 0,
+          left: 240,
+          zIndex: 99,
+          height: 64
         }}>
           {/* 用户信息区域 */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
@@ -228,7 +234,8 @@ const ClientLayout: React.FC = () => {
           padding: 24, 
           background: colorBgContainer, 
           borderRadius: borderRadiusLG, 
-          minHeight: 'calc(100vh - 112px)' 
+          minHeight: 'calc(100vh - 112px)',
+          marginTop: 88
         }}>
           <Outlet />
         </Content>
