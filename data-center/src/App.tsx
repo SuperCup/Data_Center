@@ -14,7 +14,6 @@ import CustomRequestManagement from './pages/business/CustomRequestManagement';
 import Dashboard from './pages/client/Dashboard';
 import AllActivities from './pages/client/AllActivities';
 import ActivityAnalysis from './pages/client/ActivityAnalysis';
-import CouponAnalysis from './pages/client/CouponAnalysis';
 import UserAnalysis from './pages/client/UserAnalysis';
 import CouponDetail from './pages/client/CouponDetail';
 import MechanismEffect from './pages/client/MechanismEffect';
@@ -47,7 +46,7 @@ function App() {
           <Route path="all-activities" element={<AllActivities />} />
           <Route path="activity-analysis" element={<ActivityAnalysis />} />
           <Route path="activity-analysis/:activityId" element={<ActivityAnalysis />} />
-          <Route path="coupon-analysis" element={<CouponAnalysis />} />
+
           <Route path="user-analysis" element={<UserAnalysis />} />
           <Route path="coupon-detail/:couponId" element={<CouponDetail />} />
           <Route path="product-list" element={<ProductList />} />

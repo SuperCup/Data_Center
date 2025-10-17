@@ -131,7 +131,7 @@ const CouponDetail: React.FC = () => {
   ];
 
   const handleBack = () => {
-    navigate('/client/coupon-analysis');
+    navigate('/client/all-activities');
   };
 
   const getStatusColor = (status: string) => {

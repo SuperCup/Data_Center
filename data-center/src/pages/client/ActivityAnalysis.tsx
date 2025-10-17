@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Row, Col, Card, Statistic, Progress, Select, Typography, Button, Table, Pagination, Radio, Tag, Tooltip as AntTooltip, DatePicker, Modal } from 'antd';
-import { ShoppingOutlined, DollarOutlined, TagOutlined, AppstoreOutlined, QuestionCircleOutlined, SearchOutlined } from '@ant-design/icons';
+import { ShoppingOutlined, DollarOutlined, TagOutlined, AppstoreOutlined, QuestionCircleOutlined, SearchOutlined, PushpinOutlined, PushpinFilled } from '@ant-design/icons';
 import { ScatterChart, Scatter, LineChart, Line as RechartsLine, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import dayjs from 'dayjs';
 import { useLocation, useParams } from 'react-router-dom';
@@ -117,18 +117,18 @@ const mockRetailers = [
 
 // 模拟商品数据
 const mockProducts = [
-  { id: '1', name: '6923333422康师傅红烧牛肉面', gmv: 185000, discount: 7500, usedCount: 820, trend: { sales: [15, 18, 22, 25, 30], discount: [0.6, 0.7, 0.8, 0.9, 1.0] } },
-  { id: '2', name: '6923333423康师傅香辣牛肉面', gmv: 175000, discount: 7200, usedCount: 780, trend: { sales: [14, 17, 20, 23, 28], discount: [0.5, 0.6, 0.7, 0.8, 0.9] } },
-  { id: '3', name: '6923333424康师傅老坛酸菜面', gmv: 165000, discount: 6800, usedCount: 720, trend: { sales: [13, 16, 19, 22, 26], discount: [0.4, 0.5, 0.6, 0.7, 0.8] } },
-  { id: '4', name: '6923333425康师傅鲜虾鱼板面', gmv: 155000, discount: 6500, usedCount: 680, trend: { sales: [12, 15, 18, 21, 24], discount: [0.4, 0.5, 0.6, 0.7, 0.8] } },
-  { id: '5', name: '6923333426康师傅西红柿鸡蛋面', gmv: 145000, discount: 6200, usedCount: 640, trend: { sales: [11, 14, 17, 20, 23], discount: [0.3, 0.4, 0.5, 0.6, 0.7] } },
-  { id: '6', name: '6923333427康师傅麻辣牛肉面', gmv: 135000, discount: 5800, usedCount: 600, trend: { sales: [10, 13, 16, 19, 22], discount: [0.3, 0.4, 0.5, 0.6, 0.7] } },
-  { id: '7', name: '6923333428康师傅香菇炖鸡面', gmv: 125000, discount: 5500, usedCount: 560, trend: { sales: [9, 12, 15, 18, 20], discount: [0.2, 0.3, 0.4, 0.5, 0.6] } },
-  { id: '8', name: '6923333429康师傅酸辣牛肉面', gmv: 115000, discount: 5200, usedCount: 520, trend: { sales: [8, 11, 14, 17, 19], discount: [0.2, 0.3, 0.4, 0.5, 0.6] } },
-  { id: '9', name: '6923333430康师傅鲜虾面', gmv: 105000, discount: 4800, usedCount: 480, trend: { sales: [7, 10, 13, 16, 18], discount: [0.2, 0.3, 0.4, 0.5, 0.6] } },
-  { id: '10', name: '6923333431康师傅排骨面', gmv: 95000, discount: 4500, usedCount: 440, trend: { sales: [6, 9, 12, 15, 17], discount: [0.1, 0.2, 0.3, 0.4, 0.5] } },
-  { id: '11', name: '6923333432康师傅海鲜面', gmv: 85000, discount: 4200, usedCount: 400, trend: { sales: [5, 8, 11, 14, 16], discount: [0.1, 0.2, 0.3, 0.4, 0.5] } },
-  { id: '12', name: '6923333433康师傅蘑菇面', gmv: 75000, discount: 3800, usedCount: 360, trend: { sales: [4, 7, 10, 13, 15], discount: [0.1, 0.2, 0.3, 0.4, 0.5] } }
+  { id: '1', name: '康师傅红烧牛肉面', code: '6923333422', gmv: 185000, discount: 7500, usedCount: 820, salesCount: 8200, trend: { sales: [15, 18, 22, 25, 30], discount: [0.6, 0.7, 0.8, 0.9, 1.0] } },
+  { id: '2', name: '康师傅香辣牛肉面', code: '6923333423', gmv: 175000, discount: 7200, usedCount: 780, salesCount: 7800, trend: { sales: [14, 17, 20, 23, 28], discount: [0.5, 0.6, 0.7, 0.8, 0.9] } },
+  { id: '3', name: '康师傅老坛酸菜面', code: '6923333424', gmv: 165000, discount: 6800, usedCount: 720, salesCount: 7200, trend: { sales: [13, 16, 19, 22, 26], discount: [0.4, 0.5, 0.6, 0.7, 0.8] } },
+  { id: '4', name: '康师傅鲜虾鱼板面', code: '6923333425', gmv: 155000, discount: 6500, usedCount: 680, salesCount: 6800, trend: { sales: [12, 15, 18, 21, 24], discount: [0.4, 0.5, 0.6, 0.7, 0.8] } },
+  { id: '5', name: '康师傅西红柿鸡蛋面', code: '6923333426', gmv: 145000, discount: 6200, usedCount: 640, salesCount: 6400, trend: { sales: [11, 14, 17, 20, 23], discount: [0.3, 0.4, 0.5, 0.6, 0.7] } },
+  { id: '6', name: '康师傅麻辣牛肉面', code: '6923333427', gmv: 135000, discount: 5800, usedCount: 600, salesCount: 6000, trend: { sales: [10, 13, 16, 19, 22], discount: [0.3, 0.4, 0.5, 0.6, 0.7] } },
+  { id: '7', name: '康师傅香菇炖鸡面', code: '6923333428', gmv: 125000, discount: 5500, usedCount: 560, salesCount: 5600, trend: { sales: [9, 12, 15, 18, 20], discount: [0.2, 0.3, 0.4, 0.5, 0.6] } },
+  { id: '8', name: '康师傅酸辣牛肉面', code: '6923333429', gmv: 115000, discount: 5200, usedCount: 520, salesCount: 5200, trend: { sales: [8, 11, 14, 17, 19], discount: [0.2, 0.3, 0.4, 0.5, 0.6] } },
+  { id: '9', name: '康师傅鲜虾面', code: '6923333430', gmv: 105000, discount: 4800, usedCount: 480, salesCount: 4800, trend: { sales: [7, 10, 13, 16, 18], discount: [0.2, 0.3, 0.4, 0.5, 0.6] } },
+  { id: '10', name: '康师傅排骨面', code: '6923333431', gmv: 95000, discount: 4500, usedCount: 440, salesCount: 4400, trend: { sales: [6, 9, 12, 15, 17], discount: [0.1, 0.2, 0.3, 0.4, 0.5] } },
+  { id: '11', name: '康师傅海鲜面', code: '6923333432', gmv: 85000, discount: 4200, usedCount: 400, salesCount: 4000, trend: { sales: [5, 8, 11, 14, 16], discount: [0.1, 0.2, 0.3, 0.4, 0.5] } },
+  { id: '12', name: '康师傅蘑菇面', code: '6923333433', gmv: 75000, discount: 3800, usedCount: 360, salesCount: 3600, trend: { sales: [4, 7, 10, 13, 15], discount: [0.1, 0.2, 0.3, 0.4, 0.5] } }
 ];
 
 const ActivityAnalysis: React.FC = () => {
@@ -148,6 +148,7 @@ const ActivityAnalysis: React.FC = () => {
   const [selectedRetailerTrend, setSelectedRetailerTrend] = useState<any>(null);
   const [productTrendModalVisible, setProductTrendModalVisible] = useState<boolean>(false);
   const [selectedProductTrend, setSelectedProductTrend] = useState<any>(null);
+  const [pinnedProducts, setPinnedProducts] = useState<Set<string>>(new Set());
   
   // 处理URL参数，设置默认选中的活动
   useEffect(() => {
@@ -187,10 +188,10 @@ const ActivityAnalysis: React.FC = () => {
   // 折线图可见性状态
   const [visibleLines, setVisibleLines] = useState({
     gmv: true,
-    usedCount: false,
-    batchCount: false,
-    discount: false,
-    usageRate: false
+    orderCount: false,
+    avgPrice: false,
+    roi: false,
+    discount: false
   });
 
   // 获取当前选中的活动数据
@@ -198,13 +199,13 @@ const ActivityAnalysis: React.FC = () => {
   
   // 模拟趋势数据
   const mockTrends = [
-    { date: '2025-01-01', gmv: 120000, usedCount: 15000, batchCount: 80, discount: 25000, usageRate: 75.2 },
-    { date: '2025-01-02', gmv: 135000, usedCount: 16500, batchCount: 85, discount: 28000, usageRate: 76.8 },
-    { date: '2025-01-03', gmv: 142500, usedCount: 18750, batchCount: 120, discount: 32500, usageRate: 78.5 },
-    { date: '2025-01-04', gmv: 138000, usedCount: 17200, batchCount: 95, discount: 30000, usageRate: 77.1 },
-    { date: '2025-01-05', gmv: 145000, usedCount: 19000, batchCount: 110, discount: 33500, usageRate: 79.2 },
-    { date: '2025-01-06', gmv: 152000, usedCount: 20500, batchCount: 125, discount: 35000, usageRate: 80.1 },
-    { date: '2025-01-07', gmv: 148000, usedCount: 19800, batchCount: 115, discount: 34000, usageRate: 79.5 }
+    { date: '2025-01-01', gmv: 120000, orderCount: 5500, avgPrice: 21.8, roi: 3.7, discount: 25000 },
+    { date: '2025-01-02', gmv: 135000, orderCount: 6200, avgPrice: 21.8, roi: 4.1, discount: 28000 },
+    { date: '2025-01-03', gmv: 142500, orderCount: 6500, avgPrice: 21.9, roi: 4.4, discount: 32500 },
+    { date: '2025-01-04', gmv: 138000, orderCount: 6300, avgPrice: 21.9, roi: 4.2, discount: 30000 },
+    { date: '2025-01-05', gmv: 145000, orderCount: 6600, avgPrice: 22.0, roi: 4.3, discount: 33500 },
+    { date: '2025-01-06', gmv: 152000, orderCount: 6900, avgPrice: 22.0, roi: 4.3, discount: 35000 },
+    { date: '2025-01-07', gmv: 148000, orderCount: 6700, avgPrice: 22.1, roi: 4.4, discount: 34000 }
   ];
 
   // 零售商分页数据
@@ -215,10 +216,23 @@ const ActivityAnalysis: React.FC = () => {
   const retailerStartIndex = (retailerPage - 1) * retailerPageSize;
   const currentRetailers = filteredRetailers.slice(retailerStartIndex, retailerStartIndex + retailerPageSize);
 
-  // 商品分页数据
+  // 获取排序后的商品数据（置顶商品在前）
+  const getSortedProducts = () => {
+    const pinnedProductsList = mockProducts.filter(product => pinnedProducts.has(product.id));
+    const unpinnedProductsList = mockProducts.filter(product => !pinnedProducts.has(product.id));
+    
+    // 按销售额排序（降序）
+    const sortedPinned = pinnedProductsList.sort((a, b) => b.gmv - a.gmv);
+    const sortedUnpinned = unpinnedProductsList.sort((a, b) => b.gmv - a.gmv);
+    
+    return [...sortedPinned, ...sortedUnpinned];
+  };
+
+  // 商品分页数据（使用排序后的数据）
   const productPageSize = 10;
+  const sortedProducts = getSortedProducts();
   const productStartIndex = (productPage - 1) * productPageSize;
-  const currentProducts = mockProducts.slice(productStartIndex, productStartIndex + productPageSize);
+  const currentProducts = sortedProducts.slice(productStartIndex, productStartIndex + productPageSize);
 
   // 零售商表格列定义
   const retailerColumns = [
@@ -242,6 +256,16 @@ const ActivityAnalysis: React.FC = () => {
       render: (value: number) => value.toLocaleString(),
     },
     {
+      title: '贡献值(%)',
+      key: 'contributionRate',
+      width: 100,
+      render: (record: any) => {
+        const totalGmv = mockRetailers.reduce((sum, retailer) => sum + retailer.gmv, 0);
+        const contributionRate = ((record.gmv / totalGmv) * 100).toFixed(1);
+        return `${contributionRate}%`;
+      },
+    },
+    {
       title: '优惠金额(元)',
       dataIndex: 'discount',
       key: 'discount',
@@ -249,7 +273,7 @@ const ActivityAnalysis: React.FC = () => {
       render: (value: number) => value.toLocaleString(),
     },
     {
-      title: '核销数',
+      title: '订单数',
       dataIndex: 'usedCount',
       key: 'usedCount',
       width: 90,
@@ -261,12 +285,6 @@ const ActivityAnalysis: React.FC = () => {
       key: 'avgPrice',
       width: 90,
       render: (value: number) => value.toFixed(1),
-    },
-    {
-      title: '动销SKU数',
-      dataIndex: 'activeSku',
-      key: 'activeSku',
-      width: 100,
     },
     {
       title: '趋势',
@@ -297,15 +315,32 @@ const ActivityAnalysis: React.FC = () => {
     },
     {
       title: '商品名称',
-      dataIndex: 'name',
       key: 'name',
       width: 200,
+      render: (record: any) => `${record.name}(${record.code})`,
     },
     {
       title: '销售额(元)',
       dataIndex: 'gmv',
       key: 'gmv',
       width: 110,
+      render: (value: number) => value.toLocaleString(),
+    },
+    {
+      title: '贡献值(%)',
+      key: 'contributionRate',
+      width: 100,
+      render: (record: any) => {
+        const totalGmv = mockProducts.reduce((sum, product) => sum + product.gmv, 0);
+        const contributionRate = ((record.gmv / totalGmv) * 100).toFixed(1);
+        return `${contributionRate}%`;
+      },
+    },
+    {
+      title: '销售件数',
+      dataIndex: 'salesCount',
+      key: 'salesCount',
+      width: 90,
       render: (value: number) => value.toLocaleString(),
     },
     {
@@ -316,11 +351,18 @@ const ActivityAnalysis: React.FC = () => {
       render: (value: number) => value.toLocaleString(),
     },
     {
-      title: '核销数',
-      dataIndex: 'usedCount',
-      key: 'usedCount',
-      width: 90,
-      render: (value: number) => value.toLocaleString(),
+      title: '操作',
+      key: 'action',
+      width: 80,
+      render: (record: any) => (
+        <Button
+          type="text"
+          size="small"
+          icon={pinnedProducts.has(record.id) ? <PushpinFilled style={{ color: '#1890ff' }} /> : <PushpinOutlined />}
+          onClick={() => handleTogglePin(record.id)}
+          title={pinnedProducts.has(record.id) ? '取消置顶' : '置顶'}
+        />
+      ),
     },
     {
       title: '趋势',
@@ -367,6 +409,20 @@ const ActivityAnalysis: React.FC = () => {
     setProductTrendModalVisible(false);
     setSelectedProductTrend(null);
   };
+
+  // 置顶功能处理函数
+  const handleTogglePin = (productId: string) => {
+    const newPinnedProducts = new Set(pinnedProducts);
+    if (newPinnedProducts.has(productId)) {
+      newPinnedProducts.delete(productId);
+    } else {
+      newPinnedProducts.add(productId);
+    }
+    setPinnedProducts(newPinnedProducts);
+  };
+
+
+
 
   return (
       <div className="activity-analysis-container">
@@ -481,6 +537,31 @@ const ActivityAnalysis: React.FC = () => {
       {/* 3. 核心指标 */}
       <Card title="核心指标" style={{ marginBottom: 0, borderBottom: 'none' }}>
         <Row gutter={0} style={{ display: 'flex', justifyContent: 'space-between' }}>
+          {/* 活动数 */}
+          <Col style={{ width: 'calc(20% - 8px)' }}>
+            <Card>
+              <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
+                <span style={{ fontSize: '14px', color: '#000000' }}>活动数</span>
+                <AntTooltip 
+                  title={
+                    <div style={{ maxWidth: 300 }}>
+                      <div>当前选择的活动数量</div>
+                    </div>
+                  }
+                  placement="topLeft"
+                >
+                  <QuestionCircleOutlined style={{ marginLeft: 4, color: '#000000', cursor: 'help' }} />
+                </AntTooltip>
+              </div>
+              <Statistic
+                title=""
+                value={1}
+                precision={0}
+                valueStyle={{ color: '#262626', fontSize: '24px', fontWeight: 'bold' }}
+              />
+            </Card>
+          </Col>
+          
           {/* 活动销售额 */}
           <Col style={{ width: 'calc(20% - 8px)' }}>
             <Card>
@@ -511,11 +592,66 @@ const ActivityAnalysis: React.FC = () => {
             </Card>
           </Col>
           
-          {/* 核券数 */}
+          {/* 优惠金额 */}
           <Col style={{ width: 'calc(20% - 8px)' }}>
             <Card>
               <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
-                <span style={{ fontSize: '14px', color: '#000000' }}>核券数</span>
+                <span style={{ fontSize: '14px', color: '#000000' }}>优惠金额</span>
+                <AntTooltip 
+                  title={
+                    <div style={{ maxWidth: 300 }}>
+                      <div style={{ marginBottom: 8, fontWeight: 'bold' }}>该数据仅供参考，不作为最终结算依据</div>
+                      <div style={{ marginBottom: 4 }}><strong>微信/支付宝平台：</strong></div>
+                      <div style={{ marginBottom: 8 }}>所有订单的优惠金额之和（已扣除退款）</div>
+                      <div style={{ marginBottom: 4 }}><strong>抖音到店：</strong></div>
+                      <div>待补充</div>
+                    </div>
+                  }
+                  placement="topLeft"
+                >
+                  <QuestionCircleOutlined style={{ marginLeft: 4, color: '#000000', cursor: 'help' }} />
+                </AntTooltip>
+              </div>
+              <Statistic
+                title=""
+                value={currentActivity.discount}
+                precision={0}
+                valueStyle={{ color: '#262626', fontSize: '24px', fontWeight: 'bold' }}
+                suffix="元"
+              />
+            </Card>
+          </Col>
+          
+          {/* ROI */}
+          <Col style={{ width: 'calc(20% - 8px)' }}>
+            <Card>
+              <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
+                <span style={{ fontSize: '14px', color: '#000000' }}>ROI</span>
+                <AntTooltip 
+                  title={
+                    <div style={{ maxWidth: 300 }}>
+                      <div>活动销售额 ÷ 优惠金额</div>
+                    </div>
+                  }
+                  placement="topLeft"
+                >
+                  <QuestionCircleOutlined style={{ marginLeft: 4, color: '#000000', cursor: 'help' }} />
+                </AntTooltip>
+              </div>
+              <Statistic
+                title=""
+                value={currentActivity.gmv / currentActivity.discount}
+                precision={1}
+                valueStyle={{ color: '#262626', fontSize: '24px', fontWeight: 'bold' }}
+              />
+            </Card>
+          </Col>
+          
+          {/* 订单数 */}
+          <Col style={{ width: 'calc(20% - 8px)' }}>
+            <Card>
+              <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
+                <span style={{ fontSize: '14px', color: '#000000' }}>订单数</span>
                 <AntTooltip 
                   title={
                     <div style={{ maxWidth: 300 }}>
@@ -538,90 +674,6 @@ const ActivityAnalysis: React.FC = () => {
               />
             </Card>
           </Col>
-          
-          {/* 批次数 */}
-          <Col style={{ width: 'calc(20% - 8px)' }}>
-            <Card>
-              <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
-                <span style={{ fontSize: '14px', color: '#000000' }}>批次数</span>
-                <AntTooltip 
-                  title={
-                    <div style={{ maxWidth: 300 }}>
-                      <div>平台侧创建的批次数量之和</div>
-                    </div>
-                  }
-                  placement="topLeft"
-                >
-                  <QuestionCircleOutlined style={{ marginLeft: 4, color: '#000000', cursor: 'help' }} />
-                </AntTooltip>
-              </div>
-              <Statistic
-                title=""
-                value={currentActivity.batchCount}
-                precision={0}
-                valueStyle={{ color: '#262626', fontSize: '24px', fontWeight: 'bold' }}
-              />
-            </Card>
-          </Col>
-          
-          {/* 优惠金额 */}
-          <Col style={{ width: 'calc(20% - 8px)' }}>
-            <Card>
-              <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
-                <span style={{ fontSize: '14px', color: '#000000' }}>优惠金额</span>
-                <AntTooltip 
-                  title={
-                    <div style={{ maxWidth: 300 }}>
-                      <div style={{ marginBottom: 4 }}><strong>微信/支付宝：</strong></div>
-                      <div style={{ marginBottom: 8 }}>账单中返回的优惠金额之和（已扣除退款）</div>
-                      <div style={{ marginBottom: 4 }}><strong>抖音到店：</strong></div>
-                      <div>待补充</div>
-                    </div>
-                  }
-                  placement="topLeft"
-                >
-                  <QuestionCircleOutlined style={{ marginLeft: 4, color: '#000000', cursor: 'help' }} />
-                </AntTooltip>
-              </div>
-              <Statistic
-                title=""
-                value={currentActivity.discount}
-                precision={0}
-                valueStyle={{ color: '#262626', fontSize: '24px', fontWeight: 'bold' }}
-                suffix="元"
-              />
-            </Card>
-          </Col>
-          
-          {/* 核销率 */}
-          <Col style={{ width: 'calc(20% - 8px)' }}>
-            <Card>
-              <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
-                <span style={{ fontSize: '14px', color: '#000000' }}>核销率</span>
-                <AntTooltip 
-                  title={
-                    <div style={{ maxWidth: 300 }}>
-                      <div style={{ marginBottom: 8, fontWeight: 'bold' }}>仅供参考</div>
-                      <div style={{ marginBottom: 4 }}><strong>微信/支付宝：</strong></div>
-                      <div style={{ marginBottom: 8 }}>(未退款账单之和/平台活动详情中的领券数之和)×100%</div>
-                      <div style={{ marginBottom: 4 }}><strong>抖音到店：</strong></div>
-                      <div>待补充</div>
-                    </div>
-                  }
-                  placement="topLeft"
-                >
-                  <QuestionCircleOutlined style={{ marginLeft: 4, color: '#000000', cursor: 'help' }} />
-                </AntTooltip>
-              </div>
-              <Statistic
-                title=""
-                value={currentActivity.usageRate}
-                precision={1}
-                valueStyle={{ color: '#262626', fontSize: '24px', fontWeight: 'bold' }}
-                suffix="%"
-              />
-            </Card>
-          </Col>
         </Row>
       </Card>
 
@@ -630,11 +682,11 @@ const ActivityAnalysis: React.FC = () => {
         {/* 指标选择器 */}
         <div style={{ marginBottom: 16, display: 'flex', alignItems: 'center', gap: '20px', flexWrap: 'wrap' }}>
           {[
-            { key: 'gmv', label: '活动销售额', color: '#1890ff' },
-        { key: 'usedCount', label: '核券数', color: '#40a9ff' },
-        { key: 'batchCount', label: '批次数', color: '#096dd9' },
-        { key: 'discount', label: '优惠金额', color: '#69c0ff' },
-        { key: 'usageRate', label: '核销率', color: '#91d5ff' }
+            { key: 'activityCount', label: '活动数', color: '#1890ff' },
+            { key: 'gmv', label: '活动销售额', color: '#40a9ff' },
+            { key: 'discount', label: '优惠金额', color: '#096dd9' },
+            { key: 'roi', label: 'ROI', color: '#91d5ff' },
+            { key: 'orderCount', label: '订单数', color: '#69c0ff' }
           ].map(metric => (
             <div 
               key={metric.key} 
@@ -650,10 +702,10 @@ const ActivityAnalysis: React.FC = () => {
               }}
               onClick={() => setVisibleLines({
                 gmv: false,
-                usedCount: false,
-                batchCount: false,
+                orderCount: false,
+                avgPrice: false,
+                roi: false,
                 discount: false,
-                usageRate: false,
                 [metric.key]: true
               })}
               onMouseEnter={(e) => {
@@ -698,15 +750,15 @@ const ActivityAnalysis: React.FC = () => {
               <YAxis yAxisId="right" orientation="right" />
               <Tooltip formatter={(value, name) => {
                 const metricLabels: {[key: string]: string} = {
+                  'activityCount': '活动数',
                   'gmv': '活动销售额',
-                  'usedCount': '核券数',
-                  'batchCount': '活动数',
                   'discount': '优惠金额',
-                  'usageRate': '核销率'
+                  'roi': 'ROI',
+                  'orderCount': '订单数'
                 };
                 
-                if (name === 'usageRate') {
-                  return [`${value}%`, metricLabels[name as string]];
+                if (name === 'roi') {
+                  return [`${value}`, metricLabels[name as string]];
                 } else if (name === 'gmv' || name === 'discount') {
                   return [`${(value as number).toLocaleString()} 元`, metricLabels[name as string]];
                 } else {
@@ -716,39 +768,27 @@ const ActivityAnalysis: React.FC = () => {
               <Legend />
               
               {/* 动态渲染所有可见的折线 */}
+              {visibleLines.orderCount && (
+                <RechartsLine
+                  yAxisId="left"
+                  type="monotone"
+                  dataKey="orderCount"
+                  stroke="#1890ff"
+                  strokeWidth={2}
+                  activeDot={{ r: 6 }}
+                  name="订单数"
+                />
+              )}
+              
               {visibleLines.gmv && (
                 <RechartsLine
                   yAxisId="left"
                   type="monotone"
                   dataKey="gmv"
-                  stroke="#1890ff"
-                  strokeWidth={2}
-                  activeDot={{ r: 6 }}
-                  name="活动销售额"
-                />
-              )}
-              
-              {visibleLines.usedCount && (
-                <RechartsLine
-                  yAxisId="left"
-                  type="monotone"
-                  dataKey="usedCount"
                   stroke="#40a9ff"
                   strokeWidth={2}
                   activeDot={{ r: 6 }}
-                  name="核券数"
-                />
-              )}
-              
-              {visibleLines.batchCount && (
-                <RechartsLine
-                  yAxisId="left"
-                  type="monotone"
-                  dataKey="batchCount"
-                  stroke="#096dd9"
-                  strokeWidth={2}
-                  activeDot={{ r: 6 }}
-                  name="批次数"
+                  name="活动销售额"
                 />
               )}
               
@@ -757,22 +797,34 @@ const ActivityAnalysis: React.FC = () => {
                   yAxisId="left"
                   type="monotone"
                   dataKey="discount"
-                  stroke="#69c0ff"
+                  stroke="#096dd9"
                   strokeWidth={2}
                   activeDot={{ r: 6 }}
                   name="优惠金额"
                 />
               )}
               
-              {visibleLines.usageRate && (
+              {visibleLines.roi && (
                 <RechartsLine
                   yAxisId="right"
                   type="monotone"
-                  dataKey="usageRate"
+                  dataKey="roi"
                   stroke="#91d5ff"
                   strokeWidth={2}
                   activeDot={{ r: 6 }}
-                  name="核销率"
+                  name="ROI"
+                />
+              )}
+              
+              {visibleLines.orderCount && (
+                <RechartsLine
+                  yAxisId="left"
+                  type="monotone"
+                  dataKey="orderCount"
+                  stroke="#69c0ff"
+                  strokeWidth={2}
+                  activeDot={{ r: 6 }}
+                  name="订单数"
                 />
               )}
             </LineChart>
@@ -782,42 +834,35 @@ const ActivityAnalysis: React.FC = () => {
 
       {/* 4. 批次对比 */}
       <Card title="批次对比" style={{ marginBottom: 16 }}>
+        <div style={{ marginBottom: 12, fontSize: '14px', color: '#666' }}>
+          <strong>贡献值说明：</strong>单批次销售额占活动总销售额的占比
+        </div>
         <div style={{ height: 400 }}>
           <ResponsiveContainer width="100%" height="100%">
             <ScatterChart
-              data={currentActivity?.batches || []}
+              data={currentActivity?.batches?.map(batch => ({
+                ...batch,
+                contributionRate: ((batch.gmv / currentActivity.gmv) * 100).toFixed(1),
+                roi: (batch.gmv / batch.discount).toFixed(2)
+              })) || []}
               margin={{ top: 20, right: 20, bottom: 60, left: 60 }}
             >
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis 
-                dataKey="gmv" 
+                dataKey="roi" 
                 type="number" 
-                name="销售额"
-                unit="万元"
-                tickFormatter={(value) => `${(value / 10000).toFixed(1)}`}
-                label={{ value: '销售额', position: 'insideBottomRight', offset: -10 }}
+                name="ROI"
+                tickFormatter={(value) => `${value}`}
+                label={{ value: 'ROI', position: 'insideBottomRight', offset: -10 }}
               />
               <YAxis 
-                dataKey="discount" 
+                dataKey="contributionRate" 
                 type="number" 
-                name="优惠金额"
-                unit="万元"
-                tickFormatter={(value) => `${(value / 10000).toFixed(1)}`}
-                label={{ value: '优惠金额', angle: 0, position: 'insideTopLeft', textAnchor: 'start', offset: 10, dx: -50 }}
+                name="贡献值"
+                tickFormatter={(value) => `${value}%`}
+                label={{ value: '贡献值(%)', angle: 0, position: 'insideTopLeft', textAnchor: 'start', offset: 10, dx: -50 }}
               />
               <Tooltip 
-                  formatter={(value, name, props) => {
-                    if (name === 'discount') {
-                      return [`${(Number(value) / 10000).toFixed(1)}万元`, '优惠金额'];
-                    }
-                    return [`${(Number(value) / 10000).toFixed(1)}万元`, '销售金额'];
-                  }}
-                  labelFormatter={(label, payload) => {
-                    if (payload && payload[0]) {
-                      return payload[0].payload.name;
-                    }
-                    return '';
-                  }}
                   content={({ active, payload, label }) => {
                     if (active && payload && payload.length) {
                       const data = payload[0].payload;
@@ -830,15 +875,17 @@ const ActivityAnalysis: React.FC = () => {
                           boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
                         }}>
                           <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>{data.name}</div>
-                          <div>优惠金额：{(data.discount / 10000).toFixed(1)}万元</div>
+                          <div>贡献值：{data.contributionRate}%</div>
+                          <div>ROI：{data.roi}</div>
                           <div>销售额：{(data.gmv / 10000).toFixed(1)}万元</div>
+                          <div>优惠金额：{(data.discount / 10000).toFixed(1)}万元</div>
                         </div>
                       );
                     }
                     return null;
                   }}
                 />
-              <Scatter dataKey="discount" fill="#8884d8" />
+              <Scatter dataKey="contributionRate" fill="#8884d8" />
             </ScatterChart>
           </ResponsiveContainer>
         </div>
@@ -889,7 +936,18 @@ const ActivityAnalysis: React.FC = () => {
       {/* 6. 商品 */}
       <Row gutter={16}>
         <Col span={24}>
-          <Card title="商品" style={{ marginBottom: 16 }}>
+          <Card 
+            title={
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span>商品</span>
+                {/* 排序功能说明，仅对精明购业务角色可见，客户账号不可见 */}
+                <Text type="secondary" style={{ fontSize: '12px', fontWeight: 'normal' }}>
+                  （排序功能为精明购业务角色可用，客户账号只可见排序结果）
+                </Text>
+              </div>
+            } 
+            style={{ marginBottom: 16 }}
+          >
             <Table
               columns={productColumns}
               dataSource={currentProducts}
@@ -900,7 +958,7 @@ const ActivityAnalysis: React.FC = () => {
             <div style={{ marginTop: 16, textAlign: 'center' }}>
               <Pagination
                 current={productPage}
-                total={mockProducts.length}
+                total={sortedProducts.length}
                 pageSize={productPageSize}
                 onChange={setProductPage}
                 showSizeChanger={false}
@@ -931,36 +989,49 @@ const ActivityAnalysis: React.FC = () => {
                   const intervalDays = Math.floor(totalDays / (selectedRetailerTrend.trend.sales.length - 1));
                   const currentDate = startDate.add(index * intervalDays, 'day');
                   
+                  // 计算贡献值（当前零售商销售额占总销售额的百分比）
+                  const totalGmv = mockRetailers.reduce((sum, retailer) => sum + retailer.gmv, 0);
+                  const contributionRate = ((sales * 10000) / totalGmv) * 100;
+                  
                   return {
                     period: currentDate.format('MM-DD'),
                     sales: sales * 10000,
-                    discount: selectedRetailerTrend.trend.discount[index] * 10000
+                    discount: selectedRetailerTrend.trend.discount[index] * 10000,
+                    contributionRate: contributionRate
                   };
                 })}
-                margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+                margin={{ top: 20, right: 50, left: 20, bottom: 20 }}
               >
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="period" />
-                <YAxis />
+                <YAxis yAxisId="left" label={{ value: 'GMV (万元)', angle: -90, position: 'insideLeft' }} />
+                <YAxis yAxisId="right" orientation="right" label={{ value: '贡献值 (%)', angle: 90, position: 'insideRight' }} />
                 <Tooltip 
-                  formatter={(value: number, name: string) => [
-                    `${(value / 10000).toFixed(1)}万元`,
-                    name === 'sales' ? '销售额' : '优惠金额'
-                  ]}
+                  formatter={(value: number, name: string, props: any) => {
+                    const dataKey = props.dataKey;
+                    if (dataKey === 'sales') {
+                      return [`${(value / 10000).toFixed(1)}万元`, 'GMV'];
+                    } else if (dataKey === 'contributionRate') {
+                      return [`${value.toFixed(2)}%`, '贡献值'];
+                    }
+                    return [`${(value / 10000).toFixed(1)}万元`, '优惠金额'];
+                  }}
                 />
                 <Legend />
                 <RechartsLine 
+                  yAxisId="left"
                   type="monotone" 
                   dataKey="sales" 
                   stroke="#8884d8" 
-                  name="销售额"
+                  name="GMV"
                   strokeWidth={2}
                 />
                 <RechartsLine 
+                  yAxisId="right"
                   type="monotone" 
-                  dataKey="discount" 
-                  stroke="#82ca9d" 
-                  name="优惠金额"
+                  dataKey="contributionRate" 
+                  stroke="#ff7300" 
+                  name="贡献值"
                   strokeWidth={2}
                 />
               </LineChart>
@@ -988,36 +1059,49 @@ const ActivityAnalysis: React.FC = () => {
                   const intervalDays = Math.floor(totalDays / (selectedProductTrend.trend.sales.length - 1));
                   const currentDate = startDate.add(index * intervalDays, 'day');
                   
+                  // 计算贡献值（当前商品销售额占总销售额的百分比）
+                  const totalGmv = mockProducts.reduce((sum, product) => sum + product.gmv, 0);
+                  const contributionRate = ((sales * 10000) / totalGmv) * 100;
+                  
                   return {
                     period: currentDate.format('MM-DD'),
                     sales: sales * 10000,
-                    discount: selectedProductTrend.trend.discount[index] * 10000
+                    discount: selectedProductTrend.trend.discount[index] * 10000,
+                    contributionRate: contributionRate
                   };
                 })}
-                margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+                margin={{ top: 20, right: 50, left: 20, bottom: 20 }}
               >
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="period" />
-                <YAxis />
+                <YAxis yAxisId="left" label={{ value: 'GMV (万元)', angle: -90, position: 'insideLeft' }} />
+                <YAxis yAxisId="right" orientation="right" label={{ value: '贡献值 (%)', angle: 90, position: 'insideRight' }} />
                 <Tooltip 
-                  formatter={(value: number, name: string) => [
-                    `${(value / 10000).toFixed(1)}万元`,
-                    name === 'sales' ? '销售额' : '优惠金额'
-                  ]}
+                  formatter={(value: number, name: string, props: any) => {
+                    const dataKey = props.dataKey;
+                    if (dataKey === 'sales') {
+                      return [`${(value / 10000).toFixed(1)}万元`, 'GMV'];
+                    } else if (dataKey === 'contributionRate') {
+                      return [`${value.toFixed(2)}%`, '贡献值'];
+                    }
+                    return [`${(value / 10000).toFixed(1)}万元`, '优惠金额'];
+                  }}
                 />
                 <Legend />
                 <RechartsLine 
+                  yAxisId="left"
                   type="monotone" 
                   dataKey="sales" 
                   stroke="#8884d8" 
-                  name="销售额"
+                  name="GMV"
                   strokeWidth={2}
                 />
                 <RechartsLine 
+                  yAxisId="right"
                   type="monotone" 
-                  dataKey="discount" 
-                  stroke="#82ca9d" 
-                  name="优惠金额"
+                  dataKey="contributionRate" 
+                  stroke="#ff7300" 
+                  name="贡献值"
                   strokeWidth={2}
                 />
               </LineChart>

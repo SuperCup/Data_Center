@@ -80,11 +80,6 @@ const ClientLayout: React.FC = () => {
       icon: <BarChartOutlined />,
     },
     {
-      key: 'coupon-analysis',
-      label: '批次列表',
-      icon: <TagOutlined />,
-    },
-    {
       key: 'instant-retail-group',
       label: '即时零售',
       type: 'group' as const,

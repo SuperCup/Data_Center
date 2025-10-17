@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Table, Card, Input, Select, DatePicker, Button, Tag, Space, Typography, Row, Col, Drawer, Descriptions, Tabs, Tooltip as AntTooltip, Modal } from 'antd';
+import { Table, Card, Input, Select, DatePicker, Button, Tag, Space, Typography, Row, Col, Drawer, Descriptions, Tabs, Tooltip as AntTooltip } from 'antd';
 import { SearchOutlined, DownloadOutlined, FilterOutlined, QuestionCircleOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import { useNavigate } from 'react-router-dom';
@@ -146,9 +146,7 @@ const AllActivities: React.FC = () => {
   const [verifyDetailVisible, setVerifyDetailVisible] = useState(false);
   const [selectedActivityId, setSelectedActivityId] = useState<string>('');
   
-  // 0核销零售商弹窗状态
-  const [zeroUsageModalVisible, setZeroUsageModalVisible] = useState(false);
-  const [selectedZeroUsageRetailers, setSelectedZeroUsageRetailers] = useState<string[]>([]);
+  // 状态管理
   
   // 抽屉内搜索状态
   const [receiveSearchText, setReceiveSearchText] = useState('');
@@ -169,12 +167,6 @@ const AllActivities: React.FC = () => {
   const handleVerifyDetail = (activityId: string) => {
     setSelectedActivityId(activityId);
     setVerifyDetailVisible(true);
-  };
-
-  // 0核销零售商处理函数
-  const handleZeroUsageRetailers = (retailers: string[]) => {
-    setSelectedZeroUsageRetailers(retailers);
-    setZeroUsageModalVisible(true);
   };
 
   // 根据活动ID获取活动信息
@@ -301,18 +293,32 @@ const AllActivities: React.FC = () => {
       key: 'name',
       width: 300,
       fixed: 'left',
+      render: (text: string) => (
+        <AntTooltip title={text}>
+          <div style={{ 
+            overflow: 'hidden', 
+            textOverflow: 'ellipsis', 
+            whiteSpace: 'nowrap',
+            maxWidth: '280px'
+          }}>
+            {text}
+          </div>
+        </AntTooltip>
+      ),
     },
     {
       title: '开始时间',
       dataIndex: 'startDate',
       key: 'startDate',
       width: 120,
+      render: (date: string) => dayjs(date).format('YYYY-MM-DD'),
     },
     {
       title: '结束时间',
       dataIndex: 'endDate',
       key: 'endDate',
       width: 120,
+      render: (date: string) => dayjs(date).format('YYYY-MM-DD'),
     },
     {
       title: '状态',
@@ -321,49 +327,16 @@ const AllActivities: React.FC = () => {
       width: 100,
       render: (status: string) => {
         let color = 'default';
-        if (status === '进行中') color = 'green';
-        else if (status === '已结束') color = 'blue';
-        else if (status === '待开始') color = 'orange';
+        if (status === '进行中') color = 'processing';
+        else if (status === '已结束') color = 'success';
+        else if (status === '待开始') color = 'warning';
         return <Tag color={color}>{status}</Tag>;
       },
-    },
-    {
-      title: '预算(元)',
-      dataIndex: 'budget',
-      key: 'budget',
-      width: 120,
-      render: (value: number) => value.toLocaleString(),
-    },
-    {
-      title: '消耗(元)',
-      dataIndex: 'consumed',
-      key: 'consumed',
-      width: 120,
-      render: (value: number) => value.toLocaleString(),
     },
     {
       title: '零售商数',
       dataIndex: 'retailerCount',
       key: 'retailerCount',
-      width: 100,
-      render: (value: number) => value.toLocaleString(),
-    },
-    {
-      title: 'SKU数',
-      dataIndex: 'skuCount',
-      key: 'skuCount',
-      width: 100,
-    },
-    {
-      title: '批次数',
-      dataIndex: 'batchCount',
-      key: 'batchCount',
-      width: 100,
-    },
-    {
-      title: '核销数',
-      dataIndex: 'usedCount',
-      key: 'usedCount',
       width: 100,
       render: (value: number) => value.toLocaleString(),
     },
@@ -375,16 +348,9 @@ const AllActivities: React.FC = () => {
       render: (value: number) => value.toLocaleString(),
     },
     {
-      title: '核销率(%)',
-      dataIndex: 'usageRate',
-      key: 'usageRate',
-      width: 100,
-      render: (value: number) => `${value.toFixed(1)}%`,
-    },
-    {
       title: '操作',
       key: 'action',
-      width: 250,
+      width: 150,
       fixed: 'right',
       render: (_, record) => (
         <Space size="small">
@@ -395,29 +361,6 @@ const AllActivities: React.FC = () => {
           >
             活动分析
           </Button>
-          <Button 
-            type="link" 
-            size="small"
-            onClick={() => handleReceiveDetail(record.activityId)}
-          >
-            领券明细
-          </Button>
-          <Button 
-            type="link" 
-            size="small"
-            onClick={() => handleVerifyDetail(record.activityId)}
-          >
-            核销明细
-          </Button>
-          {record.zeroUsageRetailers && record.zeroUsageRetailers.length > 0 && (
-            <Button 
-              type="link" 
-              size="small"
-              onClick={() => handleZeroUsageRetailers(record.zeroUsageRetailers!)}
-            >
-              异常零售商
-            </Button>
-          )}
         </Space>
       ),
     },
@@ -477,15 +420,6 @@ const AllActivities: React.FC = () => {
                 filterData(searchText, selectedStatus, dates);
               }}
             />
-          </Col>
-          <Col span={8} style={{ display: 'flex', justifyContent: 'flex-end' }}>
-            <Button 
-              type="primary" 
-              icon={<DownloadOutlined />}
-              style={{ backgroundColor: '#1890ff' }}
-            >
-              导出数据
-            </Button>
           </Col>
         </Row>
       </Card>
@@ -582,29 +516,6 @@ const AllActivities: React.FC = () => {
         )}
       </Drawer>
 
-      {/* 0核销零售商弹窗 */}
-      <Modal
-        title="0核销零售商列表"
-        open={zeroUsageModalVisible}
-        onCancel={() => setZeroUsageModalVisible(false)}
-        footer={null}
-        width={600}
-      >
-        <Table
-          columns={[
-            {
-              title: '零售商名称',
-              dataIndex: 'name',
-              key: 'name',
-            },
-          ]}
-          dataSource={selectedZeroUsageRetailers.map((name, index) => ({
-            key: index,
-            name: name,
-          }))}
-          pagination={false}
-        />
-      </Modal>
     </div>
   );
 };
