@@ -26,6 +26,8 @@ interface ActivityData {
   discount: number;
   usageRate: number;
   zeroUsageRetailers?: string[]; // 0核销零售商名称列表
+  salesAmount: number;   // 销售金额
+  platforms: string[];   // 活动平台（微信、支付宝、抖音到店、美团到店、天猫校园）
 }
 
 // 模拟全量活动数据
@@ -46,6 +48,8 @@ const mockAllActivities: ActivityData[] = [
     discount: 32000,
     usageRate: 78.5,
     zeroUsageRetailers: ['华润万家(北京朝阳店)', '华润万家(北京海淀店)', '华润万家(北京西城店)'],
+    salesAmount: 128000,
+    platforms: ['微信', '支付宝', '抖音到店'],
   },
   {
     key: '2',
@@ -63,6 +67,8 @@ const mockAllActivities: ActivityData[] = [
     discount: 26000,
     usageRate: 82.3,
     zeroUsageRetailers: ['华润万家(北京东城店)', '华润万家(北京丰台店)'],
+    salesAmount: 95000,
+    platforms: ['微信', '美团到店', '天猫校园'],
   },
   {
     key: '3',
@@ -80,6 +86,8 @@ const mockAllActivities: ActivityData[] = [
     discount: 24000,
     usageRate: 85.1,
     zeroUsageRetailers: ['华润万家(北京石景山店)', '华润万家(北京通州店)', '华润万家(北京昌平店)', '华润万家(北京大兴店)'],
+    salesAmount: 76000,
+    platforms: ['支付宝', '抖音到店', '美团到店'],
   },
   {
     key: '4',
@@ -97,6 +105,8 @@ const mockAllActivities: ActivityData[] = [
     discount: 0,
     usageRate: 0,
     zeroUsageRetailers: [],
+    salesAmount: 0,
+    platforms: ['微信', '支付宝', '抖音到店', '美团到店'],
   },
   {
     key: '5',
@@ -114,6 +124,8 @@ const mockAllActivities: ActivityData[] = [
     discount: 0,
     usageRate: 0,
     zeroUsageRetailers: [],
+    salesAmount: 0,
+    platforms: ['微信', '支付宝', '天猫校园'],
   },
   {
     key: '6',
@@ -131,6 +143,8 @@ const mockAllActivities: ActivityData[] = [
     discount: 22000,
     usageRate: 88.0,
     zeroUsageRetailers: ['华润万家(北京房山店)', '华润万家(北京顺义店)'],
+    salesAmount: 58000,
+    platforms: ['微信', '抖音到店'],
   },
 ];
 
@@ -139,6 +153,7 @@ const AllActivities: React.FC = () => {
   const [filteredData, setFilteredData] = useState<ActivityData[]>(mockAllActivities);
   const [searchText, setSearchText] = useState('');
   const [selectedStatus, setSelectedStatus] = useState<string | undefined>(undefined);
+  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
   const [dateRange, setDateRange] = useState<[dayjs.Dayjs | null, dayjs.Dayjs | null] | null>(null);
   
   // 侧边抽屉状态
@@ -154,7 +169,7 @@ const AllActivities: React.FC = () => {
 
   // 活动分析页面跳转
   const handleActivityAnalysis = (activityId: string) => {
-    window.open(`/client/activity-analysis/${activityId}`, '_blank');
+    navigate(`/client/activity-analysis/${activityId}`);
   };
 
   // 领券明细处理函数
@@ -240,6 +255,7 @@ const AllActivities: React.FC = () => {
   const filterData = (
     search: string,
     status: string | undefined,
+    platforms: string[],
     dateRangeValue: [dayjs.Dayjs | null, dayjs.Dayjs | null] | null
   ) => {
     let filtered = mockAllActivities;
@@ -255,6 +271,13 @@ const AllActivities: React.FC = () => {
     // 按状态筛选
     if (status) {
       filtered = filtered.filter(item => item.status === status);
+    }
+
+    // 按平台筛选
+    if (platforms && platforms.length > 0) {
+      filtered = filtered.filter(item =>
+        platforms.some(platform => item.platforms.includes(platform))
+      );
     }
 
     // 按日期范围筛选
@@ -307,18 +330,52 @@ const AllActivities: React.FC = () => {
       ),
     },
     {
-      title: '开始时间',
-      dataIndex: 'startDate',
-      key: 'startDate',
-      width: 120,
-      render: (date: string) => dayjs(date).format('YYYY-MM-DD'),
+      title: '活动平台',
+      dataIndex: 'platforms',
+      key: 'platforms',
+      width: 200,
+      render: (platforms: string[]) => (
+        <div>
+          {platforms.map((platform, index) => {
+            let color = 'default';
+            switch (platform) {
+              case '微信': color = 'green'; break;
+              case '支付宝': color = 'blue'; break;
+              case '抖音到店': color = 'red'; break;
+              case '美团到店': color = 'orange'; break;
+              case '天猫校园': color = 'purple'; break;
+            }
+            return (
+              <Tag key={index} color={color} style={{ marginBottom: 4 }}>
+                {platform}
+              </Tag>
+            );
+          })}
+        </div>
+      ),
     },
     {
-      title: '结束时间',
-      dataIndex: 'endDate',
-      key: 'endDate',
+      title: '销售金额(元)',
+      dataIndex: 'salesAmount',
+      key: 'salesAmount',
       width: 120,
-      render: (date: string) => dayjs(date).format('YYYY-MM-DD'),
+      sorter: (a, b) => a.salesAmount - b.salesAmount,
+      render: (value: number) => value.toLocaleString(),
+    },
+    {
+      title: '优惠金额(元)',
+      dataIndex: 'discount',
+      key: 'discount',
+      width: 120,
+      sorter: (a, b) => a.discount - b.discount,
+      render: (value: number) => value.toLocaleString(),
+    },
+    {
+      title: '零售商数',
+      dataIndex: 'retailerCount',
+      key: 'retailerCount',
+      width: 100,
+      render: (value: number) => value.toLocaleString(),
     },
     {
       title: '状态',
@@ -334,18 +391,18 @@ const AllActivities: React.FC = () => {
       },
     },
     {
-      title: '零售商数',
-      dataIndex: 'retailerCount',
-      key: 'retailerCount',
-      width: 100,
-      render: (value: number) => value.toLocaleString(),
+      title: '开始时间',
+      dataIndex: 'startDate',
+      key: 'startDate',
+      width: 120,
+      render: (date: string) => dayjs(date).format('YYYY-MM-DD'),
     },
     {
-      title: '优惠金额(元)',
-      dataIndex: 'discount',
-      key: 'discount',
+      title: '结束时间',
+      dataIndex: 'endDate',
+      key: 'endDate',
       width: 120,
-      render: (value: number) => value.toLocaleString(),
+      render: (date: string) => dayjs(date).format('YYYY-MM-DD'),
     },
     {
       title: '操作',
@@ -389,7 +446,7 @@ const AllActivities: React.FC = () => {
               value={searchText}
               onChange={(e) => {
                 setSearchText(e.target.value);
-                filterData(e.target.value, selectedStatus, dateRange);
+                filterData(e.target.value, selectedStatus, selectedPlatforms, dateRange);
               }}
               style={{ width: '100%' }}
             />
@@ -401,13 +458,32 @@ const AllActivities: React.FC = () => {
               value={selectedStatus}
               onChange={(value) => {
                 setSelectedStatus(value);
-                filterData(searchText, value, dateRange);
+                filterData(searchText, value, selectedPlatforms, dateRange);
               }}
               allowClear
             >
               <Option value="进行中">进行中</Option>
               <Option value="已结束">已结束</Option>
               <Option value="待开始">待开始</Option>
+            </Select>
+          </Col>
+          <Col span={4}>
+            <Select
+              mode="multiple"
+              placeholder="选择平台"
+              style={{ width: '100%' }}
+              value={selectedPlatforms}
+              onChange={(value) => {
+                setSelectedPlatforms(value);
+                filterData(searchText, selectedStatus, value, dateRange);
+              }}
+              allowClear
+            >
+              <Option value="微信">微信</Option>
+              <Option value="支付宝">支付宝</Option>
+              <Option value="抖音到店">抖音到店</Option>
+              <Option value="美团到店">美团到店</Option>
+              <Option value="天猫校园">天猫校园</Option>
             </Select>
           </Col>
           <Col span={6}>
@@ -417,7 +493,7 @@ const AllActivities: React.FC = () => {
               value={dateRange}
               onChange={(dates) => {
                 setDateRange(dates);
-                filterData(searchText, selectedStatus, dates);
+                filterData(searchText, selectedStatus, selectedPlatforms, dates);
               }}
             />
           </Col>

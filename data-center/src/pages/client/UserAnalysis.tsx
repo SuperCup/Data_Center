@@ -35,7 +35,7 @@ const mockUserAnalysisData: UserAnalysisData[] = [
     usageUsers: 7167,
     conversionRate: 94.09,
     usageRate: 92.99,
-    mechanisms: ['满5减0.5', '满8减0.8', '满10减1', '满12减1.2', '满15减1.5', '满18减1.8', '满20减2', '满25减2.5']
+    mechanisms: ['满5减0.5', '满8减0.8', '满10减1', '满12减1.2', '满15减1.5', '满18减1.8', '满20减2', '满22减2.2', '满25减2.5', '满28减2.8', '满30减3', '满32减3.2', '满35减3.5', '满38减3.8', '满40减4']
   },
   {
     key: '2',
@@ -47,7 +47,7 @@ const mockUserAnalysisData: UserAnalysisData[] = [
     usageUsers: 5980,
     conversionRate: 93.85,
     usageRate: 92.03,
-    mechanisms: ['满5减0.5', '满8减0.8', '满10减1', '满12减1.2', '满15减1.5', '满18减1.8', '满20减2', '满25减2.5']
+    mechanisms: ['满5减0.5', '满8减0.8', '满10减1', '满12减1.2', '满15减1.5', '满18减1.8', '满20减2', '满22减2.2', '满25减2.5', '满28减2.8', '满30减3', '满32减3.2', '满35减3.5', '满38减3.8', '满40减4']
   },
   {
     key: '3',
@@ -59,7 +59,7 @@ const mockUserAnalysisData: UserAnalysisData[] = [
     usageUsers: 5250,
     conversionRate: 93.10,
     usageRate: 90.52,
-    mechanisms: ['满6减0.6', '满9减0.9', '满12减1.2', '满15减1.5', '满18减1.8', '满21减2.1', '满24减2.4', '满30减3']
+    mechanisms: ['满6减0.6', '满9减0.9', '满12减1.2', '满15减1.5', '满18减1.8', '满21减2.1', '满24减2.4', '满27减2.7', '满30减3', '满33减3.3', '满36减3.6', '满39减3.9', '满42减4.2', '满45减4.5', '满48减4.8', '满50减5']
   },
   {
     key: '4',
@@ -71,7 +71,7 @@ const mockUserAnalysisData: UserAnalysisData[] = [
     usageUsers: 3650,
     conversionRate: 90.48,
     usageRate: 86.90,
-    mechanisms: ['满4减0.4', '满6减0.6', '满8减0.8', '满10减1', '满12减1.2', '满16减1.6', '满20减2', '满24减2.4']
+    mechanisms: ['满4减0.4', '满6减0.6', '满8减0.8', '满10减1', '满12减1.2', '满14减1.4', '满16减1.6', '满18减1.8', '满20减2', '满22减2.2', '满24减2.4', '满26减2.6', '满28减2.8', '满30减3', '满32减3.2', '满35减3.5']
   },
   {
     key: '5',
@@ -83,7 +83,7 @@ const mockUserAnalysisData: UserAnalysisData[] = [
     usageUsers: 3300,
     conversionRate: 89.74,
     usageRate: 84.62,
-    mechanisms: ['满3减0.3', '满5减0.5', '满8减0.8', '满10减1', '满15减1.5', '满18减1.8', '满22减2.2', '满28减2.8']
+    mechanisms: ['满3减0.3', '满5减0.5', '满8减0.8', '满10减1', '满12减1.2', '满15减1.5', '满18减1.8', '满20减2', '满22减2.2', '满24减2.4', '满26减2.6', '满28减2.8', '满30减3', '满32减3.2', '满35减3.5', '满38减3.8']
   },
   {
     key: '6',
@@ -95,7 +95,7 @@ const mockUserAnalysisData: UserAnalysisData[] = [
     usageUsers: 2200,
     conversionRate: 85.71,
     usageRate: 78.57,
-    mechanisms: ['满3减0.3', '满5减0.5', '满6减0.6', '满8减0.8', '满10减1', '满12减1.2', '满15减1.5', '满20减2']
+    mechanisms: ['满3减0.3', '满5减0.5', '满6减0.6', '满8减0.8', '满9减0.9', '满10减1', '满12减1.2', '满14减1.4', '满15减1.5', '满16减1.6', '满18减1.8', '满20减2', '满21减2.1', '满24减2.4', '满25减2.5', '满27减2.7']
   },
 ];
 
@@ -200,7 +200,7 @@ const UserAnalysis: React.FC = () => {
     { name: '3天以上', value: 5 }
   ];
 
-  // 省份核销占比数据（Top10）
+  // 省份订单占比数据（Top10）
   const provinceUsageData = [
     { name: '广东', value: 18.5 },
     { name: '江苏', value: 15.2 },
@@ -214,7 +214,7 @@ const UserAnalysis: React.FC = () => {
     { name: '湖南', value: 4.2 }
   ];
   
-  // 省份核销占比数据（全国地图数据）
+  // 省份订单占比数据（全国地图数据）
   const provinceMapData = [
     { name: '山东', value: 577 },
     { name: '河南', value: 364 },
@@ -253,9 +253,9 @@ const UserAnalysis: React.FC = () => {
     { name: '澳门', value: 0 }
   ];
 
-  // 计算按核销占比排名前10的省份
+  // 计算按订单占比排名前10的省份
   const getTop10ProvincesByUsage = () => {
-    // 计算总核销数
+    // 计算总订单数
     const totalUsage = provinceMapData.reduce((sum, item) => sum + item.value, 0);
     
     // 计算每个省份的占比并排序
@@ -265,7 +265,7 @@ const UserAnalysis: React.FC = () => {
         percentage: totalUsage > 0 ? (item.value / totalUsage * 100) : 0
       }))
       .filter(item => item.value > 0) // 只显示有数据的省份
-      .sort((a, b) => b.value - a.value) // 按核销数降序排列
+      .sort((a, b) => b.value - a.value) // 按订单数降序排列
       .slice(0, 10); // 取前10名
     
     return provincesWithPercentage;
@@ -475,7 +475,7 @@ const UserAnalysis: React.FC = () => {
     if (!data || data.length === 0) {
       return {
         title: {
-          text: '消费者地图 - 核销占比前10省份',
+          text: '消费者地图 - 订单占比前10省份',
           left: 'center',
           textStyle: {
             fontSize: 16,
@@ -496,7 +496,7 @@ const UserAnalysis: React.FC = () => {
     
     return {
       title: {
-        text: '省份核销占比排名前10',
+        text: '省份订单占比排名前10',
         left: 'center',
         textStyle: {
           fontSize: 16,
@@ -513,14 +513,14 @@ const UserAnalysis: React.FC = () => {
         trigger: 'item',
         formatter: (params: any) => {
           if (!params || !params.data) {
-            return `${params?.name || '未知'}<br/>核销数: 0<br/>占比: 0.00%<br/>排名: 未上榜`;
+            return `${params?.name || '未知'}<br/>订单数: 0<br/>占比: 0.00%<br/>排名: 未上榜`;
           }
           const { name, value } = params.data;
           const totalUsage = provinceMapData.reduce((sum, item) => sum + item.value, 0);
           const percentage = value && totalUsage > 0 ? ((value / totalUsage) * 100).toFixed(2) : '0.00';
           const rank = top10Provinces.findIndex(item => item.name === name) + 1;
           const rankText = rank > 0 ? `第${rank}名` : '未上榜';
-          return `${name}<br/>核销数: ${value || 0}<br/>占比: ${percentage}%<br/>排名: ${rankText}`;
+          return `${name}<br/>订单数: ${value || 0}<br/>占比: ${percentage}%<br/>排名: ${rankText}`;
         }
       },
       visualMap: {
@@ -546,7 +546,7 @@ const UserAnalysis: React.FC = () => {
       },
       series: [
         {
-          name: '省份核销占比',
+          name: '省份订单占比',
           type: 'map',
           map: 'china',
           roam: false,
@@ -627,68 +627,30 @@ const UserAnalysis: React.FC = () => {
 
       {/* 数据来源 */}
       <Card style={{ marginBottom: '24px' }}>
-        <Title level={4} style={{ marginBottom: '16px', color: '#1890ff' }}>数据来源</Title>
-        <Row gutter={[24, 16]}>
-          <Col span={8}>
-            <div style={{ 
-              padding: '16px', 
-              backgroundColor: '#f0f8ff', 
-              borderRadius: '8px',
-              border: '1px solid #d6e4ff',
-              height: '100px',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'space-between'
-            }}>
-              <Text strong style={{ color: '#1890ff', fontSize: '16px' }}>应用平台</Text>
-              <div>
-                <Text style={{ fontSize: '14px', color: '#595959' }}>康师傅官方旗舰店</Text>
-                <br />
-                <Text style={{ fontSize: '12px', color: '#8c8c8c' }}>（微信小程序）</Text>
-              </div>
-            </div>
+        <Title level={4} style={{ marginBottom: '16px' }}>数据来源</Title>
+        <Row gutter={[16, 10]}>
+          <Col span={4}>
+            <Text strong style={{ color: '#595959' }}>应用平台：</Text>
           </Col>
-          <Col span={8}>
-            <div style={{ 
-              padding: '16px', 
-              backgroundColor: '#e6f7ff', 
-              borderRadius: '8px',
-              border: '1px solid #91d5ff',
-              height: '100px',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'space-between'
-            }}>
-              <Text strong style={{ color: '#1890ff', fontSize: '16px' }}>数据批次</Text>
-              <div>
-                <Text style={{ fontSize: '18px', color: '#1890ff', fontWeight: 'bold' }}>
-                  {userAnalysisData.length}
-                </Text>
-                <Text style={{ fontSize: '14px', color: '#595959', marginLeft: '4px' }}>个批次</Text>
-              </div>
-            </div>
+          <Col span={20}>
+            <Text style={{ color: '#262626' }}>康师傅官方旗舰店（微信小程序）、康师傅会员福利官（微信小程序）</Text>
           </Col>
-          <Col span={8}>
-            <div style={{ 
-              padding: '16px', 
-              backgroundColor: '#f0f8ff', 
-              borderRadius: '8px',
-              border: '1px solid #d6e4ff',
-              height: '100px',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'space-between'
-            }}>
-              <Text strong style={{ color: '#1890ff', fontSize: '16px' }}>活动机制</Text>
-              <div>
-                <Text style={{ fontSize: '14px', color: '#595959' }}>
-                  {userAnalysisData.length > 0 && userAnalysisData[0].mechanisms 
-                    ? userAnalysisData[0].mechanisms.slice(0, 2).join('、') + (userAnalysisData[0].mechanisms.length > 2 ? '等' : '')
-                    : '暂无机制'
-                  }
-                </Text>
-              </div>
-            </div>
+          <Col span={4}>
+            <Text strong style={{ color: '#595959' }}>数据批次：</Text>
+          </Col>
+          <Col span={20}>
+            <Text style={{ color: '#262626' }}>{userAnalysisData.length}个批次</Text>
+          </Col>
+          <Col span={4}>
+            <Text strong style={{ color: '#595959' }}>活动机制：</Text>
+          </Col>
+          <Col span={20}>
+            <Text style={{ color: '#262626' }}>
+              {userAnalysisData.length > 0 && userAnalysisData[0].mechanisms 
+                ? userAnalysisData[0].mechanisms.slice(0, 10).join('、') + (userAnalysisData[0].mechanisms.length > 3 ? '' : '')
+                : '暂无机制'
+              }
+            </Text>
           </Col>
         </Row>
       </Card>
@@ -842,38 +804,44 @@ const UserAnalysis: React.FC = () => {
               </div>
             </div>
             
-            {/* 销售额、优惠金额与人均订单金额显示在漏斗下方 */}
+            {/* 销售额、订单数、人均订单金额与优惠金额显示在漏斗下方 */}
             <Row gutter={[16, 16]} style={{ marginTop: '24px' }}>
-              <Col span={8}>
+              <Col span={6}>
                 <Card size="small" style={{ textAlign: 'center' }}>
                   <Statistic
-                    title="销售额"
+                    title="销售额（元）"
                     value={2580000}
                     precision={2}
                     valueStyle={{ color: '#000000', fontSize: '24px' }}
-                    suffix="元"
                   />
                 </Card>
               </Col>
-              <Col span={8}>
+              <Col span={6}>
                 <Card size="small" style={{ textAlign: 'center' }}>
                   <Statistic
-                    title="优惠金额"
-                    value={386000}
-                    precision={2}
+                    title="订单数"
+                    value={16280}
                     valueStyle={{ color: '#000000', fontSize: '24px' }}
-                    suffix="元"
                   />
                 </Card>
               </Col>
-              <Col span={8}>
+              <Col span={6}>
                 <Card size="small" style={{ textAlign: 'center' }}>
                   <Statistic
-                    title="人均订单金额"
+                    title="人均订单金额（元）"
                     value={158.5}
                     precision={2}
                     valueStyle={{ color: '#000000', fontSize: '24px' }}
-                    suffix="元"
+                  />
+                </Card>
+              </Col>
+              <Col span={6}>
+                <Card size="small" style={{ textAlign: 'center' }}>
+                  <Statistic
+                    title="优惠金额（元）"
+                    value={386000}
+                    precision={2}
+                    valueStyle={{ color: '#000000', fontSize: '24px' }}
                   />
                 </Card>
               </Col>
@@ -893,7 +861,7 @@ const UserAnalysis: React.FC = () => {
               />
               <div style={{ 
                 position: 'absolute', 
-                bottom: '16px', 
+                top: '16px', 
                 right: '16px',
                 background: 'rgba(255, 255, 255, 0.9)',
                 padding: '8px 12px',
@@ -902,7 +870,7 @@ const UserAnalysis: React.FC = () => {
                 border: '1px solid #e8e8e8'
               }}>
                 <Statistic
-                  title="核销总张数"
+                  title="订单数"
                   value={15680}
                   valueStyle={{ color: '#1890ff', fontSize: '16px' }}
                   suffix="张"
@@ -915,7 +883,7 @@ const UserAnalysis: React.FC = () => {
 
 
       
-      {/* 省份核销占比地图展示 */}
+      {/* 省份订单占比地图展示 */}
       <Row gutter={[24, 24]} style={{ marginBottom: '24px' }}>
         <Col span={16}>
             <Card style={{ height: '540px' }}>
@@ -947,7 +915,7 @@ const UserAnalysis: React.FC = () => {
                   border: '1px solid #e8e8e8'
                 }}>
                   <Statistic
-                    title="核销总张数"
+                    title="订单数"
                     value={provinceMapData.reduce((sum, item) => sum + item.value, 0)}
                     valueStyle={{ color: '#1890ff', fontSize: '16px' }}
                     suffix="张"
@@ -964,8 +932,8 @@ const UserAnalysis: React.FC = () => {
                    <tr style={{ borderBottom: '1px solid #f0f0f0' }}>
                      <th style={{ padding: '8px 4px', textAlign: 'left', fontSize: '12px', color: '#666' }}>序号</th>
                      <th style={{ padding: '8px 4px', textAlign: 'left', fontSize: '12px', color: '#666' }}>省份/城市</th>
-                     <th style={{ padding: '8px 4px', textAlign: 'right', fontSize: '12px', color: '#666' }}>核销数</th>
-                     <th style={{ padding: '8px 4px', textAlign: 'right', fontSize: '12px', color: '#666' }}>核销占比</th>
+                     <th style={{ padding: '8px 4px', textAlign: 'right', fontSize: '12px', color: '#666' }}>订单数</th>
+                     <th style={{ padding: '8px 4px', textAlign: 'right', fontSize: '12px', color: '#666' }}>订单占比（%）</th>
                    </tr>
                  </thead>
                  <tbody>
@@ -1006,7 +974,7 @@ const UserAnalysis: React.FC = () => {
                            color: index < 3 ? '#1890ff' : '#333',
                            fontWeight: index < 3 ? 'bold' : 'normal'
                          }}>
-                           {percentage}%
+                           {percentage}
                          </td>
                        </tr>
                      );

@@ -1,6 +1,7 @@
 {
   "name": "data-center",
   "version": "0.1.0",
+  "homepage": ".",
   "private": true,
   "dependencies": {
     "@ant-design/charts": "^2.6.4",

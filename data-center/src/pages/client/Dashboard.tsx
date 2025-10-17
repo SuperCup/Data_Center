@@ -63,7 +63,7 @@ const Dashboard: React.FC = () => {
   const [selectedPlatform, setSelectedPlatform] = useState<string | null>('微信'); // 默认选中微信平台
   
   // 零售商/机制指标状态
-  const [retailerMetric, setRetailerMetric] = useState<string>('usedCount');
+  const [retailerMetric, setRetailerMetric] = useState<string>('gmv');
   
   // SKU排序状态
   const [skuSortBy, setSkuSortBy] = useState<string>('gmv');
@@ -294,20 +294,20 @@ const Dashboard: React.FC = () => {
           
           // 根据时段调整销售额
           if (hour >= 9 && hour <= 12) {
-            baseGmv *= isWeekend ? 1.8 : 2.2; // 上午高峰
+            baseGmv *= isWeekend ? 2.4 : 2.2; // 上午高峰，周末更高
           } else if (hour >= 14 && hour <= 17) {
-            baseGmv *= isWeekend ? 1.6 : 1.9; // 下午高峰
+            baseGmv *= isWeekend ? 2.2 : 1.9; // 下午高峰，周末更高
           } else if (hour >= 19 && hour <= 22) {
-            baseGmv *= isWeekend ? 2.0 : 2.5; // 晚上高峰
+            baseGmv *= isWeekend ? 2.8 : 2.5; // 晚上高峰，周末更高
           } else if (hour >= 0 && hour <= 6) {
             baseGmv *= 0.2; // 凌晨低谷
           } else {
-            baseGmv *= isWeekend ? 1.2 : 1.0; // 其他时段
+            baseGmv *= isWeekend ? 1.6 : 1.0; // 其他时段，周末显著提高
           }
           
-          // 周末整体销售额稍高
+          // 周末整体销售额大幅提高
           if (isWeekend) {
-            baseGmv *= 1.1;
+            baseGmv *= 1.5; // 从1.1提高到1.5，增加50%的销售额
           }
           
           // 添加随机波动
@@ -393,8 +393,8 @@ const Dashboard: React.FC = () => {
   // 获取指标的显示信息
   const getMetricInfo = (metric: string) => {
     const metricMap = {
-      gmv: { label: '活动销售额', unit: '元', formatter: (value: number) => `${(value / 10000).toFixed(1)}万` },
-      discount: { label: '优惠金额', unit: '元', formatter: (value: number) => `${(value / 10000).toFixed(1)}万` },
+      gmv: { label: '销售额', unit: '元', formatter: (value: number) => value.toFixed(2) },
+      discount: { label: '优惠金额', unit: '元', formatter: (value: number) => value.toFixed(2) },
       roi: { label: 'ROI', unit: '', formatter: (value: number) => value.toFixed(1) },
       orderCount: { label: '订单数', unit: '个', formatter: (value: number) => value.toLocaleString() },
       usageRate: { label: '核销率', unit: '%', formatter: (value: number) => `${value.toFixed(1)}%` }
@@ -418,26 +418,30 @@ const Dashboard: React.FC = () => {
       
       {/* 1. 筛选条件 */}
       <Card style={{ marginBottom: 16 }}>
-        <Row gutter={16} align="middle">
+        <Row gutter={32} align="middle">
           <Col span={8}>
-            <Radio.Group value={dateType} onChange={handleDateTypeChange} style={{ marginRight: 16 }}>
-              <Radio.Button value="day">日</Radio.Button>
-              <Radio.Button value="month">月</Radio.Button>
-              <Radio.Button value="year">年</Radio.Button>
-              <Radio.Button value="custom">自定义</Radio.Button>
-            </Radio.Group>
-            <RangePicker 
-              value={dateRange.map(date => date ? moment(date) : null) as any} 
-              onChange={handleDateRangeChange} 
-              style={{ marginLeft: 8 }}
-            />
+            <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'nowrap' }}>
+              <Radio.Group value={dateType} onChange={handleDateTypeChange} style={{ marginRight: 16, flexShrink: 0 }}>
+                <Radio.Button value="day">日</Radio.Button>
+                <Radio.Button value="month">月</Radio.Button>
+                <Radio.Button value="year">年</Radio.Button>
+                <Radio.Button value="custom">自定义</Radio.Button>
+              </Radio.Group>
+              <RangePicker 
+                value={dateRange.map(date => date ? moment(date) : null) as any} 
+                onChange={handleDateRangeChange} 
+                style={{ minWidth: '240px', flexShrink: 0 }}
+              />
+            </div>
           </Col>
-          <Col span={16}>
+          <Col span={16} style={{ paddingLeft: '24px', display: 'flex', justifyContent: 'flex-end' }}>
             <Radio.Group value={platform} onChange={(e) => setPlatform(e.target.value)} buttonStyle="solid">
               <Radio.Button value="all">全部</Radio.Button>
               <Radio.Button value="wechat">微信</Radio.Button>
               <Radio.Button value="alipay">支付宝</Radio.Button>
               <Radio.Button value="douyin">抖音到店</Radio.Button>
+              <Radio.Button value="meituan" disabled>美团到店</Radio.Button>
+              <Radio.Button value="tmall" disabled>天猫校园</Radio.Button>
             </Radio.Group>
           </Col>
         </Row>
@@ -494,11 +498,11 @@ const Dashboard: React.FC = () => {
             </Card>
           </Col>
           
-          {/* 活动销售额 */}
+          {/* 销售额 */}
           <Col style={{ width: 'calc(20% - 8px)' }}>
             <Card>
               <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
-                <span style={{ fontSize: '14px', color: '#262626' }}>活动销售额</span>
+                <span style={{ fontSize: '14px', color: '#262626' }}>销售额（元）</span>
                 <AntTooltip 
                   title={
                     <div style={{ maxWidth: 300 }}>
@@ -517,9 +521,8 @@ const Dashboard: React.FC = () => {
               <Statistic
                 title=""
                 value={stats.overview.gmv}
-                precision={0}
+                precision={2}
                 valueStyle={{ color: '#000000', fontSize: '24px', fontWeight: 'bold' }}
-                suffix="元"
               />
               <div style={{ marginTop: 8 }}>
                 <span style={{ 
@@ -555,7 +558,7 @@ const Dashboard: React.FC = () => {
           <Col style={{ width: 'calc(20% - 8px)' }}>
             <Card>
               <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
-                <span style={{ fontSize: '14px', color: '#262626' }}>优惠金额</span>
+                <span style={{ fontSize: '14px', color: '#262626' }}>优惠金额（元）</span>
                 <AntTooltip 
                   title={
                     <div style={{ maxWidth: 300 }}>
@@ -573,9 +576,8 @@ const Dashboard: React.FC = () => {
               <Statistic
                 title=""
                 value={stats.overview.discount}
-                precision={0}
+                precision={2}
                 valueStyle={{ color: '#000000', fontSize: '24px', fontWeight: 'bold' }}
-                suffix="元"
               />
               <div style={{ marginTop: 8 }}>
                 <span style={{ color: stats.overview.discountYoY >= 0 ? 'red' : 'green', marginRight: 8 }}>
@@ -597,7 +599,7 @@ const Dashboard: React.FC = () => {
                   title={
                     <div style={{ maxWidth: 300 }}>
                       <div style={{ marginBottom: 8, fontWeight: 'bold' }}>投资回报率</div>
-                      <div>ROI = 活动销售额 / 优惠金额</div>
+                      <div>ROI = 销售额 / 优惠金额</div>
                       <div style={{ marginTop: 8, fontSize: '12px', color: '#666' }}>
                         该指标反映每投入1元优惠金额能带来多少销售额
                       </div>
@@ -684,7 +686,7 @@ const Dashboard: React.FC = () => {
           <div style={{ marginBottom: 16, display: 'flex', alignItems: 'center', gap: '20px', flexWrap: 'wrap' }}>
             {[
               { key: 'batchCount', label: '活动数', color: '#1890ff' },
-              { key: 'gmv', label: '活动销售额', color: '#52c41a' },
+              { key: 'gmv', label: '销售额', color: '#52c41a' },
               { key: 'discount', label: '优惠金额', color: '#faad14' },
               { key: 'roi', label: 'ROI', color: '#722ed1' },
               { key: 'orderCount', label: '订单数', color: '#f5222d' }
@@ -751,7 +753,7 @@ const Dashboard: React.FC = () => {
               <Tooltip formatter={(value, name) => {
                 const metricLabels: {[key: string]: string} = {
                   'batchCount': '活动数',
-                  'gmv': '活动销售额',
+                  'gmv': '销售额',
                   'discount': '优惠金额',
                   'roi': 'ROI',
                   'orderCount': '订单数'
@@ -788,7 +790,7 @@ const Dashboard: React.FC = () => {
                   stroke="#52c41a"
                   strokeWidth={2}
                   activeDot={{ r: 6 }}
-                  name="活动销售额"
+                  name="销售额"
                 />
               )}
               
@@ -956,7 +958,7 @@ const Dashboard: React.FC = () => {
                           )
                         },
                         {
-                          title: '核销率',
+                          title: '核销率（%）',
                           dataIndex: 'usageRate',
                           key: 'usageRate',
                           width: 80,
@@ -966,30 +968,30 @@ const Dashboard: React.FC = () => {
                               color: '#8c8c8c',
                               fontWeight: 'bold'
                             }}>
-                              {typeof value === 'string' ? value : `${value.toFixed(1)}%`}
+                              {typeof value === 'string' ? value : value.toFixed(1)}
                             </span>
                           )
                         },
                         {
-                          title: '销售额',
+                          title: '销售额（元）',
                           dataIndex: 'gmv',
                           key: 'gmv',
                           width: 100,
                           align: 'right',
                           render: (value) => (
                             <span style={{ color: '#000000', fontWeight: 'bold' }}>
-                              ¥{(value / 10000).toFixed(1)}万
+                              {value.toFixed(2)}
                             </span>
                           )
                         },
                         {
-                          title: '贡献值',
+                          title: '销售额占比（%）',
                           dataIndex: 'contributionRate',
                           key: 'contributionRate',
                           width: 80,
                           align: 'center',
                           render: (value, record) => {
-                            // 计算贡献值：当前渠道销售额 / 所有渠道销售额总和 * 100
+                            // 计算销售额占比：当前渠道销售额 / 所有渠道销售额总和 * 100
                             const totalGmv = getSelectedPlatformChannels().reduce((sum: number, item: any) => sum + item.gmv, 0);
                             const contributionRate = totalGmv > 0 ? (record.gmv / totalGmv * 100) : 0;
                             return (
@@ -997,7 +999,7 @@ const Dashboard: React.FC = () => {
                                 color: '#8c8c8c',
                                 fontWeight: 'bold'
                               }}>
-                                {contributionRate.toFixed(1)}%
+                                {contributionRate.toFixed(1)}
                               </span>
                             );
                           }
@@ -1046,7 +1048,7 @@ const Dashboard: React.FC = () => {
               style={{ width: 150 }}
               size="small"
             >
-              <Option value="gmv">活动销售额</Option>
+              <Option value="gmv">销售额</Option>
               <Option value="discount">优惠金额</Option>
               <Option value="roi">ROI</Option>
               <Option value="orderCount">订单数</Option>
@@ -1154,7 +1156,7 @@ const Dashboard: React.FC = () => {
             size="small"
           >
             <Option value="gmv">销售额</Option>
-            <Option value="contributionRate">贡献值</Option>
+            <Option value="contributionRate">销售额占比</Option>
             <Option value="salesVolume">销售件数</Option>
             <Option value="discount">优惠金额</Option>
           </Select>
@@ -1187,7 +1189,7 @@ const Dashboard: React.FC = () => {
               ),
             },
             {
-              title: '商品名称+69码',
+              title: '商品名称',
               dataIndex: 'name',
               key: 'name',
               width: '30%',
@@ -1199,32 +1201,32 @@ const Dashboard: React.FC = () => {
               ),
             },
             {
-              title: '销售额',
+              title: '销售额（元）',
               dataIndex: 'gmv',
               key: 'gmv',
               width: '15%',
-              render: (value: number) => `¥${(value / 10000).toFixed(1)}万`,
+              render: (value: number) => value.toFixed(2),
             },
             {
-              title: '贡献值',
+              title: '销售额占比（%）',
               dataIndex: 'contributionRate',
               key: 'contributionRate',
               width: '15%',
-              render: (value: number) => `${value.toFixed(1)}%`,
+              render: (value: number) => value.toFixed(1),
             },
             {
-              title: '销售件数',
+              title: '销售件数（件）',
               dataIndex: 'salesVolume',
               key: 'salesVolume',
               width: '15%',
               render: (value: number) => value.toLocaleString(),
             },
             {
-              title: '优惠金额',
+              title: '优惠金额（元）',
               dataIndex: 'discount',
               key: 'discount',
               width: '15%',
-              render: (value: number) => `¥${(value / 10000).toFixed(1)}万`,
+              render: (value: number) => value.toFixed(2),
             },
           ]}
           pagination={false}
@@ -1318,7 +1320,7 @@ const Dashboard: React.FC = () => {
                                {day} {hour}:00
                              </div>
                              <div style={{ color: '#1890ff', fontSize: '14px', fontWeight: 'bold' }}>
-                               销售额: ¥{(dataPoint.gmv / 10000).toFixed(1)}万
+                               销售额: ¥{dataPoint.gmv.toFixed(2)}
                              </div>
                              <div style={{ fontSize: '12px', color: '#8c8c8c', marginTop: '2px' }}>
                                当日占比: {dayPercentage}%
@@ -1426,7 +1428,7 @@ const Dashboard: React.FC = () => {
                 marginBottom: '16px',
                 textAlign: 'center'
               }}>
-                周销售额对比
+                销售额周内占比
               </div>
               
               {/* 周销售额柱状图 */}
@@ -1437,14 +1439,14 @@ const Dashboard: React.FC = () => {
                     .filter(item => item.dayIndex === dayIndex)
                     .reduce((sum, item) => sum + item.gmv, 0);
                   
-                  // 计算一周的最大销售额，用于比例计算
-                  const weekMaxGmv = Math.max(...Array.from({ length: 7 }, (_, i) => 
+                  // 计算一周的销售额总和，用于占比计算
+                  const weekTotalGmv = Array.from({ length: 7 }, (_, i) => 
                     stats.timeAnalysisData
                       .filter(item => item.dayIndex === i)
                       .reduce((sum, item) => sum + item.gmv, 0)
-                  ));
+                  ).reduce((sum, dayGmv) => sum + dayGmv, 0);
                   
-                  const percentage = (dayTotalGmv / weekMaxGmv) * 100;
+                  const percentage = weekTotalGmv > 0 ? (dayTotalGmv / weekTotalGmv) * 100 : 0;
                   const barWidth = Math.max(percentage, 5); // 最小宽度5%
                   
                   return (
@@ -1494,7 +1496,7 @@ const Dashboard: React.FC = () => {
                         color: '#8c8c8c',
                         textAlign: 'right'
                       }}>
-                        ¥{(dayTotalGmv / 10000).toFixed(1)}万
+                        {percentage.toFixed(1)}%
                       </div>
                     </div>
                   );

@@ -137,6 +137,7 @@ const ActivityAnalysis: React.FC = () => {
   const [selectedActivity, setSelectedActivity] = useState<string>('1');
   const [retailerType, setRetailerType] = useState<string>('all');
   const [retailerPage, setRetailerPage] = useState<number>(1);
+  const [smallStorePage, setSmallStorePage] = useState<number>(1);
   const [productPage, setProductPage] = useState<number>(1);
   const [showSmallStores, setShowSmallStores] = useState<boolean>(false);
   const [dateType, setDateType] = useState<string>('month');
@@ -208,13 +209,17 @@ const ActivityAnalysis: React.FC = () => {
     { date: '2025-01-07', gmv: 148000, orderCount: 6700, avgPrice: 22.1, roi: 4.4, discount: 34000 }
   ];
 
-  // 零售商分页数据
-  const filteredRetailers = showSmallStores 
-    ? mockRetailers.filter(retailer => retailer.type === '小店')
-    : mockRetailers;
+  // 零售商分页数据（只显示KA类型）
+  const filteredRetailers = mockRetailers.filter(retailer => retailer.type === 'KA');
   const retailerPageSize = 10;
   const retailerStartIndex = (retailerPage - 1) * retailerPageSize;
   const currentRetailers = filteredRetailers.slice(retailerStartIndex, retailerStartIndex + retailerPageSize);
+
+  // 小店分页数据
+  const smallStores = mockRetailers.filter(retailer => retailer.type === '小店');
+  const smallStorePageSize = 10;
+  const smallStoreStartIndex = (smallStorePage - 1) * smallStorePageSize;
+  const currentSmallStores = smallStores.slice(smallStoreStartIndex, smallStoreStartIndex + smallStorePageSize);
 
   // 获取排序后的商品数据（置顶商品在前）
   const getSortedProducts = () => {
@@ -233,6 +238,77 @@ const ActivityAnalysis: React.FC = () => {
   const sortedProducts = getSortedProducts();
   const productStartIndex = (productPage - 1) * productPageSize;
   const currentProducts = sortedProducts.slice(productStartIndex, productStartIndex + productPageSize);
+
+  // 小店表格列定义（与零售商表格列定义相同，但序号需要重新计算）
+  const smallStoreColumns = [
+    {
+      title: '序号',
+      key: 'rank',
+      width: 60,
+      render: (_: any, __: any, index: number) => smallStoreStartIndex + index + 1,
+    },
+    {
+      title: '零售商名称',
+      dataIndex: 'name',
+      key: 'name',
+      width: 140,
+    },
+    {
+      title: '销售额(元)',
+      dataIndex: 'gmv',
+      key: 'gmv',
+      width: 110,
+      render: (value: number) => value.toLocaleString(),
+    },
+    {
+      title: '销售额占比(%)',
+      key: 'contributionRate',
+      width: 100,
+      render: (record: any) => {
+        const totalGmv = mockRetailers.reduce((sum, retailer) => sum + retailer.gmv, 0);
+        const contributionRate = ((record.gmv / totalGmv) * 100).toFixed(1);
+        return contributionRate;
+      },
+    },
+    {
+      title: '优惠金额(元)',
+      dataIndex: 'discount',
+      key: 'discount',
+      width: 110,
+      render: (value: number) => value.toLocaleString(),
+    },
+    {
+      title: '订单数',
+      dataIndex: 'usedCount',
+      key: 'usedCount',
+      width: 90,
+      render: (value: number) => value.toLocaleString(),
+    },
+    {
+      title: '单均价(元)',
+      dataIndex: 'avgPrice',
+      key: 'avgPrice',
+      width: 90,
+      render: (value: number) => value.toFixed(1),
+    },
+    {
+      title: '趋势',
+      key: 'trend',
+      width: 70,
+      render: (record: any) => (
+        <Button 
+          type="link" 
+          size="small"
+          onClick={() => {
+            setSelectedRetailerTrend(record);
+            setTrendModalVisible(true);
+          }}
+        >
+          查看
+        </Button>
+      ),
+    },
+  ];
 
   // 零售商表格列定义
   const retailerColumns = [
@@ -256,13 +332,13 @@ const ActivityAnalysis: React.FC = () => {
       render: (value: number) => value.toLocaleString(),
     },
     {
-      title: '贡献值(%)',
+      title: '销售额占比(%)',
       key: 'contributionRate',
       width: 100,
       render: (record: any) => {
         const totalGmv = mockRetailers.reduce((sum, retailer) => sum + retailer.gmv, 0);
         const contributionRate = ((record.gmv / totalGmv) * 100).toFixed(1);
-        return `${contributionRate}%`;
+        return contributionRate;
       },
     },
     {
@@ -327,13 +403,13 @@ const ActivityAnalysis: React.FC = () => {
       render: (value: number) => value.toLocaleString(),
     },
     {
-      title: '贡献值(%)',
+      title: '销售额占比(%)',
       key: 'contributionRate',
       width: 100,
       render: (record: any) => {
         const totalGmv = mockProducts.reduce((sum, product) => sum + product.gmv, 0);
         const contributionRate = ((record.gmv / totalGmv) * 100).toFixed(1);
-        return `${contributionRate}%`;
+        return contributionRate;
       },
     },
     {
@@ -537,36 +613,11 @@ const ActivityAnalysis: React.FC = () => {
       {/* 3. 核心指标 */}
       <Card title="核心指标" style={{ marginBottom: 0, borderBottom: 'none' }}>
         <Row gutter={0} style={{ display: 'flex', justifyContent: 'space-between' }}>
-          {/* 活动数 */}
-          <Col style={{ width: 'calc(20% - 8px)' }}>
+          {/* 销售额 */}
+          <Col style={{ width: 'calc(25% - 8px)' }}>
             <Card>
               <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
-                <span style={{ fontSize: '14px', color: '#000000' }}>活动数</span>
-                <AntTooltip 
-                  title={
-                    <div style={{ maxWidth: 300 }}>
-                      <div>当前选择的活动数量</div>
-                    </div>
-                  }
-                  placement="topLeft"
-                >
-                  <QuestionCircleOutlined style={{ marginLeft: 4, color: '#000000', cursor: 'help' }} />
-                </AntTooltip>
-              </div>
-              <Statistic
-                title=""
-                value={1}
-                precision={0}
-                valueStyle={{ color: '#262626', fontSize: '24px', fontWeight: 'bold' }}
-              />
-            </Card>
-          </Col>
-          
-          {/* 活动销售额 */}
-          <Col style={{ width: 'calc(20% - 8px)' }}>
-            <Card>
-              <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
-                <span style={{ fontSize: '14px', color: '#000000' }}>活动销售额</span>
+                <span style={{ fontSize: '14px', color: '#000000' }}>销售额（元）</span>
                 <AntTooltip 
                   title={
                     <div style={{ maxWidth: 300 }}>
@@ -587,16 +638,15 @@ const ActivityAnalysis: React.FC = () => {
                 value={currentActivity.gmv}
                 precision={0}
                 valueStyle={{ color: '#262626', fontSize: '24px', fontWeight: 'bold' }}
-                suffix="元"
               />
             </Card>
           </Col>
           
           {/* 优惠金额 */}
-          <Col style={{ width: 'calc(20% - 8px)' }}>
+          <Col style={{ width: 'calc(25% - 8px)' }}>
             <Card>
               <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
-                <span style={{ fontSize: '14px', color: '#000000' }}>优惠金额</span>
+                <span style={{ fontSize: '14px', color: '#000000' }}>优惠金额（元）</span>
                 <AntTooltip 
                   title={
                     <div style={{ maxWidth: 300 }}>
@@ -617,20 +667,19 @@ const ActivityAnalysis: React.FC = () => {
                 value={currentActivity.discount}
                 precision={0}
                 valueStyle={{ color: '#262626', fontSize: '24px', fontWeight: 'bold' }}
-                suffix="元"
               />
             </Card>
           </Col>
           
           {/* ROI */}
-          <Col style={{ width: 'calc(20% - 8px)' }}>
+          <Col style={{ width: 'calc(25% - 8px)' }}>
             <Card>
               <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
                 <span style={{ fontSize: '14px', color: '#000000' }}>ROI</span>
                 <AntTooltip 
                   title={
                     <div style={{ maxWidth: 300 }}>
-                      <div>活动销售额 ÷ 优惠金额</div>
+                      <div>销售额 ÷ 优惠金额</div>
                     </div>
                   }
                   placement="topLeft"
@@ -648,15 +697,15 @@ const ActivityAnalysis: React.FC = () => {
           </Col>
           
           {/* 订单数 */}
-          <Col style={{ width: 'calc(20% - 8px)' }}>
+          <Col style={{ width: 'calc(25% - 8px)' }}>
             <Card>
               <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
-                <span style={{ fontSize: '14px', color: '#000000' }}>订单数</span>
+                <span style={{ fontSize: '14px', color: '#000000' }}>订单数（个）</span>
                 <AntTooltip 
                   title={
                     <div style={{ maxWidth: 300 }}>
                       <div style={{ marginBottom: 4 }}><strong>微信/支付宝：</strong></div>
-                      <div style={{ marginBottom: 8 }}>平台下载的正向账单数量之和（无账单活动，取活动详情中统计的核销数量）</div>
+                      <div style={{ marginBottom: 8 }}>平台下载的正向账单数量之和（无账单活动，取活动详情中统计的订单数量）</div>
                       <div style={{ marginBottom: 4 }}><strong>抖音到店：</strong></div>
                       <div>待补充</div>
                     </div>
@@ -682,8 +731,7 @@ const ActivityAnalysis: React.FC = () => {
         {/* 指标选择器 */}
         <div style={{ marginBottom: 16, display: 'flex', alignItems: 'center', gap: '20px', flexWrap: 'wrap' }}>
           {[
-            { key: 'activityCount', label: '活动数', color: '#1890ff' },
-            { key: 'gmv', label: '活动销售额', color: '#40a9ff' },
+            { key: 'gmv', label: '销售额', color: '#40a9ff' },
             { key: 'discount', label: '优惠金额', color: '#096dd9' },
             { key: 'roi', label: 'ROI', color: '#91d5ff' },
             { key: 'orderCount', label: '订单数', color: '#69c0ff' }
@@ -750,8 +798,7 @@ const ActivityAnalysis: React.FC = () => {
               <YAxis yAxisId="right" orientation="right" />
               <Tooltip formatter={(value, name) => {
                 const metricLabels: {[key: string]: string} = {
-                  'activityCount': '活动数',
-                  'gmv': '活动销售额',
+                  'gmv': '销售额',
                   'discount': '优惠金额',
                   'roi': 'ROI',
                   'orderCount': '订单数'
@@ -788,7 +835,7 @@ const ActivityAnalysis: React.FC = () => {
                   stroke="#40a9ff"
                   strokeWidth={2}
                   activeDot={{ r: 6 }}
-                  name="活动销售额"
+                  name="销售额"
                 />
               )}
               
@@ -815,18 +862,6 @@ const ActivityAnalysis: React.FC = () => {
                   name="ROI"
                 />
               )}
-              
-              {visibleLines.orderCount && (
-                <RechartsLine
-                  yAxisId="left"
-                  type="monotone"
-                  dataKey="orderCount"
-                  stroke="#69c0ff"
-                  strokeWidth={2}
-                  activeDot={{ r: 6 }}
-                  name="订单数"
-                />
-              )}
             </LineChart>
           </ResponsiveContainer>
         </div>
@@ -835,7 +870,7 @@ const ActivityAnalysis: React.FC = () => {
       {/* 4. 批次对比 */}
       <Card title="批次对比" style={{ marginBottom: 16 }}>
         <div style={{ marginBottom: 12, fontSize: '14px', color: '#666' }}>
-          <strong>贡献值说明：</strong>单批次销售额占活动总销售额的占比
+          <strong>销售额占比说明：</strong>单批次销售额占活动总销售额的占比
         </div>
         <div style={{ height: 400 }}>
           <ResponsiveContainer width="100%" height="100%">
@@ -858,9 +893,9 @@ const ActivityAnalysis: React.FC = () => {
               <YAxis 
                 dataKey="contributionRate" 
                 type="number" 
-                name="贡献值"
+                name="销售额占比"
                 tickFormatter={(value) => `${value}%`}
-                label={{ value: '贡献值(%)', angle: 0, position: 'insideTopLeft', textAnchor: 'start', offset: 10, dx: -50 }}
+                label={{ value: '销售额占比(%)', angle: 0, position: 'insideTopLeft', textAnchor: 'start', offset: 10, dx: -50 }}
               />
               <Tooltip 
                   content={({ active, payload, label }) => {
@@ -875,7 +910,7 @@ const ActivityAnalysis: React.FC = () => {
                           boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
                         }}>
                           <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>{data.name}</div>
-                          <div>贡献值：{data.contributionRate}%</div>
+                          <div>销售额占比：{data.contributionRate}%</div>
                           <div>ROI：{data.roi}</div>
                           <div>销售额：{(data.gmv / 10000).toFixed(1)}万元</div>
                           <div>优惠金额：{(data.discount / 10000).toFixed(1)}万元</div>
@@ -896,19 +931,6 @@ const ActivityAnalysis: React.FC = () => {
         <Col span={24}>
           <Card 
             title="零售商" 
-            extra={
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <label>
-                  <input 
-                    type="checkbox" 
-                    checked={showSmallStores} 
-                    onChange={(e) => setShowSmallStores(e.target.checked)}
-                    style={{ marginRight: 4 }}
-                  />
-                  显示小店
-                </label>
-              </div>
-            }
             style={{ marginBottom: 16 }}
           >
             <Table
@@ -932,6 +954,45 @@ const ActivityAnalysis: React.FC = () => {
           </Card>
         </Col>
       </Row>
+
+      {/* 5.5. 小店 */}
+      {smallStores.length > 0 && (
+        <Row gutter={16}>
+          <Col span={24}>
+            <Card 
+              title={
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span>小店</span>
+                {/* 排序功能说明，仅对精明购业务角色可见，客户账号不可见 */}
+                <Text type="secondary" style={{ fontSize: '12px', fontWeight: 'normal' }}>
+                  （当前列表仅在活动覆盖范围中有小店时显示，该说明正式环境不显示）
+                </Text>
+              </div>
+            } 
+              style={{ marginBottom: 16 }}
+            >
+              <Table
+                 columns={smallStoreColumns}
+                 dataSource={currentSmallStores}
+                 pagination={false}
+                 size="small"
+                 rowKey="id"
+               />
+              <div style={{ marginTop: 16, textAlign: 'center' }}>
+                <Pagination
+                  current={smallStorePage}
+                  total={smallStores.length}
+                  pageSize={smallStorePageSize}
+                  onChange={setSmallStorePage}
+                  showSizeChanger={false}
+                  showQuickJumper
+                  showTotal={(total, range) => `第 ${range[0]}-${range[1]} 条，共 ${total} 条`}
+                />
+              </div>
+            </Card>
+          </Col>
+        </Row>
+      )}
 
       {/* 6. 商品 */}
       <Row gutter={16}>
@@ -989,7 +1050,7 @@ const ActivityAnalysis: React.FC = () => {
                   const intervalDays = Math.floor(totalDays / (selectedRetailerTrend.trend.sales.length - 1));
                   const currentDate = startDate.add(index * intervalDays, 'day');
                   
-                  // 计算贡献值（当前零售商销售额占总销售额的百分比）
+                  // 计算销售额占比（当前零售商销售额占总销售额的百分比）
                   const totalGmv = mockRetailers.reduce((sum, retailer) => sum + retailer.gmv, 0);
                   const contributionRate = ((sales * 10000) / totalGmv) * 100;
                   
@@ -1004,15 +1065,15 @@ const ActivityAnalysis: React.FC = () => {
               >
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="period" />
-                <YAxis yAxisId="left" label={{ value: 'GMV (万元)', angle: -90, position: 'insideLeft' }} />
-                <YAxis yAxisId="right" orientation="right" label={{ value: '贡献值 (%)', angle: 90, position: 'insideRight' }} />
+                <YAxis yAxisId="left" label={{ value: '销售额 (万元)', angle: -90, position: 'insideLeft' }} />
+                <YAxis yAxisId="right" orientation="right" label={{ value: '销售额占比 (%)', angle: 90, position: 'insideRight' }} />
                 <Tooltip 
                   formatter={(value: number, name: string, props: any) => {
                     const dataKey = props.dataKey;
                     if (dataKey === 'sales') {
-                      return [`${(value / 10000).toFixed(1)}万元`, 'GMV'];
+                      return [`${(value / 10000).toFixed(1)}万元`, '销售额'];
                     } else if (dataKey === 'contributionRate') {
-                      return [`${value.toFixed(2)}%`, '贡献值'];
+                      return [`${value.toFixed(2)}%`, '销售额占比'];
                     }
                     return [`${(value / 10000).toFixed(1)}万元`, '优惠金额'];
                   }}
@@ -1023,7 +1084,7 @@ const ActivityAnalysis: React.FC = () => {
                   type="monotone" 
                   dataKey="sales" 
                   stroke="#8884d8" 
-                  name="GMV"
+                  name="销售额"
                   strokeWidth={2}
                 />
                 <RechartsLine 
@@ -1031,7 +1092,7 @@ const ActivityAnalysis: React.FC = () => {
                   type="monotone" 
                   dataKey="contributionRate" 
                   stroke="#ff7300" 
-                  name="贡献值"
+                  name="销售额占比"
                   strokeWidth={2}
                 />
               </LineChart>
@@ -1059,7 +1120,7 @@ const ActivityAnalysis: React.FC = () => {
                   const intervalDays = Math.floor(totalDays / (selectedProductTrend.trend.sales.length - 1));
                   const currentDate = startDate.add(index * intervalDays, 'day');
                   
-                  // 计算贡献值（当前商品销售额占总销售额的百分比）
+                  // 计算销售额占比（当前商品销售额占总销售额的百分比）
                   const totalGmv = mockProducts.reduce((sum, product) => sum + product.gmv, 0);
                   const contributionRate = ((sales * 10000) / totalGmv) * 100;
                   
@@ -1074,15 +1135,15 @@ const ActivityAnalysis: React.FC = () => {
               >
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="period" />
-                <YAxis yAxisId="left" label={{ value: 'GMV (万元)', angle: -90, position: 'insideLeft' }} />
-                <YAxis yAxisId="right" orientation="right" label={{ value: '贡献值 (%)', angle: 90, position: 'insideRight' }} />
+                <YAxis yAxisId="left" label={{ value: '销售额 (万元)', angle: -90, position: 'insideLeft' }} />
+                <YAxis yAxisId="right" orientation="right" label={{ value: '销售额占比 (%)', angle: 90, position: 'insideRight' }} />
                 <Tooltip 
                   formatter={(value: number, name: string, props: any) => {
                     const dataKey = props.dataKey;
                     if (dataKey === 'sales') {
-                      return [`${(value / 10000).toFixed(1)}万元`, 'GMV'];
+                      return [`${(value / 10000).toFixed(1)}万元`, '销售额'];
                     } else if (dataKey === 'contributionRate') {
-                      return [`${value.toFixed(2)}%`, '贡献值'];
+                      return [`${value.toFixed(2)}%`, '销售额占比'];
                     }
                     return [`${(value / 10000).toFixed(1)}万元`, '优惠金额'];
                   }}
@@ -1093,7 +1154,7 @@ const ActivityAnalysis: React.FC = () => {
                   type="monotone" 
                   dataKey="sales" 
                   stroke="#8884d8" 
-                  name="GMV"
+                  name="销售额"
                   strokeWidth={2}
                 />
                 <RechartsLine 
@@ -1101,7 +1162,7 @@ const ActivityAnalysis: React.FC = () => {
                   type="monotone" 
                   dataKey="contributionRate" 
                   stroke="#ff7300" 
-                  name="贡献值"
+                  name="销售额占比"
                   strokeWidth={2}
                 />
               </LineChart>
