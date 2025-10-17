@@ -260,7 +260,7 @@ const ProductList: React.FC = () => {
       width: 200,
     },
     {
-      title: '零售商内码',
+      title: '渠道内码',
       key: 'retailerCodes',
       width: 120,
       render: (record: ProductData) => (
@@ -311,7 +311,7 @@ const ProductList: React.FC = () => {
       render: (price: number) => `¥${price.toFixed(2)}`,
     },
     {
-      title: '零售商价格',
+      title: '渠道价格',
       key: 'retailerPrices',
       width: 120,
       render: (record: ProductData) => (
@@ -387,9 +387,9 @@ const ProductList: React.FC = () => {
         />
       </Card>
 
-      {/* 零售商内码弹窗 */}
+      {/* 渠道内码弹窗 */}
       <Modal
-        title={selectedProduct ? `${selectedProduct.productName} (${selectedProduct.productCode69}) - 零售商内码` : '零售商内码'}
+        title={selectedProduct ? `${selectedProduct.productName} (${selectedProduct.productCode69}) - 渠道内码` : '渠道内码'}
         visible={retailerCodeModalVisible}
         onCancel={() => setRetailerCodeModalVisible(false)}
         footer={null}
@@ -403,9 +403,9 @@ const ProductList: React.FC = () => {
         />
       </Modal>
 
-      {/* 零售商价格弹窗 */}
+      {/* 渠道价格弹窗 */}
       <Modal
-        title={selectedProduct ? `${selectedProduct.productName} (${selectedProduct.productCode69}) - 零售商价格` : '零售商价格'}
+        title={selectedProduct ? `${selectedProduct.productName} (${selectedProduct.productCode69}) - 渠道价格` : '渠道价格'}
         visible={retailerPriceModalVisible}
         onCancel={() => setRetailerPriceModalVisible(false)}
         footer={null}
