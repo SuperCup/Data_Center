@@ -14,14 +14,13 @@ const mockActivities = [
   {
     id: '1',
     name: '2025年9-10月康师傅红烧牛肉面全国促销活动',
+    activityType: 'KA',
     startDate: '2025-09-01',
     endDate: '2025-10-31',
-    mechanisms: [
-      '满5减0.5', '满8减0.8', '满10减1', '满12减1.2', '满15减1.5',
-      '满18减1.8', '满20减2', '满22减2.2', '满25减2.5', '满28减2.8',
-      '满30减3', '满32减3.2', '满35减3.5', '满38减3.8', '满40减4',
-      '满42减4.2', '满45减4.5', '满48减4.8', '满50减5', '满60减6'
-    ],
+    mechanisms: {
+      '微信小程序': ['满5减0.5', '满8减0.8', '满10减1', '满12减1.2'],
+      '支付宝小程序': ['满15减1.5', '满18减1.8', '满20减2', '满22减2.2']
+    },
     budget: 50000,
     consumed: 32500,
     gmv: 142500,
@@ -43,14 +42,16 @@ const mockActivities = [
   {
     id: '2',
     name: '2025年8月康师傅老坛酸菜面夏日特惠活动',
+    activityType: '小店',
     startDate: '2025-08-01',
     endDate: '2025-08-31',
-    mechanisms: [
-      '满4减0.4', '满6减0.6', '满8减0.8', '满10减1', '满12减1.2',
-      '满14减1.4', '满16减1.6', '满18减1.8', '满20减2', '满22减2.2',
-      '满24减2.4', '满26减2.6', '满28减2.8', '满30减3', '满32减3.2',
-      '满34减3.4', '满36减3.6', '满38减3.8', '满40减4', '满50减5'
-    ],
+    mechanisms: {
+      '微信小程序': ['满4减0.4', '满6减0.6', '满8减0.8', '满10减1'],
+      '支付宝小程序': ['满12减1.2', '满14减1.4', '满16减1.6', '满18减1.8'],
+      '抖音到店': ['满20减2', '满22减2.2', '满24减2.4', '满26减2.6'],
+      '美团到店': ['满28减2.8', '满30减3', '满32减3.2', '满34减3.4'],
+      '天猫校园': ['满36减3.6', '满38减3.8', '满40减4', '满50减5']
+    },
     budget: 40000,
     consumed: 26000,
     gmv: 97500,
@@ -69,14 +70,16 @@ const mockActivities = [
   {
     id: '3',
     name: '2025年7月康师傅香辣牛肉面品牌推广活动',
+    activityType: 'KA',
     startDate: '2025-07-01',
     endDate: '2025-07-31',
-    mechanisms: [
-      '满3减0.3', '满5减0.5', '满6减0.6', '满8减0.8', '满9减0.9',
-      '满10减1', '满12减1.2', '满14减1.4', '满15减1.5', '满16减1.6',
-      '满18减1.8', '满20减2', '满21减2.1', '满24减2.4', '满25减2.5',
-      '满27减2.7', '满30减3', '满32减3.2', '满35减3.5', '满40减4'
-    ],
+    mechanisms: {
+      '微信小程序': ['满3减0.3', '满5减0.5', '满6减0.6', '满8减0.8'],
+      '支付宝小程序': ['满9减0.9', '满10减1', '满12减1.2', '满14减1.4'],
+      '抖音到店': ['满15减1.5', '满16减1.6', '满18减1.8', '满20减2'],
+      '美团到店': ['满21减2.1', '满24减2.4', '满25减2.5', '满27减2.7'],
+      '天猫校园': ['满30减3', '满32减3.2', '满35减3.5', '满40减4']
+    },
     budget: 30000,
     consumed: 24000,
     gmv: 82500,
@@ -248,7 +251,7 @@ const ActivityAnalysis: React.FC = () => {
       render: (_: any, __: any, index: number) => smallStoreStartIndex + index + 1,
     },
     {
-      title: '零售商名称',
+      title: '小店名称',
       dataIndex: 'name',
       key: 'name',
       width: 140,
@@ -569,13 +572,44 @@ const ActivityAnalysis: React.FC = () => {
                 </Col>
                 <Col span={24}>
                   <div>
+                    <Text strong>活动类型：</Text>
+                    <Text>{currentActivity.activityType}</Text>
+                  </div>
+                </Col>
+                <Col span={24}>
+                  <div>
                     <Text strong>活动机制：</Text>
                     <div style={{ marginTop: 8 }}>
-                      {currentActivity.mechanisms.map((mechanism, index) => (
-                        <Tag key={index} style={{ margin: '2px 4px 2px 0' }}>
-                          {mechanism}
-                        </Tag>
-                      ))}
+                      {typeof currentActivity.mechanisms === 'object' && !Array.isArray(currentActivity.mechanisms) ? (
+                        Object.entries(currentActivity.mechanisms).map(([platform, mechanisms]) => (
+                          <div key={platform} style={{ marginBottom: 16 }}>
+                            <div style={{ 
+                              fontSize: '14px', 
+                              fontWeight: 500, 
+                              color: '#1890ff',
+                              marginBottom: 6,
+                              paddingBottom: 2,
+                              borderBottom: '1px solid #f0f0f0'
+                            }}>
+                              {platform}
+                            </div>
+                            <div style={{ paddingLeft: 12 }}>
+                              {mechanisms.map((mechanism: string, index: number) => (
+                                <Tag key={index} style={{ margin: '2px 4px 2px 0' }}>
+                                  {mechanism}
+                                </Tag>
+                              ))}
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        // 兼容旧的数组格式
+                        Array.isArray(currentActivity.mechanisms) && currentActivity.mechanisms.map((mechanism, index) => (
+                          <Tag key={index} style={{ margin: '2px 4px 2px 0' }}>
+                            {mechanism}
+                          </Tag>
+                        ))
+                      )}
                     </div>
                   </div>
                 </Col>
@@ -923,6 +957,323 @@ const ActivityAnalysis: React.FC = () => {
               <Scatter dataKey="contributionRate" fill="#8884d8" />
             </ScatterChart>
           </ResponsiveContainer>
+        </div>
+      </Card>
+
+      {/* 4.5. 时段分析热力图 */}
+      <Card title="时段分析" style={{ marginBottom: 16 }}>
+        <div style={{ display: 'flex', gap: '20px', height: 500 }}>
+          {/* 左侧热力图 */}
+          <div style={{ flex: 1, position: 'relative', padding: '20px 0' }}>
+          {/* 热力图容器 */}
+          <div style={{ 
+            display: 'grid', 
+            gridTemplateColumns: '60px repeat(24, 1fr)', 
+            gridTemplateRows: 'repeat(8, 1fr)', 
+            gap: '2px',
+            height: '100%',
+            width: '100%'
+          }}>
+            {/* 空白角落 */}
+            <div></div>
+            
+            {/* 小时标签 */}
+            {Array.from({ length: 24 }, (_, i) => (
+              <div 
+                key={`hour-${i}`}
+                style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center',
+                  fontSize: '12px',
+                  color: '#8c8c8c',
+                  fontWeight: '500'
+                }}
+              >
+                {i}
+              </div>
+            ))}
+            
+            {/* 星期和数据点 */}
+            {['周一', '周二', '周三', '周四', '周五', '周六', '周日'].map((day, dayIndex) => {
+              // 模拟时段分析数据
+              const mockTimeAnalysisData = Array.from({ length: 7 * 24 }, (_, index) => {
+                const dayIdx = Math.floor(index / 24);
+                const hourIdx = index % 24;
+                // 基于活动数据生成模拟的时段销售额
+                const baseGmv = currentActivity.gmv / (7 * 24);
+                const hourMultiplier = hourIdx >= 9 && hourIdx <= 21 ? 1.5 : 0.5; // 白天销售更好
+                const dayMultiplier = dayIdx === 5 || dayIdx === 6 ? 1.2 : 1.0; // 周末销售更好
+                const randomFactor = 0.5 + Math.random() * 1.5; // 随机因子
+                return {
+                  dayIndex: dayIdx,
+                  hourIndex: hourIdx,
+                  gmv: baseGmv * hourMultiplier * dayMultiplier * randomFactor
+                };
+              });
+
+              // 计算当天所有时段的销售额总和
+              const dayTotalGmv = mockTimeAnalysisData
+                .filter(item => item.dayIndex === dayIndex)
+                .reduce((sum, item) => sum + item.gmv, 0);
+              
+              return (
+                <React.Fragment key={day}>
+                  {/* 星期标签 */}
+                  <div style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center',
+                    fontSize: '12px',
+                    color: '#262626',
+                    fontWeight: '500'
+                  }}>
+                    {day}
+                  </div>
+                  
+                  {/* 24小时数据点 */}
+                  {Array.from({ length: 24 }, (_, hour) => {
+                    const dataPoint = mockTimeAnalysisData.find(
+                      item => item.dayIndex === dayIndex && item.hourIndex === hour
+                    );
+                    
+                    if (!dataPoint) return <div key={`${day}-${hour}`}></div>;
+                    
+                    // 计算圆圈大小和颜色深度
+                    const maxGmv = Math.max(...mockTimeAnalysisData.map(item => item.gmv));
+                    const minGmv = Math.min(...mockTimeAnalysisData.map(item => item.gmv));
+                    const normalizedValue = (dataPoint.gmv - minGmv) / (maxGmv - minGmv);
+                    
+                    // 圆圈大小：最小8px，最大28px
+                    const circleSize = 8 + normalizedValue * 20;
+                    
+                    // 颜色深度：基于销售额比例
+                    const opacity = 0.3 + normalizedValue * 0.7;
+                    
+                    // 计算该时段在当日的占比
+                    const dayPercentage = ((dataPoint.gmv / dayTotalGmv) * 100).toFixed(1);
+                    
+                    return (
+                       <AntTooltip
+                         key={`${day}-${hour}`}
+                         title={
+                           <div style={{ textAlign: 'center' }}>
+                             <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>
+                               {day} {hour}:00
+                             </div>
+                             <div style={{ color: '#1890ff', fontSize: '14px', fontWeight: 'bold' }}>
+                               销售额: ¥{dataPoint.gmv.toFixed(2)}
+                             </div>
+                             <div style={{ fontSize: '12px', color: '#8c8c8c', marginTop: '2px' }}>
+                               当日占比: {dayPercentage}%
+                             </div>
+                           </div>
+                         }
+                         placement="top"
+                         overlayStyle={{
+                           maxWidth: '200px'
+                         }}
+                       >
+                         <div 
+                           style={{ 
+                             display: 'flex', 
+                             alignItems: 'center', 
+                             justifyContent: 'center',
+                             position: 'relative',
+                             cursor: 'pointer'
+                           }}
+                         >
+                           <div
+                             style={{
+                               width: `${circleSize}px`,
+                               height: `${circleSize}px`,
+                               borderRadius: '50%',
+                               backgroundColor: `rgba(24, 144, 255, ${opacity})`,
+                               transition: 'all 0.2s ease',
+                               border: '1px solid rgba(24, 144, 255, 0.3)'
+                             }}
+                             onMouseEnter={(e) => {
+                               e.currentTarget.style.transform = 'scale(1.2)';
+                               e.currentTarget.style.boxShadow = '0 2px 8px rgba(24, 144, 255, 0.4)';
+                             }}
+                             onMouseLeave={(e) => {
+                               e.currentTarget.style.transform = 'scale(1)';
+                               e.currentTarget.style.boxShadow = 'none';
+                             }}
+                           />
+                         </div>
+                       </AntTooltip>
+                     );
+                  })}
+                </React.Fragment>
+              );
+            })}
+          </div>
+          
+          {/* 图例 */}
+          <div style={{ 
+            position: 'absolute', 
+            bottom: '10px', 
+            right: '20px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            fontSize: '12px',
+            color: '#8c8c8c'
+          }}>
+            <span>销售额:</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <div style={{ 
+                width: '8px', 
+                height: '8px', 
+                borderRadius: '50%', 
+                backgroundColor: 'rgba(24, 144, 255, 0.3)' 
+              }}></div>
+              <span>低</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <div style={{ 
+                width: '16px', 
+                height: '16px', 
+                borderRadius: '50%', 
+                backgroundColor: 'rgba(24, 144, 255, 0.6)' 
+              }}></div>
+              <span>中</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <div style={{ 
+                width: '24px', 
+                height: '24px', 
+                borderRadius: '50%', 
+                backgroundColor: 'rgba(24, 144, 255, 1)' 
+              }}></div>
+              <span>高</span>
+            </div>
+          </div>
+          </div>
+          
+          {/* 右侧周销售额图表 */}
+          <div style={{ width: '300px', padding: '20px 0' }}>
+            <div style={{ 
+              height: '100%', 
+              display: 'flex', 
+              flexDirection: 'column',
+              border: '1px solid #f0f0f0',
+              borderRadius: '6px',
+              padding: '16px',
+              backgroundColor: '#fafafa'
+            }}>
+              <div style={{ 
+                fontSize: '14px', 
+                fontWeight: '600', 
+                color: '#262626',
+                marginBottom: '16px',
+                textAlign: 'center'
+              }}>
+                销售额周内占比
+              </div>
+              
+              {/* 周销售额柱状图 */}
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {['周一', '周二', '周三', '周四', '周五', '周六', '周日'].map((day, dayIndex) => {
+                  // 模拟每天的销售额数据
+                  const baseDayGmv = currentActivity.gmv / 7;
+                  const dayMultiplier = dayIndex === 5 || dayIndex === 6 ? 1.2 : 1.0; // 周末销售更好
+                  const randomFactor = 0.8 + Math.random() * 0.4; // 随机因子
+                  const dayTotalGmv = baseDayGmv * dayMultiplier * randomFactor;
+                  
+                  // 计算一周的销售额总和，用于占比计算
+                  const weekTotalGmv = currentActivity.gmv;
+                  
+                  const percentage = weekTotalGmv > 0 ? (dayTotalGmv / weekTotalGmv) * 100 : 0;
+                  const barWidth = Math.max(percentage, 5); // 最小宽度5%
+                  
+                  return (
+                    <div key={day} style={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: '8px',
+                      height: '32px'
+                    }}>
+                      <div style={{ 
+                        width: '32px', 
+                        fontSize: '12px', 
+                        color: '#595959',
+                        textAlign: 'right'
+                      }}>
+                        {day}
+                      </div>
+                      
+                      <div style={{ 
+                        flex: 1, 
+                        height: '20px', 
+                        backgroundColor: '#f5f5f5',
+                        borderRadius: '10px',
+                        position: 'relative',
+                        overflow: 'hidden'
+                      }}>
+                        <div style={{
+                          width: `${barWidth}%`,
+                          height: '100%',
+                          backgroundColor: dayIndex === 5 || dayIndex === 6 ? '#52c41a' : '#1890ff', // 周末用绿色
+                          borderRadius: '10px',
+                          transition: 'all 0.3s ease',
+                          cursor: 'pointer'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.opacity = '0.8';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.opacity = '1';
+                        }}
+                        />
+                      </div>
+                      
+                      <div style={{ 
+                        width: '60px', 
+                        fontSize: '11px', 
+                        color: '#8c8c8c',
+                        textAlign: 'right'
+                      }}>
+                        {percentage.toFixed(1)}%
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              
+              {/* 图例说明 */}
+              <div style={{ 
+                marginTop: '12px', 
+                paddingTop: '12px',
+                borderTop: '1px solid #f0f0f0',
+                display: 'flex',
+                justifyContent: 'center',
+                gap: '16px',
+                fontSize: '11px',
+                color: '#8c8c8c'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <div style={{ 
+                    width: '8px', 
+                    height: '8px', 
+                    backgroundColor: '#1890ff',
+                    borderRadius: '2px'
+                  }}></div>
+                  <span>工作日</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <div style={{ 
+                    width: '8px', 
+                    height: '8px', 
+                    backgroundColor: '#52c41a',
+                    borderRadius: '2px'
+                  }}></div>
+                  <span>周末</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </Card>
 

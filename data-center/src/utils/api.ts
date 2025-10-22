@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // 导入模拟数据
-import '../mock';
+// 已移除 import '../mock';
 
 // 创建axios实例
 const api = axios.create({

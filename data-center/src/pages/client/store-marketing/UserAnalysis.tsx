@@ -200,58 +200,74 @@ const UserAnalysis: React.FC = () => {
     { name: '3天以上', value: 5 }
   ];
 
+  // 省份数据类型定义
+  interface ProvinceData {
+    name: string;
+    orderCount: number;    // 订单数
+    salesAmount: number;   // 销售额
+    discountAmount: number; // 优惠金额
+  }
+
   // 省份订单占比数据（Top10）
-  const provinceUsageData = [
-    { name: '广东', value: 18.5 },
-    { name: '江苏', value: 15.2 },
-    { name: '浙江', value: 12.8 },
-    { name: '山东', value: 10.3 },
-    { name: '河南', value: 8.7 },
-    { name: '四川', value: 7.2 },
-    { name: '湖北', value: 6.1 },
-    { name: '福建', value: 5.4 },
-    { name: '安徽', value: 4.8 },
-    { name: '湖南', value: 4.2 }
+  const provinceUsageData: ProvinceData[] = [
+    { name: '广东', orderCount: 577, salesAmount: 156000, discountAmount: 12000 },
+    { name: '江苏', orderCount: 364, salesAmount: 143000, discountAmount: 11000 },
+    { name: '浙江', orderCount: 327, salesAmount: 130000, discountAmount: 10000 },
+    { name: '山东', orderCount: 291, salesAmount: 117000, discountAmount: 9000 },
+    { name: '河南', orderCount: 185, salesAmount: 110500, discountAmount: 8500 },
+    { name: '四川', orderCount: 177, salesAmount: 104000, discountAmount: 8000 },
+    { name: '湖北', orderCount: 152, salesAmount: 97500, discountAmount: 7500 },
+    { name: '福建', orderCount: 128, salesAmount: 91000, discountAmount: 7000 },
+    { name: '安徽', orderCount: 98, salesAmount: 84500, discountAmount: 6500 },
+    { name: '湖南', orderCount: 82, salesAmount: 78000, discountAmount: 6000 }
   ];
   
-  // 省份订单占比数据（全国地图数据）
-  const provinceMapData = [
-    { name: '山东', value: 577 },
-    { name: '河南', value: 364 },
-    { name: '天津', value: 327 },
-    { name: '北京', value: 291 },
-    { name: '广东', value: 185 },
-    { name: '福建', value: 177 },
-    { name: '江苏', value: 152 },
-    { name: '浙江', value: 128 },
-    { name: '湖北', value: 98 },
-    { name: '宁夏', value: 82 },
-    { name: '辽宁', value: 74 },
-    { name: '四川', value: 72 },
-    { name: '安徽', value: 48 },
-    { name: '湖南', value: 42 },
-    // 添加其他省份，即使没有数据也显示
-    { name: '河北', value: 0 },
-    { name: '山西', value: 0 },
-    { name: '内蒙古', value: 0 },
-    { name: '吉林', value: 0 },
-    { name: '黑龙江', value: 0 },
-    { name: '上海', value: 0 },
-    { name: '江西', value: 0 },
-    { name: '广西', value: 0 },
-    { name: '海南', value: 0 },
-    { name: '重庆', value: 0 },
-    { name: '贵州', value: 0 },
-    { name: '云南', value: 0 },
-    { name: '西藏', value: 0 },
-    { name: '陕西', value: 0 },
-    { name: '甘肃', value: 0 },
-    { name: '青海', value: 0 },
-    { name: '新疆', value: 0 },
-    { name: '台湾', value: 0 },
-    { name: '香港', value: 0 },
-    { name: '澳门', value: 0 }
-  ];
+  // 排名类型状态
+  const [rankingType, setRankingType] = useState<'orderCount' | 'salesAmount' | 'discountAmount'>('orderCount');
+
+  // 获取当前排名类型的值
+  const getCurrentValue = (province: ProvinceData) => {
+    switch (rankingType) {
+      case 'orderCount':
+        return province.orderCount;
+      case 'salesAmount':
+        return province.salesAmount;
+      case 'discountAmount':
+        return province.discountAmount;
+      default:
+        return province.orderCount;
+    }
+  };
+
+  // 省份地图数据（根据排名类型动态生成）
+  const getProvinceMapData = () => {
+    // 根据当前排名类型生成基础地图数据
+    const baseMapData = provinceUsageData.map(item => ({
+      name: item.name,
+      value: getCurrentValue(item)
+    }));
+    
+    // 确保所有省份都在地图上显示（包括没有数据的省份）
+    const allProvinces = [
+      '北京', '天津', '河北', '山西', '内蒙古', '辽宁', '吉林', '黑龙江',
+      '上海', '江苏', '浙江', '安徽', '福建', '江西', '山东', '河南',
+      '湖北', '湖南', '广东', '广西', '海南', '重庆', '四川', '贵州',
+      '云南', '西藏', '陕西', '甘肃', '青海', '宁夏', '新疆', '台湾', '香港', '澳门'
+    ];
+    
+    const existingProvinces = baseMapData.map(item => item.name);
+    const missingProvinces = allProvinces.filter(name => !existingProvinces.includes(name));
+    
+    const missingData = missingProvinces.map(name => ({
+      name,
+      value: 0
+    }));
+    
+    return [...baseMapData, ...missingData];
+  };
+
+  // 动态获取地图数据
+  const provinceMapData = getProvinceMapData();
 
   // 计算按订单占比排名前10的省份
   const getTop10ProvincesByUsage = () => {
@@ -271,8 +287,69 @@ const UserAnalysis: React.FC = () => {
     return provincesWithPercentage;
   };
 
+  // 获取排名标题
+  const getRankingTitle = () => {
+    switch (rankingType) {
+      case 'orderCount':
+        return '省份订单占比排名前10';
+      case 'salesAmount':
+        return '省份销售额占比排名前10';
+      case 'discountAmount':
+        return '省份优惠金额占比排名前10';
+      default:
+        return '省份订单占比排名前10';
+    }
+  };
+
+  // 获取Top10省份数据（根据排名类型）
+  const getTop10ProvincesByRanking = () => {
+    const sortedData = [...provinceUsageData].sort((a, b) => {
+      switch (rankingType) {
+        case 'orderCount':
+          return b.orderCount - a.orderCount;
+        case 'salesAmount':
+          return b.salesAmount - a.salesAmount;
+        case 'discountAmount':
+          return b.discountAmount - a.discountAmount;
+        default:
+          return b.orderCount - a.orderCount;
+      }
+    });
+    return sortedData.slice(0, 10);
+  };
+
+  // 获取当前排名类型的总值
+  const getTotalValue = () => {
+    return provinceUsageData.reduce((sum, item) => {
+      switch (rankingType) {
+        case 'orderCount':
+          return sum + item.orderCount;
+        case 'salesAmount':
+          return sum + item.salesAmount;
+        case 'discountAmount':
+          return sum + item.discountAmount;
+        default:
+          return sum + item.orderCount;
+      }
+    }, 0);
+  };
+
+  // 获取当前排名类型的单位
+  const getCurrentUnit = () => {
+    switch (rankingType) {
+      case 'orderCount':
+        return '张';
+      case 'salesAmount':
+        return '元';
+      case 'discountAmount':
+        return '元';
+      default:
+        return '张';
+    }
+  };
+
   // 获取前10省份数据
-  const top10Provinces = getTop10ProvincesByUsage();
+  const top10Provinces = getTop10ProvincesByRanking();
   
   // 定义Top10省份的颜色映射 - 使用蓝色由深到浅
   const getProvinceColor = (provinceName: string, value: number) => {
@@ -475,7 +552,7 @@ const UserAnalysis: React.FC = () => {
     if (!data || data.length === 0) {
       return {
         title: {
-          text: '消费者地图 - 订单占比前10省份',
+          text: getRankingTitle(),
           left: 'center',
           textStyle: {
             fontSize: 16,
@@ -496,45 +573,43 @@ const UserAnalysis: React.FC = () => {
     
     return {
       title: {
-        text: '省份订单占比排名前10',
+        text: getRankingTitle(),
         left: 'center',
         textStyle: {
           fontSize: 16,
           fontWeight: 'bold'
-        },
-        subtext: '请将前10省份按排序，使用颜色由深到浅展示，改提示仅给UI设计时提供说明，不在正式设计中显示',
-        subtextStyle: {
-          fontSize: 12,
-          color: '#666',
-          fontStyle: 'italic'
         }
       },
       tooltip: {
         trigger: 'item',
         formatter: (params: any) => {
           if (!params || !params.data) {
-            return `${params?.name || '未知'}<br/>订单数: 0<br/>占比: 0.00%<br/>排名: 未上榜`;
+            return `${params?.name || '未知'}<br/>${rankingType === 'orderCount' ? '订单数' : rankingType === 'salesAmount' ? '销售额' : '优惠金额'}: 0<br/>占比: 0.00%<br/>排名: 未上榜`;
           }
           const { name, value } = params.data;
-          const totalUsage = provinceMapData.reduce((sum, item) => sum + item.value, 0);
-          const percentage = value && totalUsage > 0 ? ((value / totalUsage) * 100).toFixed(2) : '0.00';
+          const totalValue = getTotalValue();
+          const percentage = value && totalValue > 0 ? ((value / totalValue) * 100).toFixed(2) : '0.00';
           const rank = top10Provinces.findIndex(item => item.name === name) + 1;
           const rankText = rank > 0 ? `第${rank}名` : '未上榜';
-          return `${name}<br/>订单数: ${value || 0}<br/>占比: ${percentage}%<br/>排名: ${rankText}`;
+          const valueText = rankingType === 'salesAmount' || rankingType === 'discountAmount' 
+            ? `¥${value?.toLocaleString() || 0}` 
+            : (value?.toLocaleString() || 0);
+          const unitText = rankingType === 'orderCount' ? '订单数' : rankingType === 'salesAmount' ? '销售额' : '优惠金额';
+          return `${name}<br/>${unitText}: ${valueText}<br/>占比: ${percentage}%<br/>排名: ${rankText}`;
         }
       },
       visualMap: {
-        min: 0,
-        max: 100,
+        min: minValue,
+        max: maxValue,
         left: 'left',
         bottom: '5%',
-        text: ['100%', '0%'],
+        text: [`${maxValue}`, `${minValue}`],
         calculable: true,
         formatter: (value: number) => {
-          const totalUsage = provinceMapData.reduce((sum, item) => sum + item.value, 0);
-          if (totalUsage === 0) return '0%';
-          const percentage = ((value / totalUsage) * 100).toFixed(0);
-          return `${percentage}%`;
+          if (rankingType === 'salesAmount' || rankingType === 'discountAmount') {
+            return `¥${value.toLocaleString()}`;
+          }
+          return value.toString();
         },
         inRange: {
           color: ['#f0f9ff', '#e0f2fe', '#bae6fd', '#7dd3fc', '#38bdf8', '#0ea5e9', '#0284c7', '#0369a1', '#075985', '#0c4a6e']
@@ -546,7 +621,7 @@ const UserAnalysis: React.FC = () => {
       },
       series: [
         {
-          name: '省份订单占比',
+          name: getRankingTitle(),
           type: 'map',
           map: 'china',
           roam: false,
@@ -564,22 +639,28 @@ const UserAnalysis: React.FC = () => {
               borderWidth: 2
             }
           },
-          itemStyle: {
-            borderColor: '#fff',
-            borderWidth: 1
-            // 移除全局areaColor设置，让各省份使用自己的颜色
-          },
-          label: {
-            show: false
+          select: {
+            label: {
+              show: true,
+              fontSize: 12,
+              fontWeight: 'bold'
+            },
+            itemStyle: {
+              areaColor: '#40a9ff'
+            }
           },
           data: data.map(item => ({
             name: item.name,
-            value: item.value,
-            // 为每个省份设置不同的颜色
-            itemStyle: {
-              borderColor: top10Names.includes(item.name) ? '#ff4d4f' : '#d9d9d9',
-              borderWidth: top10Names.includes(item.name) ? 2 : 1,
-              areaColor: getProvinceColor(item.name, item.value)
+            value: item.value || 0,
+            // 为前10省份设置特殊样式
+            itemStyle: top10Names.includes(item.name) ? {
+              areaColor: getProvinceColor(item.name, item.value || 0),
+              borderColor: '#1890ff',
+              borderWidth: 1
+            } : {
+              areaColor: '#f5f5f5',
+              borderColor: '#e8e8e8',
+              borderWidth: 0.5
             }
           }))
         }
@@ -890,7 +971,7 @@ const UserAnalysis: React.FC = () => {
               <div style={{ position: 'relative', height: '500px' }}>
                 {mapReady ? (
                   <ReactECharts 
-                    option={getMapChartOption(provinceMapData)} 
+                    option={getMapChartOption(getProvinceMapData())} 
                     style={{ height: '100%' }}
                   />
                 ) : (
@@ -904,6 +985,29 @@ const UserAnalysis: React.FC = () => {
                     地图加载中...
                   </div>
                 )}
+                {/* 切换按钮 - 移动到地图左上角 */}
+                <div style={{ 
+                  position: 'absolute', 
+                  top: '16px', 
+                  left: '16px',
+                  background: 'rgba(255, 255, 255, 0.95)',
+                  padding: '8px 12px',
+                  borderRadius: '6px',
+                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+                  border: '1px solid #e8e8e8',
+                  zIndex: 10
+                }}>
+                  <Select
+                    value={rankingType}
+                    onChange={(value) => setRankingType(value)}
+                    style={{ width: 120 }}
+                    size="small"
+                  >
+                    <Option value="orderCount">订单数</Option>
+                    <Option value="salesAmount">销售额</Option>
+                    <Option value="discountAmount">优惠金额</Option>
+                  </Select>
+                </div>
                 <div style={{ 
                   position: 'absolute', 
                   bottom: '16px', 
@@ -915,31 +1019,43 @@ const UserAnalysis: React.FC = () => {
                   border: '1px solid #e8e8e8'
                 }}>
                   <Statistic
-                    title="订单数"
-                    value={provinceMapData.reduce((sum, item) => sum + item.value, 0)}
+                    title={getCurrentUnit()}
+                    value={getTotalValue()}
                     valueStyle={{ color: '#1890ff', fontSize: '16px' }}
-                    suffix="张"
+                    suffix={rankingType === 'orderCount' ? '张' : ''}
+                    formatter={(value) => {
+                      if (rankingType === 'salesAmount' || rankingType === 'discountAmount') {
+                        return `¥${value.toLocaleString()}`;
+                      }
+                      return value.toLocaleString();
+                    }}
                   />
                 </div>
               </div>
             </Card>
         </Col>
         <Col span={8}>
-           <Card title="Top10" style={{ height: '540px' }}>
+           <Card 
+             title={getRankingTitle()}
+             style={{ height: '540px' }}
+           >
              <div style={{ height: '490px', overflowY: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
                    <tr style={{ borderBottom: '1px solid #f0f0f0' }}>
                      <th style={{ padding: '8px 4px', textAlign: 'left', fontSize: '12px', color: '#666' }}>序号</th>
                      <th style={{ padding: '8px 4px', textAlign: 'left', fontSize: '12px', color: '#666' }}>省份/城市</th>
-                     <th style={{ padding: '8px 4px', textAlign: 'right', fontSize: '12px', color: '#666' }}>订单数</th>
-                     <th style={{ padding: '8px 4px', textAlign: 'right', fontSize: '12px', color: '#666' }}>订单占比（%）</th>
+                     <th style={{ padding: '8px 4px', textAlign: 'right', fontSize: '12px', color: '#666' }}>
+                       {rankingType === 'orderCount' ? '订单数' : rankingType === 'salesAmount' ? '销售额' : '优惠金额'}
+                     </th>
+                     <th style={{ padding: '8px 4px', textAlign: 'right', fontSize: '12px', color: '#666' }}>占比（%）</th>
                    </tr>
                  </thead>
                  <tbody>
                    {top10Provinces.map((province, index) => {
-                     const totalUsage = provinceMapData.reduce((sum, item) => sum + item.value, 0);
-                     const percentage = totalUsage > 0 ? ((province.value / totalUsage) * 100).toFixed(1) : '0.0';
+                     const totalValue = getTotalValue();
+                     const currentValue = getCurrentValue(province);
+                     const percentage = totalValue > 0 ? ((currentValue / totalValue) * 100).toFixed(1) : '0.0';
                      return (
                        <tr key={province.name} style={{ borderBottom: '1px solid #f8f8f8' }}>
                          <td style={{ 
@@ -965,7 +1081,10 @@ const UserAnalysis: React.FC = () => {
                            color: index < 3 ? '#1890ff' : '#333',
                            fontWeight: index < 3 ? 'bold' : 'normal'
                          }}>
-                           {province.value}
+                           {rankingType === 'salesAmount' || rankingType === 'discountAmount' 
+                             ? `¥${currentValue.toLocaleString()}` 
+                             : currentValue.toLocaleString()
+                           }
                          </td>
                          <td style={{ 
                            padding: '8px 4px', 
