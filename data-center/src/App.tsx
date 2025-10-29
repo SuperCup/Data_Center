@@ -8,6 +8,7 @@ import './App.css';
 import Dashboard from './pages/client/store-marketing/Dashboard';
 import AllActivities from './pages/client/store-marketing/AllActivities';
 import ActivityAnalysis from './pages/client/store-marketing/ActivityAnalysis';
+import SmallStoreActivityAnalysis from './pages/client/store-marketing/SmallStoreActivityAnalysis';
 import UserAnalysis from './pages/client/store-marketing/UserAnalysis';
 import CouponDetail from './pages/client/store-marketing/CouponDetail';
 import MechanismEffect from './pages/client/store-marketing/MechanismEffect';
@@ -15,6 +16,8 @@ import ChannelAnalysis from './pages/client/store-marketing/ChannelAnalysis';
 import RequestCenter from './pages/client/store-marketing/RequestCenter';
 // 即时零售
 import InstantRetail from './pages/client/instant-retail/InstantRetail';
+import PriceMonitoring from './pages/client/store-marketing/PriceMonitoring';
+import PriceMonitoringDashboard from './pages/client/store-marketing/PriceMonitoringDashboard';
 // 物码营销
 import QrMarketing from './pages/client/qr-marketing/QrMarketing';
 // 专属定制
@@ -32,10 +35,14 @@ function App() {
           <Route path="all-activities" element={<AllActivities />} />
           <Route path="activity-analysis" element={<ActivityAnalysis />} />
           <Route path="activity-analysis/:activityId" element={<ActivityAnalysis />} />
+          <Route path="small-store-activity-analysis" element={<SmallStoreActivityAnalysis />} />
           <Route path="user-analysis" element={<UserAnalysis />} />
           <Route path="coupon-detail/:couponId" element={<CouponDetail />} />
           <Route path="product-list" element={<ProductList />} />
           <Route path="instant-retail" element={<InstantRetail />} />
+          <Route path="price-monitoring" element={<PriceMonitoring />} />
+          <Route path="price-monitoring-dashboard" element={<PriceMonitoringDashboard />} />
+          <Route path="price-monitoring-dashboard/:taskId" element={<PriceMonitoringDashboard />} />
           <Route path="qr-marketing" element={<QrMarketing />} />
           <Route path="custom-service" element={<CustomService />} />
           <Route index element={<AllActivities />} />

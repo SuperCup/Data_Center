@@ -18,8 +18,7 @@ const mockActivities = [
     startDate: '2025-09-01',
     endDate: '2025-10-31',
     mechanisms: {
-      '微信优惠券': ['满5减0.5', '满8减0.8', '满10减1', '满12减1.2'],
-      '支付宝优惠券/碰一下': ['满15减1.5', '满18减1.8', '满20减2', '满22减2.2']
+      '微信小店': ['2元乐享', '1元享购']
     },
     budget: 50000,
     consumed: 32500,
@@ -28,6 +27,12 @@ const mockActivities = [
     batchCount: 8 * 15,
     discount: 32500,
     usageRate: 78.5,
+    // 新增核心指标数据
+    registeredStores: 229,  // 报名门店数
+    activeStores: 192,       // 动销门店数
+    redeemAmount: 6400,     // 核销金额
+    redeemCount: 3200,      // 核销份数
+    avgDailyOutput: 2.08,    // 店均日产出
     batches: [
       { id: 'b1', name: '指定品满5元减0.5元', gmv: 22500, discount: 1750 },
       { id: 'b2', name: '指定品满8元减0.8元', gmv: 19000, discount: 1400 },
@@ -46,11 +51,7 @@ const mockActivities = [
     startDate: '2025-08-01',
     endDate: '2025-08-31',
     mechanisms: {
-      '微信优惠券': ['满4减0.4', '满6减0.6', '满8减0.8', '满10减1'],
-      '支付宝优惠券/碰一下': ['满12减1.2', '满14减1.4', '满16减1.6', '满18减1.8'],
-      '抖音到店': ['满20减2', '满22减2.2', '满24减2.4', '满26减2.6'],
-      '美团到店': ['满28减2.8', '满30减3', '满32减3.2', '满34减3.4'],
-      '天猫校园': ['满36减3.6', '满38减3.8', '满40减4', '满50减5']
+      '微信小店': ['2元乐享', '1元享购']
     },
     budget: 40000,
     consumed: 26000,
@@ -59,6 +60,12 @@ const mockActivities = [
     batchCount: 5 * 15,
     discount: 26000,
     usageRate: 82.3,
+    // 新增核心指标数据
+    registeredStores: 229,   // 报名门店数
+    activeStores: 192,       // 动销门店数
+    redeemAmount: 6400,     // 核销金额
+    redeemCount: 3200,      // 核销份数
+    avgDailyOutput: 2.08,    // 店均日产出
     batches: [
       { id: 'b1', name: '指定品满4元减0.4元', gmv: 21000, discount: 1600 },
       { id: 'b2', name: '指定品满6元减0.6元', gmv: 19000, discount: 1400 },
@@ -74,11 +81,7 @@ const mockActivities = [
     startDate: '2025-07-01',
     endDate: '2025-07-31',
     mechanisms: {
-      '微信优惠券': ['满3减0.3', '满5减0.5', '满6减0.6', '满8减0.8'],
-      '支付宝优惠券/碰一下': ['满9减0.9', '满10减1', '满12减1.2', '满14减1.4'],
-      '抖音到店': ['满15减1.5', '满16减1.6', '满18减1.8', '满20减2'],
-      '美团到店': ['满21减2.1', '满24减2.4', '满25减2.5', '满27减2.7'],
-      '天猫校园': ['满30减3', '满32减3.2', '满35减3.5', '满40减4']
+      '微信小店': ['2元乐享', '1元享购']
     },
     budget: 30000,
     consumed: 24000,
@@ -87,6 +90,12 @@ const mockActivities = [
     batchCount: 6 * 15,
     discount: 24000,
     usageRate: 85.1,
+    // 新增核心指标数据
+    registeredStores: 229,   // 报名门店数
+    activeStores: 192,       // 动销门店数
+    redeemAmount: 6400,     // 核销金额
+    redeemCount: 3200,      // 核销份数
+    avgDailyOutput: 2.08,    // 店均日产出
     batches: [
       { id: 'b1', name: '指定品满3元减0.3元', gmv: 16000, discount: 1200 },
       { id: 'b2', name: '指定品满5元减0.5元', gmv: 14000, discount: 1050 },
@@ -134,7 +143,7 @@ const mockProducts = [
   { id: '12', name: '康师傅蘑菇面', code: '6923333433', gmv: 75000, discount: 3800, usedCount: 360, salesCount: 3600, trend: { sales: [4, 7, 10, 13, 15], discount: [0.1, 0.2, 0.3, 0.4, 0.5] } }
 ];
 
-const ActivityAnalysis: React.FC = () => {
+const SmallStoreActivityAnalysis: React.FC = () => {
   const location = useLocation();
   const { activityId } = useParams<{ activityId?: string }>();
   const [selectedActivity, setSelectedActivity] = useState<string>('1');
@@ -507,7 +516,7 @@ const ActivityAnalysis: React.FC = () => {
       <div className="activity-analysis-container">
         {/* 页面标题 */}
         <div style={{ display: 'flex', alignItems: 'center', marginBottom: 16 }}>
-          <Title level={2} style={{ margin: 0, marginRight: 8 }}>活动分析</Title>
+          <Title level={2} style={{ margin: 0, marginRight: 8 }}>小店活动分析</Title>
           <div style={{ marginLeft: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
             <Text type="secondary">数据更新时间：2025-01-27 14:30:00</Text>
             <Text type="secondary" style={{ fontSize: '12px', color: '#999' }}>
@@ -647,19 +656,16 @@ const ActivityAnalysis: React.FC = () => {
       {/* 3. 核心指标 */}
       <Card title="核心指标" style={{ marginBottom: 0, borderBottom: 'none' }}>
         <Row gutter={0} style={{ display: 'flex', justifyContent: 'space-between' }}>
-          {/* 销售额 */}
-          <Col style={{ width: 'calc(25% - 8px)' }}>
+          {/* 报名门店数 */}
+          <Col style={{ width: 'calc(20% - 8px)' }}>
             <Card>
               <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
-                <span style={{ fontSize: '14px', color: '#000000' }}>销售额（元）</span>
+                <span style={{ fontSize: '14px', color: '#000000' }}>报名门店数（个）</span>
                 <AntTooltip 
                   title={
                     <div style={{ maxWidth: 300 }}>
                       <div style={{ marginBottom: 8, fontWeight: 'bold' }}>该数据仅供参考，不作为最终结算依据</div>
-                      <div style={{ marginBottom: 4 }}><strong>微信/支付宝平台：</strong></div>
-                      <div style={{ marginBottom: 8 }}>所有订单的订单商品数量×商品价格之和（已扣除退款）</div>
-                      <div style={{ marginBottom: 4 }}><strong>抖音到店：</strong></div>
-                      <div>待补充</div>
+                      <div>参与活动报名的门店总数</div>
                     </div>
                   }
                   placement="topLeft"
@@ -669,26 +675,23 @@ const ActivityAnalysis: React.FC = () => {
               </div>
               <Statistic
                 title=""
-                value={currentActivity.gmv}
+                value={currentActivity.registeredStores}
                 precision={0}
                 valueStyle={{ color: '#262626', fontSize: '24px', fontWeight: 'bold' }}
               />
             </Card>
           </Col>
           
-          {/* 优惠金额 */}
-          <Col style={{ width: 'calc(25% - 8px)' }}>
+          {/* 动销门店数 */}
+          <Col style={{ width: 'calc(20% - 8px)' }}>
             <Card>
               <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
-                <span style={{ fontSize: '14px', color: '#000000' }}>优惠金额（元）</span>
+                <span style={{ fontSize: '14px', color: '#000000' }}>动销门店数（个）</span>
                 <AntTooltip 
                   title={
                     <div style={{ maxWidth: 300 }}>
                       <div style={{ marginBottom: 8, fontWeight: 'bold' }}>该数据仅供参考，不作为最终结算依据</div>
-                      <div style={{ marginBottom: 4 }}><strong>微信/支付宝平台：</strong></div>
-                      <div style={{ marginBottom: 8 }}>所有订单的优惠金额之和（已扣除退款）</div>
-                      <div style={{ marginBottom: 4 }}><strong>抖音到店：</strong></div>
-                      <div>待补充</div>
+                      <div>实际产生销售的门店数量</div>
                     </div>
                   }
                   placement="topLeft"
@@ -698,22 +701,23 @@ const ActivityAnalysis: React.FC = () => {
               </div>
               <Statistic
                 title=""
-                value={currentActivity.discount}
+                value={currentActivity.activeStores}
                 precision={0}
                 valueStyle={{ color: '#262626', fontSize: '24px', fontWeight: 'bold' }}
               />
             </Card>
           </Col>
           
-          {/* ROI */}
-          <Col style={{ width: 'calc(25% - 8px)' }}>
+          {/* 核销金额 */}
+          <Col style={{ width: 'calc(20% - 8px)' }}>
             <Card>
               <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
-                <span style={{ fontSize: '14px', color: '#000000' }}>ROI</span>
+                <span style={{ fontSize: '14px', color: '#000000' }}>核销金额（元）</span>
                 <AntTooltip 
                   title={
                     <div style={{ maxWidth: 300 }}>
-                      <div>销售额 ÷ 优惠金额</div>
+                      <div style={{ marginBottom: 8, fontWeight: 'bold' }}>该数据仅供参考，不作为最终结算依据</div>
+                      <div>活动期间实际核销的优惠金额总和</div>
                     </div>
                   }
                   placement="topLeft"
@@ -723,36 +727,60 @@ const ActivityAnalysis: React.FC = () => {
               </div>
               <Statistic
                 title=""
-                value={currentActivity.gmv / currentActivity.discount}
+                value={currentActivity.redeemAmount}
+                precision={0}
+                valueStyle={{ color: '#262626', fontSize: '24px', fontWeight: 'bold' }}
+              />
+            </Card>
+          </Col>
+          
+          {/* 核销份数 */}
+          <Col style={{ width: 'calc(20% - 8px)' }}>
+            <Card>
+              <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
+                <span style={{ fontSize: '14px', color: '#000000' }}>核销份数（份）</span>
+                <AntTooltip 
+                  title={
+                    <div style={{ maxWidth: 300 }}>
+                      <div style={{ marginBottom: 8, fontWeight: 'bold' }}>该数据仅供参考，不作为最终结算依据</div>
+                      <div>活动期间实际核销的优惠券份数</div>
+                    </div>
+                  }
+                  placement="topLeft"
+                >
+                  <QuestionCircleOutlined style={{ marginLeft: 4, color: '#000000', cursor: 'help' }} />
+                </AntTooltip>
+              </div>
+              <Statistic
+                title=""
+                value={currentActivity.redeemCount}
+                precision={0}
+                valueStyle={{ color: '#262626', fontSize: '24px', fontWeight: 'bold' }}
+              />
+            </Card>
+          </Col>
+
+          {/* 店均日产出 */}
+          <Col style={{ width: 'calc(20% - 8px)' }}>
+            <Card>
+              <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
+                <span style={{ fontSize: '14px', color: '#000000' }}>店均日产出（元）</span>
+                <AntTooltip 
+                  title={
+                    <div style={{ maxWidth: 300 }}>
+                      <div style={{ marginBottom: 8, fontWeight: 'bold' }}>该数据仅供参考，不作为最终结算依据</div>
+                      <div>平均每个门店每日的销售产出</div>
+                    </div>
+                  }
+                  placement="topLeft"
+                >
+                  <QuestionCircleOutlined style={{ marginLeft: 4, color: '#000000', cursor: 'help' }} />
+                </AntTooltip>
+              </div>
+              <Statistic
+                title=""
+                value={currentActivity.avgDailyOutput}
                 precision={1}
-                valueStyle={{ color: '#262626', fontSize: '24px', fontWeight: 'bold' }}
-              />
-            </Card>
-          </Col>
-          
-          {/* 订单数 */}
-          <Col style={{ width: 'calc(25% - 8px)' }}>
-            <Card>
-              <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
-                <span style={{ fontSize: '14px', color: '#000000' }}>订单数（个）</span>
-                <AntTooltip 
-                  title={
-                    <div style={{ maxWidth: 300 }}>
-                      <div style={{ marginBottom: 4 }}><strong>微信/支付宝：</strong></div>
-                      <div style={{ marginBottom: 8 }}>平台下载的正向账单数量之和（无账单活动，取活动详情中统计的订单数量）</div>
-                      <div style={{ marginBottom: 4 }}><strong>抖音到店：</strong></div>
-                      <div>待补充</div>
-                    </div>
-                  }
-                  placement="topLeft"
-                >
-                  <QuestionCircleOutlined style={{ marginLeft: 4, color: '#000000', cursor: 'help' }} />
-                </AntTooltip>
-              </div>
-              <Statistic
-                title=""
-                value={currentActivity.usedCount}
-                precision={0}
                 valueStyle={{ color: '#262626', fontSize: '24px', fontWeight: 'bold' }}
               />
             </Card>
@@ -1061,25 +1089,18 @@ const ActivityAnalysis: React.FC = () => {
                              <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>
                                {day} {hour}:00
                              </div>
-                             <div style={{ color: '#1890ff', fontSize: '14px', fontWeight: 'bold' }}>
-                               销售额: ¥{dataPoint.gmv.toFixed(2)}
-                             </div>
-                             <div style={{ fontSize: '12px', color: '#8c8c8c', marginTop: '2px' }}>
-                               当日占比: {dayPercentage}%
-                             </div>
+                             <div>销售额：{(dataPoint.gmv / 10000).toFixed(2)}万元</div>
+                             <div>当日占比：{dayPercentage}%</div>
                            </div>
                          }
-                         placement="top"
-                         overlayStyle={{
-                           maxWidth: '200px'
-                         }}
                        >
-                         <div 
-                           style={{ 
-                             display: 'flex', 
-                             alignItems: 'center', 
+                         <div
+                           style={{
+                             display: 'flex',
+                             alignItems: 'center',
                              justifyContent: 'center',
-                             position: 'relative',
+                             width: '100%',
+                             height: '100%',
                              cursor: 'pointer'
                            }}
                          >
@@ -1089,440 +1110,178 @@ const ActivityAnalysis: React.FC = () => {
                                height: `${circleSize}px`,
                                borderRadius: '50%',
                                backgroundColor: `rgba(24, 144, 255, ${opacity})`,
-                               transition: 'all 0.2s ease',
-                               border: '1px solid rgba(24, 144, 255, 0.3)'
-                             }}
-                             onMouseEnter={(e) => {
-                               e.currentTarget.style.transform = 'scale(1.2)';
-                               e.currentTarget.style.boxShadow = '0 2px 8px rgba(24, 144, 255, 0.4)';
-                             }}
-                             onMouseLeave={(e) => {
-                               e.currentTarget.style.transform = 'scale(1)';
-                               e.currentTarget.style.boxShadow = 'none';
+                               transition: 'all 0.2s ease'
                              }}
                            />
                          </div>
                        </AntTooltip>
                      );
-                  })}
-                </React.Fragment>
-              );
-            })}
-          </div>
-          
-          {/* 图例 */}
-          <div style={{ 
-            position: 'absolute', 
-            bottom: '10px', 
-            right: '20px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            fontSize: '12px',
-            color: '#8c8c8c'
-          }}>
-            <span>销售额:</span>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <div style={{ 
-                width: '8px', 
-                height: '8px', 
-                borderRadius: '50%', 
-                backgroundColor: 'rgba(24, 144, 255, 0.3)' 
-              }}></div>
-              <span>低</span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <div style={{ 
-                width: '16px', 
-                height: '16px', 
-                borderRadius: '50%', 
-                backgroundColor: 'rgba(24, 144, 255, 0.6)' 
-              }}></div>
-              <span>中</span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <div style={{ 
-                width: '24px', 
-                height: '24px', 
-                borderRadius: '50%', 
-                backgroundColor: 'rgba(24, 144, 255, 1)' 
-              }}></div>
-              <span>高</span>
-            </div>
-          </div>
-          </div>
-          
-          {/* 右侧周销售额图表 */}
-          <div style={{ width: '300px', padding: '20px 0' }}>
-            <div style={{ 
-              height: '100%', 
-              display: 'flex', 
-              flexDirection: 'column',
-              border: '1px solid #f0f0f0',
-              borderRadius: '6px',
-              padding: '16px',
-              backgroundColor: '#fafafa'
-            }}>
-              <div style={{ 
-                fontSize: '14px', 
-                fontWeight: '600', 
-                color: '#262626',
-                marginBottom: '16px',
-                textAlign: 'center'
-              }}>
-                销售额周内占比
-              </div>
-              
-              {/* 周销售额柱状图 */}
-              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                {['周一', '周二', '周三', '周四', '周五', '周六', '周日'].map((day, dayIndex) => {
-                  // 模拟每天的销售额数据
-                  const baseDayGmv = currentActivity.gmv / 7;
-                  const dayMultiplier = dayIndex === 5 || dayIndex === 6 ? 1.2 : 1.0; // 周末销售更好
-                  const randomFactor = 0.8 + Math.random() * 0.4; // 随机因子
-                  const dayTotalGmv = baseDayGmv * dayMultiplier * randomFactor;
-                  
-                  // 计算一周的销售额总和，用于占比计算
-                  const weekTotalGmv = currentActivity.gmv;
-                  
-                  const percentage = weekTotalGmv > 0 ? (dayTotalGmv / weekTotalGmv) * 100 : 0;
-                  const barWidth = Math.max(percentage, 5); // 最小宽度5%
-                  
-                  return (
-                    <div key={day} style={{ 
-                      display: 'flex', 
-                      alignItems: 'center', 
-                      gap: '8px',
-                      height: '32px'
-                    }}>
-                      <div style={{ 
-                        width: '32px', 
-                        fontSize: '12px', 
-                        color: '#595959',
-                        textAlign: 'right'
-                      }}>
-                        {day}
-                      </div>
-                      
-                      <div style={{ 
-                        flex: 1, 
-                        height: '20px', 
-                        backgroundColor: '#f5f5f5',
-                        borderRadius: '10px',
-                        position: 'relative',
-                        overflow: 'hidden'
-                      }}>
-                        <div style={{
-                          width: `${barWidth}%`,
-                          height: '100%',
-                          backgroundColor: dayIndex === 5 || dayIndex === 6 ? '#52c41a' : '#1890ff', // 周末用绿色
-                          borderRadius: '10px',
-                          transition: 'all 0.3s ease',
-                          cursor: 'pointer'
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.opacity = '0.8';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.opacity = '1';
-                        }}
-                        />
-                      </div>
-                      
-                      <div style={{ 
-                        width: '60px', 
-                        fontSize: '11px', 
-                        color: '#8c8c8c',
-                        textAlign: 'right'
-                      }}>
-                        {percentage.toFixed(1)}%
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-              
-              {/* 图例说明 */}
-              <div style={{ 
-                marginTop: '12px', 
-                paddingTop: '12px',
-                borderTop: '1px solid #f0f0f0',
-                display: 'flex',
-                justifyContent: 'center',
-                gap: '16px',
-                fontSize: '11px',
-                color: '#8c8c8c'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <div style={{ 
-                    width: '8px', 
-                    height: '8px', 
-                    backgroundColor: '#1890ff',
-                    borderRadius: '2px'
-                  }}></div>
-                  <span>工作日</span>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <div style={{ 
-                    width: '8px', 
-                    height: '8px', 
-                    backgroundColor: '#52c41a',
-                    borderRadius: '2px'
-                  }}></div>
-                  <span>周末</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </Card>
+                   })}
+                 </React.Fragment>
+               );
+             })}
+           </div>
+         </div>
+         
 
-      {/* 5. 零售商 */}
-      <Row gutter={16}>
-        <Col span={24}>
-          <Card 
-            title="零售商" 
-            style={{ marginBottom: 16 }}
-          >
-            <Table
-              columns={retailerColumns}
-              dataSource={currentRetailers}
-              pagination={false}
-              size="small"
-              rowKey="id"
-            />
-            <div style={{ marginTop: 16, textAlign: 'center' }}>
-              <Pagination
-                current={retailerPage}
-                total={filteredRetailers.length}
-                pageSize={retailerPageSize}
-                onChange={setRetailerPage}
-                showSizeChanger={false}
-                showQuickJumper
-                showTotal={(total, range) => `第 ${range[0]}-${range[1]} 条，共 ${total} 条`}
-              />
-            </div>
-          </Card>
-        </Col>
-      </Row>
+       </div>
+     </Card>
 
-      {/* 5.5. 小店 */}
-      {smallStores.length > 0 && (
-        <Row gutter={16}>
-          <Col span={24}>
-            <Card 
-              title={
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span>小店</span>
-                {/* 排序功能说明，仅对精明购业务角色可见，客户账号不可见 */}
-                <Text type="secondary" style={{ fontSize: '12px', fontWeight: 'normal' }}>
-                  （当前列表仅在活动覆盖范围中有小店时显示，该说明正式环境不显示）
-                </Text>
-              </div>
-            } 
-              style={{ marginBottom: 16 }}
-            >
-              <Table
-                 columns={smallStoreColumns}
-                 dataSource={currentSmallStores}
-                 pagination={false}
-                 size="small"
-                 rowKey="id"
-               />
-              <div style={{ marginTop: 16, textAlign: 'center' }}>
-                <Pagination
-                  current={smallStorePage}
-                  total={smallStores.length}
-                  pageSize={smallStorePageSize}
-                  onChange={setSmallStorePage}
-                  showSizeChanger={false}
-                  showQuickJumper
-                  showTotal={(total, range) => `第 ${range[0]}-${range[1]} 条，共 ${total} 条`}
-                />
-              </div>
-            </Card>
-          </Col>
-        </Row>
-      )}
+     {/* 5. 零售商分析 */}
+     <Card 
+       title="小店"
+       style={{ marginBottom: 16 }}
+     >
+       <Table
+         dataSource={currentSmallStores}
+         columns={smallStoreColumns}
+         pagination={false}
+         size="small"
+         scroll={{ x: 800 }}
+       />
+       <div style={{ marginTop: 16, textAlign: 'center' }}>
+         <Pagination
+           current={smallStorePage}
+           pageSize={smallStorePageSize}
+           total={smallStores.length}
+           onChange={setSmallStorePage}
+           showSizeChanger={false}
+           showQuickJumper
+           showTotal={(total, range) => `第 ${range[0]}-${range[1]} 条，共 ${total} 条`}
+         />
+       </div>
+     </Card>
 
-      {/* 6. 商品 */}
-      <Row gutter={16}>
-        <Col span={24}>
-          <Card 
-            title={
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span>商品</span>
-                {/* 排序功能说明，仅对精明购业务角色可见，客户账号不可见 */}
-                <Text type="secondary" style={{ fontSize: '12px', fontWeight: 'normal' }}>
-                  （排序功能为精明购业务角色可用，客户账号只可见排序结果）
-                </Text>
-              </div>
-            } 
-            style={{ marginBottom: 16 }}
-          >
-            <Table
-              columns={productColumns}
-              dataSource={currentProducts}
-              pagination={false}
-              size="small"
-              rowKey="id"
-            />
-            <div style={{ marginTop: 16, textAlign: 'center' }}>
-              <Pagination
-                current={productPage}
-                total={sortedProducts.length}
-                pageSize={productPageSize}
-                onChange={setProductPage}
-                showSizeChanger={false}
-                showQuickJumper
-                showTotal={(total, range) => `第 ${range[0]}-${range[1]} 条，共 ${total} 条`}
-              />
-            </div>
-          </Card>
-        </Col>
-      </Row>
+     {/* 6. 商品分析 */}
+     <Card title="商品分析" style={{ marginBottom: 16 }}>
+       <div style={{ marginBottom: 12, fontSize: '14px', color: '#666' }}>
+         <strong>置顶说明：</strong>点击置顶按钮可将重要商品固定在列表顶部，便于重点关注
+       </div>
+       <Table
+         dataSource={currentProducts}
+         columns={productColumns}
+         pagination={false}
+         size="small"
+         scroll={{ x: 900 }}
+       />
+       <div style={{ marginTop: 16, textAlign: 'center' }}>
+         <Pagination
+           current={productPage}
+           pageSize={productPageSize}
+           total={sortedProducts.length}
+           onChange={setProductPage}
+           showSizeChanger={false}
+           showQuickJumper
+           showTotal={(total, range) => `第 ${range[0]}-${range[1]} 条，共 ${total} 条`}
+         />
+       </div>
+     </Card>
 
-      {/* 趋势弹窗 */}
-      <Modal
-        title={`${selectedRetailerTrend?.name} - 趋势分析`}
-        open={trendModalVisible}
-        onCancel={closeTrendModal}
-        footer={null}
-        width={800}
-      >
-        {selectedRetailerTrend && dateRange && dateRange[0] && dateRange[1] && (
-          <div style={{ height: 400 }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart
-                data={selectedRetailerTrend.trend.sales.map((sales: number, index: number) => {
-                  const startDate = dateRange[0]!;
-                  const endDate = dateRange[1]!;
-                  const totalDays = endDate.diff(startDate, 'day');
-                  const intervalDays = Math.floor(totalDays / (selectedRetailerTrend.trend.sales.length - 1));
-                  const currentDate = startDate.add(index * intervalDays, 'day');
-                  
-                  // 计算销售额占比（当前零售商销售额占总销售额的百分比）
-                  const totalGmv = mockRetailers.reduce((sum, retailer) => sum + retailer.gmv, 0);
-                  const contributionRate = ((sales * 10000) / totalGmv) * 100;
-                  
-                  return {
-                    period: currentDate.format('MM-DD'),
-                    sales: sales * 10000,
-                    discount: selectedRetailerTrend.trend.discount[index] * 10000,
-                    contributionRate: contributionRate
-                  };
-                })}
-                margin={{ top: 20, right: 50, left: 20, bottom: 20 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="period" />
-                <YAxis yAxisId="left" label={{ value: '销售额 (万元)', angle: -90, position: 'insideLeft' }} />
-                <YAxis yAxisId="right" orientation="right" label={{ value: '销售额占比 (%)', angle: 90, position: 'insideRight' }} />
-                <Tooltip 
-                  formatter={(value: number, name: string, props: any) => {
-                    const dataKey = props.dataKey;
-                    if (dataKey === 'sales') {
-                      return [`${(value / 10000).toFixed(1)}万元`, '销售额'];
-                    } else if (dataKey === 'contributionRate') {
-                      return [`${value.toFixed(2)}%`, '销售额占比'];
-                    }
-                    return [`${(value / 10000).toFixed(1)}万元`, '优惠金额'];
-                  }}
-                />
-                <Legend />
-                <RechartsLine 
-                  yAxisId="left"
-                  type="monotone" 
-                  dataKey="sales" 
-                  stroke="#8884d8" 
-                  name="销售额"
-                  strokeWidth={2}
-                />
-                <RechartsLine 
-                  yAxisId="right"
-                  type="monotone" 
-                  dataKey="contributionRate" 
-                  stroke="#ff7300" 
-                  name="销售额占比"
-                  strokeWidth={2}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        )}
-      </Modal>
+     {/* 零售商趋势弹窗 */}
+     <Modal
+       title={`${selectedRetailerTrend?.name} - 趋势分析`}
+       open={trendModalVisible}
+       onCancel={closeTrendModal}
+       footer={null}
+       width={800}
+     >
+       {selectedRetailerTrend && (
+         <div>
+           <Row gutter={16} style={{ marginBottom: 20 }}>
+             <Col span={6}>
+               <Statistic title="销售额" value={selectedRetailerTrend.gmv} suffix="元" />
+             </Col>
+             <Col span={6}>
+               <Statistic title="优惠金额" value={selectedRetailerTrend.discount} suffix="元" />
+             </Col>
+             <Col span={6}>
+               <Statistic title="订单数" value={selectedRetailerTrend.usedCount} suffix="个" />
+             </Col>
+             <Col span={6}>
+               <Statistic title="单均价" value={selectedRetailerTrend.avgPrice} suffix="元" precision={1} />
+             </Col>
+           </Row>
+           
+           <div style={{ height: 300 }}>
+             <ResponsiveContainer width="100%" height="100%">
+               <LineChart
+                 data={selectedRetailerTrend.trend.sales.map((sales: number, index: number) => ({
+                   period: `第${index + 1}期`,
+                   sales: sales * 10000, // 转换为实际销售额
+                   discount: selectedRetailerTrend.trend.discount[index] * 10000 // 转换为实际优惠金额
+                 }))}
+                 margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+               >
+                 <CartesianGrid strokeDasharray="3 3" />
+                 <XAxis dataKey="period" />
+                 <YAxis />
+                 <Tooltip formatter={(value, name) => [
+                   `${(value as number).toLocaleString()} 元`,
+                   name === 'sales' ? '销售额' : '优惠金额'
+                 ]} />
+                 <Legend />
+                 <RechartsLine type="monotone" dataKey="sales" stroke="#1890ff" name="销售额" />
+                 <RechartsLine type="monotone" dataKey="discount" stroke="#52c41a" name="优惠金额" />
+               </LineChart>
+             </ResponsiveContainer>
+           </div>
+         </div>
+       )}
+     </Modal>
 
-      {/* 商品趋势弹窗 */}
-      <Modal
-        title={`${selectedProductTrend?.name} - 趋势分析`}
-        open={productTrendModalVisible}
-        onCancel={closeProductTrendModal}
-        footer={null}
-        width={800}
-      >
-        {selectedProductTrend && dateRange && dateRange[0] && dateRange[1] && (
-          <div style={{ height: 400 }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart
-                data={selectedProductTrend.trend.sales.map((sales: number, index: number) => {
-                  const startDate = dateRange[0]!;
-                  const endDate = dateRange[1]!;
-                  const totalDays = endDate.diff(startDate, 'day');
-                  const intervalDays = Math.floor(totalDays / (selectedProductTrend.trend.sales.length - 1));
-                  const currentDate = startDate.add(index * intervalDays, 'day');
-                  
-                  // 计算销售额占比（当前商品销售额占总销售额的百分比）
-                  const totalGmv = mockProducts.reduce((sum, product) => sum + product.gmv, 0);
-                  const contributionRate = ((sales * 10000) / totalGmv) * 100;
-                  
-                  return {
-                    period: currentDate.format('MM-DD'),
-                    sales: sales * 10000,
-                    discount: selectedProductTrend.trend.discount[index] * 10000,
-                    contributionRate: contributionRate
-                  };
-                })}
-                margin={{ top: 20, right: 50, left: 20, bottom: 20 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="period" />
-                <YAxis yAxisId="left" label={{ value: '销售额 (万元)', angle: -90, position: 'insideLeft' }} />
-                <YAxis yAxisId="right" orientation="right" label={{ value: '销售额占比 (%)', angle: 90, position: 'insideRight' }} />
-                <Tooltip 
-                  formatter={(value: number, name: string, props: any) => {
-                    const dataKey = props.dataKey;
-                    if (dataKey === 'sales') {
-                      return [`${(value / 10000).toFixed(1)}万元`, '销售额'];
-                    } else if (dataKey === 'contributionRate') {
-                      return [`${value.toFixed(2)}%`, '销售额占比'];
-                    }
-                    return [`${(value / 10000).toFixed(1)}万元`, '优惠金额'];
-                  }}
-                />
-                <Legend />
-                <RechartsLine 
-                  yAxisId="left"
-                  type="monotone" 
-                  dataKey="sales" 
-                  stroke="#8884d8" 
-                  name="销售额"
-                  strokeWidth={2}
-                />
-                <RechartsLine 
-                  yAxisId="right"
-                  type="monotone" 
-                  dataKey="contributionRate" 
-                  stroke="#ff7300" 
-                  name="销售额占比"
-                  strokeWidth={2}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        )}
-      </Modal>
-    </div>
-  );
+     {/* 商品趋势弹窗 */}
+     <Modal
+       title={`${selectedProductTrend?.name} - 趋势分析`}
+       open={productTrendModalVisible}
+       onCancel={closeProductTrendModal}
+       footer={null}
+       width={800}
+     >
+       {selectedProductTrend && (
+         <div>
+           <Row gutter={16} style={{ marginBottom: 20 }}>
+             <Col span={6}>
+               <Statistic title="销售额" value={selectedProductTrend.gmv} suffix="元" />
+             </Col>
+             <Col span={6}>
+               <Statistic title="优惠金额" value={selectedProductTrend.discount} suffix="元" />
+             </Col>
+             <Col span={6}>
+               <Statistic title="销售件数" value={selectedProductTrend.salesCount} suffix="件" />
+             </Col>
+             <Col span={6}>
+               <Statistic title="订单数" value={selectedProductTrend.usedCount} suffix="个" />
+             </Col>
+           </Row>
+           
+           <div style={{ height: 300 }}>
+             <ResponsiveContainer width="100%" height="100%">
+               <LineChart
+                 data={selectedProductTrend.trend.sales.map((sales: number, index: number) => ({
+                   period: `第${index + 1}期`,
+                   sales: sales * 10000, // 转换为实际销售额
+                   discount: selectedProductTrend.trend.discount[index] * 10000 // 转换为实际优惠金额
+                 }))}
+                 margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+               >
+                 <CartesianGrid strokeDasharray="3 3" />
+                 <XAxis dataKey="period" />
+                 <YAxis />
+                 <Tooltip formatter={(value, name) => [
+                   `${(value as number).toLocaleString()} 元`,
+                   name === 'sales' ? '销售额' : '优惠金额'
+                 ]} />
+                 <Legend />
+                 <RechartsLine type="monotone" dataKey="sales" stroke="#1890ff" name="销售额" />
+                 <RechartsLine type="monotone" dataKey="discount" stroke="#52c41a" name="优惠金额" />
+               </LineChart>
+             </ResponsiveContainer>
+           </div>
+         </div>
+       )}
+     </Modal>
+   </div>
+ );
 };
 
-export default ActivityAnalysis;
+export default SmallStoreActivityAnalysis;

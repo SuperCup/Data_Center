@@ -14,7 +14,8 @@ import {
   DashboardOutlined,
   UnorderedListOutlined,
   TagOutlined,
-  DatabaseOutlined
+  DatabaseOutlined,
+  MonitorOutlined
 } from '@ant-design/icons';
 import logo from '../assets/system_logo.png';
 
@@ -85,9 +86,9 @@ const ClientLayout: React.FC = () => {
       type: 'group' as const,
     },
     {
-      key: 'instant-retail',
-      label: '即时零售',
-      icon: <ShopOutlined />,
+      key: 'price-monitoring',
+      label: '破价监测',
+      icon: <MonitorOutlined />,
     },
     {
       key: 'qr-marketing-group',

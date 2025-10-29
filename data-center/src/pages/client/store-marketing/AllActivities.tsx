@@ -70,7 +70,7 @@ const mockAllActivities: ActivityData[] = [
     usageRate: 82.3,
     zeroUsageRetailers: ['华润万家(北京东城店)', '华润万家(北京丰台店)'],
     salesAmount: 95000,
-    platforms: ['微信', '美团到店', '天猫校园'],
+    platforms: ['微信'],
     activityType: '小店',
   },
   {
@@ -176,8 +176,12 @@ const AllActivities: React.FC = () => {
   const [verifySearchText, setVerifySearchText] = useState('');
 
   // 活动分析页面跳转
-  const handleActivityAnalysis = (activityId: string) => {
-    navigate(`/client/activity-analysis/${activityId}`);
+  const handleActivityAnalysis = (activityId: string, activityType: 'KA' | '小店') => {
+    if (activityType === '小店') {
+      navigate(`/client/small-store-activity-analysis?activityId=${activityId}`);
+    } else {
+      navigate(`/client/activity-analysis/${activityId}`);
+    }
   };
 
   // 领券明细处理函数
@@ -432,7 +436,7 @@ const AllActivities: React.FC = () => {
           <Button 
             type="link" 
             size="small"
-            onClick={() => handleActivityAnalysis(record.activityId)}
+            onClick={() => handleActivityAnalysis(record.activityId, record.activityType)}
           >
             活动分析
           </Button>
