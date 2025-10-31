@@ -14,12 +14,12 @@ const mockActivities = [
   {
     id: '1',
     name: '2025年9-10月康师傅红烧牛肉面全国促销活动',
-    activityType: 'KA',
     startDate: '2025-09-01',
     endDate: '2025-10-31',
     mechanisms: {
       '微信优惠券': ['满5减0.5', '满8减0.8', '满10减1', '满12减1.2'],
-      '支付宝优惠券/碰一下': ['满15减1.5', '满18减1.8', '满20减2', '满22减2.2']
+      '支付宝优惠券/碰一下': ['满15减1.5', '满18减1.8', '满20减2', '满22减2.2'],
+      '微信小店': ['2元乐享', '新品立减2元']
     },
     budget: 50000,
     consumed: 32500,
@@ -41,8 +41,7 @@ const mockActivities = [
   },
   {
     id: '2',
-    name: '2025年8月康师傅老坛酸菜面夏日特惠活动',
-    activityType: '小店',
+    name: '2025年8月康师傅冰红茶夏季促销活动',
     startDate: '2025-08-01',
     endDate: '2025-08-31',
     mechanisms: {
@@ -50,7 +49,8 @@ const mockActivities = [
       '支付宝优惠券/碰一下': ['满12减1.2', '满14减1.4', '满16减1.6', '满18减1.8'],
       '抖音到店': ['满20减2', '满22减2.2', '满24减2.4', '满26减2.6'],
       '美团到店': ['满28减2.8', '满30减3', '满32减3.2', '满34减3.4'],
-      '天猫校园': ['满36减3.6', '满38减3.8', '满40减4', '满50减5']
+      '天猫校园': ['满36减3.6', '满38减3.8', '满40减4', '满50减5'],
+      '微信小店': ['2元乐享', '新品立减2元']
     },
     budget: 40000,
     consumed: 26000,
@@ -69,8 +69,7 @@ const mockActivities = [
   },
   {
     id: '3',
-    name: '2025年7月康师傅香辣牛肉面品牌推广活动',
-    activityType: 'KA',
+    name: '2025年7月康师傅方便面全国促销活动',
     startDate: '2025-07-01',
     endDate: '2025-07-31',
     mechanisms: {
@@ -78,7 +77,8 @@ const mockActivities = [
       '支付宝优惠券/碰一下': ['满9减0.9', '满10减1', '满12减1.2', '满14减1.4'],
       '抖音到店': ['满15减1.5', '满16减1.6', '满18减1.8', '满20减2'],
       '美团到店': ['满21减2.1', '满24减2.4', '满25减2.5', '满27减2.7'],
-      '天猫校园': ['满30减3', '满32减3.2', '满35减3.5', '满40减4']
+      '天猫校园': ['满30减3', '满32减3.2', '满35减3.5', '满40减4'],
+      '微信小店': ['2元乐享', '新品立减2元']
     },
     budget: 30000,
     consumed: 24000,
@@ -572,12 +572,6 @@ const ActivityAnalysis: React.FC = () => {
                 </Col>
                 <Col span={24}>
                   <div>
-                    <Text strong>活动类型：</Text>
-                    <Text>{currentActivity.activityType}</Text>
-                  </div>
-                </Col>
-                <Col span={24}>
-                  <div>
                     <Text strong>活动机制：</Text>
                     <div style={{ marginTop: 8 }}>
                       {typeof currentActivity.mechanisms === 'object' && !Array.isArray(currentActivity.mechanisms) ? (
@@ -589,9 +583,26 @@ const ActivityAnalysis: React.FC = () => {
                               color: '#1890ff',
                               marginBottom: 6,
                               paddingBottom: 2,
-                              borderBottom: '1px solid #f0f0f0'
+                              borderBottom: '1px solid #f0f0f0',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between'
                             }}>
-                              {platform}
+                              <span>{platform}</span>
+                              {platform === '微信小店' && (
+                                <Button 
+                                  type="link" 
+                                  size="small"
+                                  onClick={() => window.location.href = '/client/small-store-activity-analysis'}
+                                  style={{ 
+                                    fontSize: '12px',
+                                    padding: '0 8px',
+                                    height: '20px'
+                                  }}
+                                >
+                                  查看分析
+                                </Button>
+                              )}
                             </div>
                             <div style={{ paddingLeft: 12 }}>
                               {mechanisms.map((mechanism: string, index: number) => (
@@ -734,7 +745,7 @@ const ActivityAnalysis: React.FC = () => {
           <Col style={{ width: 'calc(25% - 8px)' }}>
             <Card>
               <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
-                <span style={{ fontSize: '14px', color: '#000000' }}>订单数（个）</span>
+                <span style={{ fontSize: '14px', color: '#000000' }}>订单数（笔）</span>
                 <AntTooltip 
                   title={
                     <div style={{ maxWidth: 300 }}>
@@ -1313,10 +1324,10 @@ const ActivityAnalysis: React.FC = () => {
             <Card 
               title={
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span>小店</span>
+                <span>门店</span>
                 {/* 排序功能说明，仅对精明购业务角色可见，客户账号不可见 */}
                 <Text type="secondary" style={{ fontSize: '12px', fontWeight: 'normal' }}>
-                  （当前列表仅在活动覆盖范围中有小店时显示，该说明正式环境不显示）
+                  （仅支付宝活动有阔店维度，平台回传，仅供参考）
                 </Text>
               </div>
             } 

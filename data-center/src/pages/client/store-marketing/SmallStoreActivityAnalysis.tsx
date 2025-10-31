@@ -30,6 +30,7 @@ const mockActivities = [
     // 新增核心指标数据
     registeredStores: 229,  // 报名门店数
     activeStores: 192,       // 动销门店数
+    targetStores: 250,       // 目标门店数
     redeemAmount: 6400,     // 核销金额
     redeemCount: 3200,      // 核销份数
     avgDailyOutput: 2.08,    // 店均日产出
@@ -63,6 +64,7 @@ const mockActivities = [
     // 新增核心指标数据
     registeredStores: 229,   // 报名门店数
     activeStores: 192,       // 动销门店数
+    targetStores: 220,       // 目标门店数
     redeemAmount: 6400,     // 核销金额
     redeemCount: 3200,      // 核销份数
     avgDailyOutput: 2.08,    // 店均日产出
@@ -93,6 +95,7 @@ const mockActivities = [
     // 新增核心指标数据
     registeredStores: 229,   // 报名门店数
     activeStores: 192,       // 动销门店数
+    targetStores: 200,       // 目标门店数
     redeemAmount: 6400,     // 核销金额
     redeemCount: 3200,      // 核销份数
     avgDailyOutput: 2.08,    // 店均日产出
@@ -200,11 +203,12 @@ const SmallStoreActivityAnalysis: React.FC = () => {
   
   // 折线图可见性状态
   const [visibleLines, setVisibleLines] = useState({
-    gmv: true,
-    orderCount: false,
-    avgPrice: false,
-    roi: false,
-    discount: false
+    registeredStores: true,
+    activeStores: false,
+    gmv: false,
+    redeemAmount: false,
+    redeemCount: false,
+    avgDailyOutput: false
   });
 
   // 获取当前选中的活动数据
@@ -212,13 +216,13 @@ const SmallStoreActivityAnalysis: React.FC = () => {
   
   // 模拟趋势数据
   const mockTrends = [
-    { date: '2025-01-01', gmv: 120000, orderCount: 5500, avgPrice: 21.8, roi: 3.7, discount: 25000 },
-    { date: '2025-01-02', gmv: 135000, orderCount: 6200, avgPrice: 21.8, roi: 4.1, discount: 28000 },
-    { date: '2025-01-03', gmv: 142500, orderCount: 6500, avgPrice: 21.9, roi: 4.4, discount: 32500 },
-    { date: '2025-01-04', gmv: 138000, orderCount: 6300, avgPrice: 21.9, roi: 4.2, discount: 30000 },
-    { date: '2025-01-05', gmv: 145000, orderCount: 6600, avgPrice: 22.0, roi: 4.3, discount: 33500 },
-    { date: '2025-01-06', gmv: 152000, orderCount: 6900, avgPrice: 22.0, roi: 4.3, discount: 35000 },
-    { date: '2025-01-07', gmv: 148000, orderCount: 6700, avgPrice: 22.1, roi: 4.4, discount: 34000 }
+    { date: '2025-01-01', registeredStores: 220, activeStores: 185, gmv: 120000, redeemAmount: 5800, redeemCount: 2900, avgDailyOutput: 1.95 },
+    { date: '2025-01-02', registeredStores: 225, activeStores: 188, gmv: 135000, redeemAmount: 6100, redeemCount: 3050, avgDailyOutput: 2.02 },
+    { date: '2025-01-03', registeredStores: 229, activeStores: 192, gmv: 142500, redeemAmount: 6400, redeemCount: 3200, avgDailyOutput: 2.08 },
+    { date: '2025-01-04', registeredStores: 228, activeStores: 190, gmv: 138000, redeemAmount: 6200, redeemCount: 3100, avgDailyOutput: 2.05 },
+    { date: '2025-01-05', registeredStores: 230, activeStores: 194, gmv: 145000, redeemAmount: 6500, redeemCount: 3250, avgDailyOutput: 2.10 },
+    { date: '2025-01-06', registeredStores: 232, activeStores: 196, gmv: 152000, redeemAmount: 6800, redeemCount: 3400, avgDailyOutput: 2.15 },
+    { date: '2025-01-07', registeredStores: 231, activeStores: 195, gmv: 148000, redeemAmount: 6600, redeemCount: 3300, avgDailyOutput: 2.12 }
   ];
 
   // 零售商分页数据（只显示KA类型）
@@ -297,14 +301,14 @@ const SmallStoreActivityAnalysis: React.FC = () => {
       render: (value: number) => value.toLocaleString(),
     },
     {
-      title: '单均价(元)',
+      title: '日均订单数',
       dataIndex: 'avgPrice',
       key: 'avgPrice',
       width: 90,
-      render: (value: number) => value.toFixed(1),
+      render: (value: number) => Math.round(value * 10), // 将单均价转换为日均订单数的模拟计算
     },
     {
-      title: '趋势',
+      title: '时段分析',
       key: 'trend',
       width: 70,
       render: (record: any) => (
@@ -516,7 +520,7 @@ const SmallStoreActivityAnalysis: React.FC = () => {
       <div className="activity-analysis-container">
         {/* 页面标题 */}
         <div style={{ display: 'flex', alignItems: 'center', marginBottom: 16 }}>
-          <Title level={2} style={{ margin: 0, marginRight: 8 }}>小店活动分析</Title>
+          <Title level={2} style={{ margin: 0, marginRight: 8 }}>微信小店活动分析</Title>
           <div style={{ marginLeft: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
             <Text type="secondary">数据更新时间：2025-01-27 14:30:00</Text>
             <Text type="secondary" style={{ fontSize: '12px', color: '#999' }}>
@@ -579,36 +583,19 @@ const SmallStoreActivityAnalysis: React.FC = () => {
                     <Text>{currentActivity.startDate} 至 {currentActivity.endDate}</Text>
                   </div>
                 </Col>
-                <Col span={24}>
-                  <div>
-                    <Text strong>活动类型：</Text>
-                    <Text>{currentActivity.activityType}</Text>
-                  </div>
-                </Col>
+
                 <Col span={24}>
                   <div>
                     <Text strong>活动机制：</Text>
                     <div style={{ marginTop: 8 }}>
                       {typeof currentActivity.mechanisms === 'object' && !Array.isArray(currentActivity.mechanisms) ? (
                         Object.entries(currentActivity.mechanisms).map(([platform, mechanisms]) => (
-                          <div key={platform} style={{ marginBottom: 16 }}>
-                            <div style={{ 
-                              fontSize: '14px', 
-                              fontWeight: 500, 
-                              color: '#1890ff',
-                              marginBottom: 6,
-                              paddingBottom: 2,
-                              borderBottom: '1px solid #f0f0f0'
-                            }}>
-                              {platform}
-                            </div>
-                            <div style={{ paddingLeft: 12 }}>
-                              {mechanisms.map((mechanism: string, index: number) => (
-                                <Tag key={index} style={{ margin: '2px 4px 2px 0' }}>
-                                  {mechanism}
-                                </Tag>
-                              ))}
-                            </div>
+                          <div key={platform}>
+                            {mechanisms.map((mechanism: string, index: number) => (
+                              <Tag key={index} style={{ margin: '2px 4px 2px 0' }}>
+                                {mechanism}
+                              </Tag>
+                            ))}
                           </div>
                         ))
                       ) : (
@@ -646,6 +633,29 @@ const SmallStoreActivityAnalysis: React.FC = () => {
                       size="small"
                     />
                   </div>
+                  
+                  {/* 目标门店数 */}
+                  <div style={{ marginTop: 16 }}>
+                    <Text>目标门店数：</Text>
+                    <Text strong style={{ color: '#3f8600' }}>
+                      {currentActivity.targetStores}家
+                    </Text>
+                  </div>
+                  
+                  {/* 完成进度条 */}
+                  <div style={{ marginTop: 8 }}>
+                    <div style={{ marginBottom: 4 }}>
+                      <Text>完成进度：</Text>
+                      <Text strong style={{ color: '#52c41a' }}>
+                        {currentActivity.activeStores}/{currentActivity.targetStores}
+                      </Text>
+                    </div>
+                    <Progress 
+                      percent={Math.round((currentActivity.activeStores / currentActivity.targetStores) * 100)}
+                      size="small"
+                      strokeColor="#52c41a"
+                    />
+                  </div>
                 </div>
               </div>
             </Col>
@@ -655,9 +665,9 @@ const SmallStoreActivityAnalysis: React.FC = () => {
 
       {/* 3. 核心指标 */}
       <Card title="核心指标" style={{ marginBottom: 0, borderBottom: 'none' }}>
-        <Row gutter={0} style={{ display: 'flex', justifyContent: 'space-between' }}>
+        <Row gutter={16} style={{ display: 'flex', justifyContent: 'space-between' }}>
           {/* 报名门店数 */}
-          <Col style={{ width: 'calc(20% - 8px)' }}>
+          <Col flex="1">
             <Card>
               <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
                 <span style={{ fontSize: '14px', color: '#000000' }}>报名门店数（个）</span>
@@ -683,7 +693,7 @@ const SmallStoreActivityAnalysis: React.FC = () => {
           </Col>
           
           {/* 动销门店数 */}
-          <Col style={{ width: 'calc(20% - 8px)' }}>
+          <Col flex="1">
             <Card>
               <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
                 <span style={{ fontSize: '14px', color: '#000000' }}>动销门店数（个）</span>
@@ -708,8 +718,34 @@ const SmallStoreActivityAnalysis: React.FC = () => {
             </Card>
           </Col>
           
+          {/* 销售额 */}
+          <Col flex="1">
+            <Card>
+              <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
+                <span style={{ fontSize: '14px', color: '#000000' }}>销售额（元）</span>
+                <AntTooltip 
+                  title={
+                    <div style={{ maxWidth: 300 }}>
+                      <div style={{ marginBottom: 8, fontWeight: 'bold' }}>该数据仅供参考，不作为最终结算依据</div>
+                      <div>活动期间产生的总销售额</div>
+                    </div>
+                  }
+                  placement="topLeft"
+                >
+                  <QuestionCircleOutlined style={{ marginLeft: 4, color: '#000000', cursor: 'help' }} />
+                </AntTooltip>
+              </div>
+              <Statistic
+                title=""
+                value={currentActivity.gmv}
+                precision={0}
+                valueStyle={{ color: '#262626', fontSize: '24px', fontWeight: 'bold' }}
+              />
+            </Card>
+          </Col>
+          
           {/* 核销金额 */}
-          <Col style={{ width: 'calc(20% - 8px)' }}>
+          <Col flex="1">
             <Card>
               <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
                 <span style={{ fontSize: '14px', color: '#000000' }}>核销金额（元）</span>
@@ -735,7 +771,7 @@ const SmallStoreActivityAnalysis: React.FC = () => {
           </Col>
           
           {/* 核销份数 */}
-          <Col style={{ width: 'calc(20% - 8px)' }}>
+          <Col flex="1">
             <Card>
               <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
                 <span style={{ fontSize: '14px', color: '#000000' }}>核销份数（份）</span>
@@ -761,7 +797,7 @@ const SmallStoreActivityAnalysis: React.FC = () => {
           </Col>
 
           {/* 店均日产出 */}
-          <Col style={{ width: 'calc(20% - 8px)' }}>
+          <Col flex="1">
             <Card>
               <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
                 <span style={{ fontSize: '14px', color: '#000000' }}>店均日产出（元）</span>
@@ -793,10 +829,12 @@ const SmallStoreActivityAnalysis: React.FC = () => {
         {/* 指标选择器 */}
         <div style={{ marginBottom: 16, display: 'flex', alignItems: 'center', gap: '20px', flexWrap: 'wrap' }}>
           {[
-            { key: 'gmv', label: '销售额', color: '#40a9ff' },
-            { key: 'discount', label: '优惠金额', color: '#096dd9' },
-            { key: 'roi', label: 'ROI', color: '#91d5ff' },
-            { key: 'orderCount', label: '订单数', color: '#69c0ff' }
+            { key: 'registeredStores', label: '报名门店数', color: '#1890ff' },
+            { key: 'activeStores', label: '动销门店数', color: '#40a9ff' },
+            { key: 'gmv', label: '销售额', color: '#096dd9' },
+            { key: 'redeemAmount', label: '核销金额', color: '#91d5ff' },
+            { key: 'redeemCount', label: '核销份数', color: '#69c0ff' },
+            { key: 'avgDailyOutput', label: '店均日产出', color: '#bae7ff' }
           ].map(metric => (
             <div 
               key={metric.key} 
@@ -811,11 +849,12 @@ const SmallStoreActivityAnalysis: React.FC = () => {
                  opacity: visibleLines[metric.key as keyof typeof visibleLines] ? 1 : 0.5
               }}
               onClick={() => setVisibleLines({
+                registeredStores: false,
+                activeStores: false,
                 gmv: false,
-                orderCount: false,
-                avgPrice: false,
-                roi: false,
-                discount: false,
+                redeemAmount: false,
+                redeemCount: false,
+                avgDailyOutput: false,
                 [metric.key]: true
               })}
               onMouseEnter={(e) => {
@@ -860,16 +899,22 @@ const SmallStoreActivityAnalysis: React.FC = () => {
               <YAxis yAxisId="right" orientation="right" />
               <Tooltip formatter={(value, name) => {
                 const metricLabels: {[key: string]: string} = {
+                  'registeredStores': '报名门店数',
+                  'activeStores': '动销门店数',
                   'gmv': '销售额',
-                  'discount': '优惠金额',
-                  'roi': 'ROI',
-                  'orderCount': '订单数'
+                  'redeemAmount': '核销金额',
+                  'redeemCount': '核销份数',
+                  'avgDailyOutput': '店均日产出'
                 };
                 
-                if (name === 'roi') {
-                  return [`${value}`, metricLabels[name as string]];
-                } else if (name === 'gmv' || name === 'discount') {
+                if (name === 'avgDailyOutput') {
+                  return [`${value} 元`, metricLabels[name as string]];
+                } else if (name === 'gmv' || name === 'redeemAmount') {
                   return [`${(value as number).toLocaleString()} 元`, metricLabels[name as string]];
+                } else if (name === 'registeredStores' || name === 'activeStores') {
+                  return [`${(value as number).toLocaleString()} 个`, metricLabels[name as string]];
+                } else if (name === 'redeemCount') {
+                  return [`${(value as number).toLocaleString()} 份`, metricLabels[name as string]];
                 } else {
                   return [(value as number).toLocaleString(), metricLabels[name as string]];
                 }
@@ -877,15 +922,27 @@ const SmallStoreActivityAnalysis: React.FC = () => {
               <Legend />
               
               {/* 动态渲染所有可见的折线 */}
-              {visibleLines.orderCount && (
+              {visibleLines.registeredStores && (
                 <RechartsLine
                   yAxisId="left"
                   type="monotone"
-                  dataKey="orderCount"
+                  dataKey="registeredStores"
                   stroke="#1890ff"
                   strokeWidth={2}
                   activeDot={{ r: 6 }}
-                  name="订单数"
+                  name="报名门店数"
+                />
+              )}
+              
+              {visibleLines.activeStores && (
+                <RechartsLine
+                  yAxisId="left"
+                  type="monotone"
+                  dataKey="activeStores"
+                  stroke="#40a9ff"
+                  strokeWidth={2}
+                  activeDot={{ r: 6 }}
+                  name="动销门店数"
                 />
               )}
               
@@ -894,34 +951,46 @@ const SmallStoreActivityAnalysis: React.FC = () => {
                   yAxisId="left"
                   type="monotone"
                   dataKey="gmv"
-                  stroke="#40a9ff"
+                  stroke="#096dd9"
                   strokeWidth={2}
                   activeDot={{ r: 6 }}
                   name="销售额"
                 />
               )}
               
-              {visibleLines.discount && (
+              {visibleLines.redeemAmount && (
                 <RechartsLine
                   yAxisId="left"
                   type="monotone"
-                  dataKey="discount"
-                  stroke="#096dd9"
-                  strokeWidth={2}
-                  activeDot={{ r: 6 }}
-                  name="优惠金额"
-                />
-              )}
-              
-              {visibleLines.roi && (
-                <RechartsLine
-                  yAxisId="right"
-                  type="monotone"
-                  dataKey="roi"
+                  dataKey="redeemAmount"
                   stroke="#91d5ff"
                   strokeWidth={2}
                   activeDot={{ r: 6 }}
-                  name="ROI"
+                  name="核销金额"
+                />
+              )}
+              
+              {visibleLines.redeemCount && (
+                <RechartsLine
+                  yAxisId="left"
+                  type="monotone"
+                  dataKey="redeemCount"
+                  stroke="#69c0ff"
+                  strokeWidth={2}
+                  activeDot={{ r: 6 }}
+                  name="核销份数"
+                />
+              )}
+              
+              {visibleLines.avgDailyOutput && (
+                <RechartsLine
+                  yAxisId="right"
+                  type="monotone"
+                  dataKey="avgDailyOutput"
+                  stroke="#bae7ff"
+                  strokeWidth={2}
+                  activeDot={{ r: 6 }}
+                  name="店均日产出"
                 />
               )}
             </LineChart>
@@ -929,205 +998,155 @@ const SmallStoreActivityAnalysis: React.FC = () => {
         </div>
       </Card>
 
-      {/* 4. 批次对比 */}
-      <Card title="批次对比" style={{ marginBottom: 16 }}>
-        <div style={{ marginBottom: 12, fontSize: '14px', color: '#666' }}>
-          <strong>销售额占比说明：</strong>单批次销售额占活动总销售额的占比
-        </div>
-        <div style={{ height: 400 }}>
-          <ResponsiveContainer width="100%" height="100%">
-            <ScatterChart
-              data={currentActivity?.batches?.map(batch => ({
-                ...batch,
-                contributionRate: ((batch.gmv / currentActivity.gmv) * 100).toFixed(1),
-                roi: (batch.gmv / batch.discount).toFixed(2)
-              })) || []}
-              margin={{ top: 20, right: 20, bottom: 60, left: 60 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis 
-                dataKey="roi" 
-                type="number" 
-                name="ROI"
-                tickFormatter={(value) => `${value}`}
-                label={{ value: 'ROI', position: 'insideBottomRight', offset: -10 }}
-              />
-              <YAxis 
-                dataKey="contributionRate" 
-                type="number" 
-                name="销售额占比"
-                tickFormatter={(value) => `${value}%`}
-                label={{ value: '销售额占比(%)', angle: 0, position: 'insideTopLeft', textAnchor: 'start', offset: 10, dx: -50 }}
-              />
-              <Tooltip 
-                  content={({ active, payload, label }) => {
-                    if (active && payload && payload.length) {
-                      const data = payload[0].payload;
-                      return (
-                        <div style={{ 
-                          backgroundColor: 'white', 
-                          padding: '8px 12px', 
-                          border: '1px solid #ccc', 
-                          borderRadius: '4px',
-                          boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-                        }}>
-                          <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>{data.name}</div>
-                          <div>销售额占比：{data.contributionRate}%</div>
-                          <div>ROI：{data.roi}</div>
-                          <div>销售额：{(data.gmv / 10000).toFixed(1)}万元</div>
-                          <div>优惠金额：{(data.discount / 10000).toFixed(1)}万元</div>
-                        </div>
-                      );
-                    }
-                    return null;
-                  }}
-                />
-              <Scatter dataKey="contributionRate" fill="#8884d8" />
-            </ScatterChart>
-          </ResponsiveContainer>
-        </div>
-      </Card>
-
-      {/* 4.5. 时段分析热力图 */}
+      {/* 4. 时段分析热力图 */}
       <Card title="时段分析" style={{ marginBottom: 16 }}>
         <div style={{ display: 'flex', gap: '20px', height: 500 }}>
           {/* 左侧热力图 */}
-          <div style={{ flex: 1, position: 'relative', padding: '20px 0' }}>
+          <div style={{ flex: 1, position: 'relative', padding: '50px 20px 30px 60px' }}>
           {/* 热力图容器 */}
           <div style={{ 
             display: 'grid', 
-            gridTemplateColumns: '60px repeat(24, 1fr)', 
-            gridTemplateRows: 'repeat(8, 1fr)', 
+            gridTemplateColumns: 'repeat(24, 1fr)', 
+            gridTemplateRows: 'repeat(7, 1fr)', 
             gap: '2px',
-            height: '100%',
-            width: '100%'
+            height: 'calc(100% - 80px)',
+            width: 'calc(100% - 80px)',
+            position: 'relative'
           }}>
-            {/* 空白角落 */}
-            <div></div>
+            {/* Y轴标签 */}
+            <div style={{ 
+              position: 'absolute', 
+              left: '-40px', 
+              top: '0', 
+              height: '100%', 
+              display: 'flex', 
+              flexDirection: 'column', 
+              justifyContent: 'space-around',
+              fontSize: '12px',
+              color: '#666'
+            }}>
+              {['周一', '周二', '周三', '周四', '周五', '周六', '周日'].map(day => (
+                <div key={day} style={{ textAlign: 'right', lineHeight: '1' }}>{day}</div>
+              ))}
+            </div>
             
-            {/* 小时标签 */}
-            {Array.from({ length: 24 }, (_, i) => (
-              <div 
-                key={`hour-${i}`}
-                style={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center',
-                  fontSize: '12px',
-                  color: '#8c8c8c',
-                  fontWeight: '500'
-                }}
-              >
-                {i}
-              </div>
-            ))}
+            {/* X轴标签 - 显示在上方 */}
+            <div style={{ 
+              position: 'absolute', 
+              top: '-25px', 
+              left: '0', 
+              width: '100%', 
+              display: 'grid',
+              gridTemplateColumns: 'repeat(24, 1fr)',
+              fontSize: '11px',
+              color: '#666'
+            }}>
+              {Array.from({ length: 24 }, (_, i) => (
+                <div key={i} style={{ textAlign: 'center', padding: '0 1px', lineHeight: '1' }}>
+                  {`${i}`}
+                </div>
+              ))}
+            </div>
             
-            {/* 星期和数据点 */}
-            {['周一', '周二', '周三', '周四', '周五', '周六', '周日'].map((day, dayIndex) => {
-              // 模拟时段分析数据
-              const mockTimeAnalysisData = Array.from({ length: 7 * 24 }, (_, index) => {
-                const dayIdx = Math.floor(index / 24);
-                const hourIdx = index % 24;
-                // 基于活动数据生成模拟的时段销售额
-                const baseGmv = currentActivity.gmv / (7 * 24);
-                const hourMultiplier = hourIdx >= 9 && hourIdx <= 21 ? 1.5 : 0.5; // 白天销售更好
-                const dayMultiplier = dayIdx === 5 || dayIdx === 6 ? 1.2 : 1.0; // 周末销售更好
-                const randomFactor = 0.5 + Math.random() * 1.5; // 随机因子
-                return {
-                  dayIndex: dayIdx,
-                  hourIndex: hourIdx,
-                  gmv: baseGmv * hourMultiplier * dayMultiplier * randomFactor
-                };
-              });
+            {/* 热力图数据点 */}
+            {Array.from({ length: 7 }, (_, dayIndex) => 
+              Array.from({ length: 24 }, (_, hourIndex) => {
+                // 模拟时段销售额数据
+                const mockSales = mockActivities.reduce((sum, activity) => {
+                  const baseValue = activity.gmv / 1000; // 基础值
+                  const dayFactor = dayIndex < 5 ? 1.2 : 0.8; // 工作日vs周末
+                  const hourFactor = hourIndex >= 9 && hourIndex <= 21 ? 1.5 : 0.3; // 营业时间
+                  const randomFactor = 0.5 + Math.random() * 0.5; // 随机因子
+                  return sum + (baseValue * dayFactor * hourFactor * randomFactor);
+                }, 0);
+                
+                const maxSales = 500; // 最大销售额
+                const intensity = Math.min(mockSales / maxSales, 1);
+                const size = 8 + intensity * 12; // 圆圈大小 8-20px
+                const opacity = 0.3 + intensity * 0.7; // 透明度 0.3-1.0
+                
+                return (
+                  <AntTooltip
+                    key={`${dayIndex}-${hourIndex}`}
+                    title={
+                      <div>
+                        <div>{['周一', '周二', '周三', '周四', '周五', '周六', '周日'][dayIndex]} {hourIndex}:00</div>
+                        <div>销售额: {mockSales.toFixed(0)}元</div>
+                        <div>活跃度: {(intensity * 100).toFixed(1)}%</div>
+                      </div>
+                    }
+                    placement="top"
+                  >
+                    <div
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: `${size}px`,
+                          height: `${size}px`,
+                          borderRadius: '50%',
+                          backgroundColor: dayIndex < 5 ? '#1890ff' : '#52c41a',
+                          opacity: opacity,
+                          transition: 'all 0.2s ease'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.transform = 'scale(1.2)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.transform = 'scale(1)';
+                        }}
+                      />
+                    </div>
+                  </AntTooltip>
+                );
+              })
+            ).flat()}
+          </div>
+          
+          {/* 图例说明 */}
+          <div style={{ 
+            marginTop: '12px', 
+            paddingTop: '12px',
+            borderTop: '1px solid #f0f0f0',
+            display: 'flex',
+            justifyContent: 'center',
+            gap: '16px',
+            fontSize: '11px',
+            color: '#8c8c8c'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <div style={{ 
+                width: '8px', 
+                height: '8px', 
+                backgroundColor: '#1890ff',
+                borderRadius: '2px'
+              }}></div>
+              <span>工作日</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <div style={{ 
+                width: '8px', 
+                height: '8px', 
+                backgroundColor: '#52c41a',
+                borderRadius: '2px'
+              }}></div>
+              <span>周末</span>
+            </div>
+          </div>
+        </div>
+        
 
-              // 计算当天所有时段的销售额总和
-              const dayTotalGmv = mockTimeAnalysisData
-                .filter(item => item.dayIndex === dayIndex)
-                .reduce((sum, item) => sum + item.gmv, 0);
-              
-              return (
-                <React.Fragment key={day}>
-                  {/* 星期标签 */}
-                  <div style={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'center',
-                    fontSize: '12px',
-                    color: '#262626',
-                    fontWeight: '500'
-                  }}>
-                    {day}
-                  </div>
-                  
-                  {/* 24小时数据点 */}
-                  {Array.from({ length: 24 }, (_, hour) => {
-                    const dataPoint = mockTimeAnalysisData.find(
-                      item => item.dayIndex === dayIndex && item.hourIndex === hour
-                    );
-                    
-                    if (!dataPoint) return <div key={`${day}-${hour}`}></div>;
-                    
-                    // 计算圆圈大小和颜色深度
-                    const maxGmv = Math.max(...mockTimeAnalysisData.map(item => item.gmv));
-                    const minGmv = Math.min(...mockTimeAnalysisData.map(item => item.gmv));
-                    const normalizedValue = (dataPoint.gmv - minGmv) / (maxGmv - minGmv);
-                    
-                    // 圆圈大小：最小8px，最大28px
-                    const circleSize = 8 + normalizedValue * 20;
-                    
-                    // 颜色深度：基于销售额比例
-                    const opacity = 0.3 + normalizedValue * 0.7;
-                    
-                    // 计算该时段在当日的占比
-                    const dayPercentage = ((dataPoint.gmv / dayTotalGmv) * 100).toFixed(1);
-                    
-                    return (
-                       <AntTooltip
-                         key={`${day}-${hour}`}
-                         title={
-                           <div style={{ textAlign: 'center' }}>
-                             <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>
-                               {day} {hour}:00
-                             </div>
-                             <div>销售额：{(dataPoint.gmv / 10000).toFixed(2)}万元</div>
-                             <div>当日占比：{dayPercentage}%</div>
-                           </div>
-                         }
-                       >
-                         <div
-                           style={{
-                             display: 'flex',
-                             alignItems: 'center',
-                             justifyContent: 'center',
-                             width: '100%',
-                             height: '100%',
-                             cursor: 'pointer'
-                           }}
-                         >
-                           <div
-                             style={{
-                               width: `${circleSize}px`,
-                               height: `${circleSize}px`,
-                               borderRadius: '50%',
-                               backgroundColor: `rgba(24, 144, 255, ${opacity})`,
-                               transition: 'all 0.2s ease'
-                             }}
-                           />
-                         </div>
-                       </AntTooltip>
-                     );
-                   })}
-                 </React.Fragment>
-               );
-             })}
-           </div>
-         </div>
-         
+        </div>
+      </Card>
 
-       </div>
-     </Card>
-
-     {/* 5. 零售商分析 */}
+      {/* 5. 零售商分析 */}
      <Card 
        title="小店"
        style={{ marginBottom: 16 }}
@@ -1152,134 +1171,186 @@ const SmallStoreActivityAnalysis: React.FC = () => {
        </div>
      </Card>
 
-     {/* 6. 商品分析 */}
-     <Card title="商品分析" style={{ marginBottom: 16 }}>
-       <div style={{ marginBottom: 12, fontSize: '14px', color: '#666' }}>
-         <strong>置顶说明：</strong>点击置顶按钮可将重要商品固定在列表顶部，便于重点关注
-       </div>
-       <Table
-         dataSource={currentProducts}
-         columns={productColumns}
-         pagination={false}
-         size="small"
-         scroll={{ x: 900 }}
-       />
-       <div style={{ marginTop: 16, textAlign: 'center' }}>
-         <Pagination
-           current={productPage}
-           pageSize={productPageSize}
-           total={sortedProducts.length}
-           onChange={setProductPage}
-           showSizeChanger={false}
-           showQuickJumper
-           showTotal={(total, range) => `第 ${range[0]}-${range[1]} 条，共 ${total} 条`}
-         />
-       </div>
-     </Card>
-
-     {/* 零售商趋势弹窗 */}
+     {/* 趋势弹窗 - 时段分析气泡图 */}
      <Modal
-       title={`${selectedRetailerTrend?.name} - 趋势分析`}
+       title={`${selectedRetailerTrend?.name} - 时段分析`}
        open={trendModalVisible}
        onCancel={closeTrendModal}
        footer={null}
-       width={800}
+       width={1000}
      >
        {selectedRetailerTrend && (
-         <div>
-           <Row gutter={16} style={{ marginBottom: 20 }}>
-             <Col span={6}>
-               <Statistic title="销售额" value={selectedRetailerTrend.gmv} suffix="元" />
-             </Col>
-             <Col span={6}>
-               <Statistic title="优惠金额" value={selectedRetailerTrend.discount} suffix="元" />
-             </Col>
-             <Col span={6}>
-               <Statistic title="订单数" value={selectedRetailerTrend.usedCount} suffix="个" />
-             </Col>
-             <Col span={6}>
-               <Statistic title="单均价" value={selectedRetailerTrend.avgPrice} suffix="元" precision={1} />
-             </Col>
-           </Row>
+         <div style={{ height: 600 }}>
+           {/* 指标卡片 */}
+           <div style={{ marginBottom: 24 }}>
+             <Row gutter={16}>
+               <Col span={6}>
+                 <Card size="small" style={{ textAlign: 'center' }}>
+                   <Statistic
+                     title="销售额"
+                     value={selectedRetailerTrend.gmv}
+                     precision={0}
+                     prefix="¥"
+                     valueStyle={{ color: '#1890ff', fontSize: 18 }}
+                   />
+                 </Card>
+               </Col>
+               <Col span={6}>
+                 <Card size="small" style={{ textAlign: 'center' }}>
+                   <Statistic
+                     title="优惠金额"
+                     value={selectedRetailerTrend.discount}
+                     precision={0}
+                     prefix="¥"
+                     valueStyle={{ color: '#52c41a', fontSize: 18 }}
+                   />
+                 </Card>
+               </Col>
+               <Col span={6}>
+                 <Card size="small" style={{ textAlign: 'center' }}>
+                   <Statistic
+                     title="日均订单数"
+                     value={Math.round(selectedRetailerTrend.usedCount / 30)}
+                     precision={0}
+                     suffix="单"
+                     valueStyle={{ color: '#722ed1', fontSize: 18 }}
+                   />
+                 </Card>
+               </Col>
+               <Col span={6}>
+                 <Card size="small" style={{ textAlign: 'center' }}>
+                   <Statistic
+                     title="单均价"
+                     value={selectedRetailerTrend.avgPrice}
+                     precision={1}
+                     prefix="¥"
+                     valueStyle={{ color: '#fa8c16', fontSize: 18 }}
+                   />
+                 </Card>
+               </Col>
+             </Row>
+           </div>
            
-           <div style={{ height: 300 }}>
-             <ResponsiveContainer width="100%" height="100%">
-               <LineChart
-                 data={selectedRetailerTrend.trend.sales.map((sales: number, index: number) => ({
-                   period: `第${index + 1}期`,
-                   sales: sales * 10000, // 转换为实际销售额
-                   discount: selectedRetailerTrend.trend.discount[index] * 10000 // 转换为实际优惠金额
-                 }))}
-                 margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-               >
-                 <CartesianGrid strokeDasharray="3 3" />
-                 <XAxis dataKey="period" />
-                 <YAxis />
-                 <Tooltip formatter={(value, name) => [
-                   `${(value as number).toLocaleString()} 元`,
-                   name === 'sales' ? '销售额' : '优惠金额'
-                 ]} />
-                 <Legend />
-                 <RechartsLine type="monotone" dataKey="sales" stroke="#1890ff" name="销售额" />
-                 <RechartsLine type="monotone" dataKey="discount" stroke="#52c41a" name="优惠金额" />
-               </LineChart>
-             </ResponsiveContainer>
+           {/* 时段分析热力图 */}
+           <div style={{ display: 'flex', gap: 24 }}>
+             {/* 左侧热力图 */}
+             <div style={{ flex: 1 }}>
+               <div style={{ marginBottom: 16 }}>
+                 <Text strong style={{ fontSize: 16 }}>时段销售热力图</Text>
+               </div>
+               <div style={{ 
+                 display: 'grid', 
+                 gridTemplateColumns: 'auto repeat(24, 1fr)', 
+                 gap: 2, 
+                 alignItems: 'center',
+                 fontSize: 12,
+                 position: 'relative',
+                 paddingTop: 30
+               }}>
+                 {/* 表头 - 小时 - 显示在上方 */}
+                 <div style={{ 
+                   position: 'absolute',
+                   top: 0,
+                   left: 60,
+                   right: 0,
+                   display: 'grid',
+                   gridTemplateColumns: 'repeat(24, 1fr)',
+                   gap: 2,
+                   fontSize: 10,
+                   color: '#666'
+                 }}>
+                   {Array.from({ length: 24 }, (_, hour) => (
+                     <div key={hour} style={{ textAlign: 'center', padding: '4px 2px' }}>
+                       {hour}
+                     </div>
+                   ))}
+                 </div>
+                 
+                 {/* 数据行 - 每天 */}
+                 {['周一', '周二', '周三', '周四', '周五', '周六', '周日'].map((day, dayIndex) => (
+                   <React.Fragment key={day}>
+                     <div style={{ padding: '4px 8px', fontSize: 11, fontWeight: 500, width: 50 }}>{day}</div>
+                     {Array.from({ length: 24 }, (_, hour) => {
+                       // 模拟该小店在不同时段的销售额数据
+                       const baseAmount = selectedRetailerTrend.gmv / 1000; // 基础销售额
+                       const hourFactor = hour >= 7 && hour <= 22 ? 
+                         (hour >= 11 && hour <= 13 ? 1.8 : // 午餐时间
+                          hour >= 18 && hour <= 20 ? 2.2 : // 晚餐时间
+                          hour >= 9 && hour <= 17 ? 1.2 : 0.6) : 0.3; // 其他时间
+                       const dayFactor = dayIndex >= 5 ? 1.5 : 1.0; // 周末因子
+                       const randomFactor = 0.7 + Math.random() * 0.6; // 随机因子
+                       const amount = baseAmount * hourFactor * dayFactor * randomFactor;
+                       
+                       // 计算圆圈大小和透明度
+                       const maxAmount = baseAmount * 2.2 * 1.5;
+                       const size = Math.max(8, Math.min(24, (amount / maxAmount) * 24));
+                       const opacity = Math.max(0.2, Math.min(1, amount / maxAmount));
+                       
+                       // 区分工作日和周末颜色
+                       const isWeekend = dayIndex >= 5;
+                       const color = isWeekend ? '#52c41a' : '#1890ff';
+                       
+                       return (
+                         <AntTooltip
+                           key={`${day}-${hour}`}
+                           title={
+                             <div>
+                               <div>{day} {hour}:00</div>
+                               <div>销售额: ¥{amount.toFixed(0)}</div>
+                               <div>类型: {isWeekend ? '周末' : '工作日'}</div>
+                             </div>
+                           }
+                         >
+                           <div style={{ 
+                             display: 'flex', 
+                             justifyContent: 'center', 
+                             alignItems: 'center',
+                             height: 28,
+                             cursor: 'pointer'
+                           }}>
+                             <div style={{
+                               width: size,
+                               height: size,
+                               borderRadius: '50%',
+                               backgroundColor: color,
+                               opacity: opacity,
+                               transition: 'all 0.2s'
+                             }} />
+                           </div>
+                         </AntTooltip>
+                       );
+                     })}
+                   </React.Fragment>
+                 ))}
+               </div>
+               
+               {/* 图例 */}
+               <div style={{ marginTop: 16, display: 'flex', justifyContent: 'center', gap: 24 }}>
+                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                   <div style={{ 
+                     width: 12, 
+                     height: 12, 
+                     borderRadius: '50%', 
+                     backgroundColor: '#1890ff' 
+                   }} />
+                   <Text style={{ fontSize: 12 }}>工作日</Text>
+                 </div>
+                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                   <div style={{ 
+                     width: 12, 
+                     height: 12, 
+                     borderRadius: '50%', 
+                     backgroundColor: '#52c41a' 
+                   }} />
+                   <Text style={{ fontSize: 12 }}>周末</Text>
+                 </div>
+               </div>
+             </div>
            </div>
          </div>
        )}
      </Modal>
 
-     {/* 商品趋势弹窗 */}
-     <Modal
-       title={`${selectedProductTrend?.name} - 趋势分析`}
-       open={productTrendModalVisible}
-       onCancel={closeProductTrendModal}
-       footer={null}
-       width={800}
-     >
-       {selectedProductTrend && (
-         <div>
-           <Row gutter={16} style={{ marginBottom: 20 }}>
-             <Col span={6}>
-               <Statistic title="销售额" value={selectedProductTrend.gmv} suffix="元" />
-             </Col>
-             <Col span={6}>
-               <Statistic title="优惠金额" value={selectedProductTrend.discount} suffix="元" />
-             </Col>
-             <Col span={6}>
-               <Statistic title="销售件数" value={selectedProductTrend.salesCount} suffix="件" />
-             </Col>
-             <Col span={6}>
-               <Statistic title="订单数" value={selectedProductTrend.usedCount} suffix="个" />
-             </Col>
-           </Row>
-           
-           <div style={{ height: 300 }}>
-             <ResponsiveContainer width="100%" height="100%">
-               <LineChart
-                 data={selectedProductTrend.trend.sales.map((sales: number, index: number) => ({
-                   period: `第${index + 1}期`,
-                   sales: sales * 10000, // 转换为实际销售额
-                   discount: selectedProductTrend.trend.discount[index] * 10000 // 转换为实际优惠金额
-                 }))}
-                 margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-               >
-                 <CartesianGrid strokeDasharray="3 3" />
-                 <XAxis dataKey="period" />
-                 <YAxis />
-                 <Tooltip formatter={(value, name) => [
-                   `${(value as number).toLocaleString()} 元`,
-                   name === 'sales' ? '销售额' : '优惠金额'
-                 ]} />
-                 <Legend />
-                 <RechartsLine type="monotone" dataKey="sales" stroke="#1890ff" name="销售额" />
-                 <RechartsLine type="monotone" dataKey="discount" stroke="#52c41a" name="优惠金额" />
-               </LineChart>
-             </ResponsiveContainer>
-           </div>
-         </div>
-       )}
-     </Modal>
    </div>
  );
 };

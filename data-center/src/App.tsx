@@ -9,6 +9,7 @@ import Dashboard from './pages/client/store-marketing/Dashboard';
 import AllActivities from './pages/client/store-marketing/AllActivities';
 import ActivityAnalysis from './pages/client/store-marketing/ActivityAnalysis';
 import SmallStoreActivityAnalysis from './pages/client/store-marketing/SmallStoreActivityAnalysis';
+import SmalStoreDashboard from './pages/client/store-marketing/SmalStoreDashboard';
 import UserAnalysis from './pages/client/store-marketing/UserAnalysis';
 import CouponDetail from './pages/client/store-marketing/CouponDetail';
 import MechanismEffect from './pages/client/store-marketing/MechanismEffect';
@@ -36,6 +37,7 @@ function App() {
           <Route path="activity-analysis" element={<ActivityAnalysis />} />
           <Route path="activity-analysis/:activityId" element={<ActivityAnalysis />} />
           <Route path="small-store-activity-analysis" element={<SmallStoreActivityAnalysis />} />
+          <Route path="store-marketing/small-store-dashboard" element={<SmalStoreDashboard />} />
           <Route path="user-analysis" element={<UserAnalysis />} />
           <Route path="coupon-detail/:couponId" element={<CouponDetail />} />
           <Route path="product-list" element={<ProductList />} />

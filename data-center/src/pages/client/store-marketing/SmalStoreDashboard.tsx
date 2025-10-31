@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Row, Col, Card, Statistic, Progress, Divider, DatePicker, Select, Tabs, Tooltip as AntTooltip, Radio, Tag, Typography, Button, Table } from 'antd';
 import { ArrowUpOutlined, ArrowDownOutlined, ShoppingOutlined, DollarOutlined, TagOutlined, AppstoreOutlined, InfoCircleOutlined, QuestionCircleOutlined, DownloadOutlined } from '@ant-design/icons';
 import { PieChart, Pie as RechartsPie, Cell, LineChart, Line as RechartsLine, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
@@ -44,9 +43,7 @@ const HIGHLIGHT_COLORS = {
   normal: '#d9d9d9'     // 浅灰色
 };
 
-const Dashboard: React.FC = () => {
-  const navigate = useNavigate();
-  
+const SmalStoreDashboard: React.FC = () => {
   // 状态管理
   const [dateType, setDateType] = useState<string>('month');
   const [dateRange, setDateRange] = useState<[string, string]>(['2025-10-01', '2025-10-31']);
@@ -55,17 +52,18 @@ const Dashboard: React.FC = () => {
   
   // 折线图显示状态管理
   const [visibleLines, setVisibleLines] = useState<{[key: string]: boolean}>({
-    batchCount: true,  // 默认显示活动数
+    registeredStores: true,  // 默认显示报名门店数
+    activeStores: false,
     gmv: false,
-    discount: false,
-    roi: false,
-    orderCount: false
+    writeOffAmount: false,
+    writeOffCount: false,
+    avgDailyOutput: false
   });
   
   // 发券渠道状态 - 重新设计为平台视图
   const [selectedPlatform, setSelectedPlatform] = useState<string | null>('微信'); // 默认选中微信平台
   
-  // 零售商/机制指标状态
+  // 门店/机制指标状态
   const [retailerMetric, setRetailerMetric] = useState<string>('gmv');
   
   // SKU排序状态
@@ -183,27 +181,24 @@ const Dashboard: React.FC = () => {
     distributionChannels,
     // 核心指标数据
     overview: {
-      gmv: 4680000,
-      gmvYoY: 15.2, // 同比增长
-      gmvMoM: 5.8,  // 环比增长
-      usedCount: 320000,
-      usedCountYoY: 12.5,
-      usedCountMoM: 4.2,
-      batchCount: 12,
-      batchCountYoY: 20.0,
-      batchCountMoM: 9.1,
-      discount: 1870000,
-      discountYoY: 18.3,
-      discountMoM: 7.5,
-      roi: 2.5, // ROI投资回报率
-      roiYoY: 8.5,
-      roiMoM: 3.2,
-      orderCount: 42120, // 订单数
-      orderCountYoY: 14.8,
-      orderCountMoM: 6.3,
-      usageRate: 37.6, // 核销率
-      usageRateYoY: 2.5,
-      usageRateMoM: 1.2
+      registeredStores: 156, // 报名门店数
+      registeredStoresYoY: 15.2,
+      registeredStoresMoM: 5.8,
+      activeStores: 89, // 动销门店数
+      activeStoresYoY: 12.5,
+      activeStoresMoM: 4.2,
+      gmv: 4680000, // 销售额
+      gmvYoY: 15.2,
+      gmvMoM: 5.8,
+      writeOffAmount: 1870000, // 核销金额
+      writeOffAmountYoY: 18.3,
+      writeOffAmountMoM: 7.5,
+      writeOffCount: 320000, // 核销份数
+      writeOffCountYoY: 12.5,
+      writeOffCountMoM: 4.2,
+      avgDailyOutput: 30000, // 店均日产出
+      avgDailyOutputYoY: 8.5,
+      avgDailyOutputMoM: 3.2
     },
     // 预算数据
     budget: {
@@ -220,16 +215,16 @@ const Dashboard: React.FC = () => {
     ],
     // 趋势数据
     trends: [
-      { date: '10-01', gmv: 156000, usedCount: 10667, batchCount: 12, discount: 62333, roi: 2.5, orderCount: 1560, usageRate: 35.6 },
-      { date: '10-02', gmv: 168000, usedCount: 11500, batchCount: 12, discount: 67200, roi: 2.5, orderCount: 1680, usageRate: 36.2 },
-      { date: '10-03', gmv: 180000, usedCount: 12333, batchCount: 12, discount: 72000, roi: 2.5, orderCount: 1800, usageRate: 36.8 },
-      { date: '10-04', gmv: 162000, usedCount: 11100, batchCount: 12, discount: 64800, roi: 2.5, orderCount: 1620, usageRate: 37.0 },
-      { date: '10-05', gmv: 150000, usedCount: 10267, batchCount: 12, discount: 60000, roi: 2.5, orderCount: 1500, usageRate: 37.2 },
-      { date: '10-06', gmv: 165000, usedCount: 11300, batchCount: 12, discount: 66000, roi: 2.5, orderCount: 1650, usageRate: 37.4 },
-      { date: '10-07', gmv: 175000, usedCount: 12000, batchCount: 12, discount: 70000, roi: 2.5, orderCount: 1750, usageRate: 37.6 },
-      { date: '10-08', gmv: 185000, usedCount: 12667, batchCount: 12, discount: 74000, roi: 2.5, orderCount: 1850, usageRate: 37.8 },
-      { date: '10-09', gmv: 190000, usedCount: 13000, batchCount: 12, discount: 76000, roi: 2.5, orderCount: 1900, usageRate: 38.0 },
-      { date: '10-10', gmv: 195000, usedCount: 13333, batchCount: 12, discount: 78000, roi: 2.5, orderCount: 1950, usageRate: 38.2 },
+      { date: '10-01', registeredStores: 150, activeStores: 85, gmv: 156000, writeOffAmount: 62333, writeOffCount: 10667, avgDailyOutput: 1837 },
+      { date: '10-02', registeredStores: 152, activeStores: 86, gmv: 168000, writeOffAmount: 67200, writeOffCount: 11500, avgDailyOutput: 1953 },
+      { date: '10-03', registeredStores: 154, activeStores: 87, gmv: 180000, writeOffAmount: 72000, writeOffCount: 12333, avgDailyOutput: 2069 },
+      { date: '10-04', registeredStores: 155, activeStores: 88, gmv: 162000, writeOffAmount: 64800, writeOffCount: 11100, avgDailyOutput: 1841 },
+      { date: '10-05', registeredStores: 155, activeStores: 87, gmv: 150000, writeOffAmount: 60000, writeOffCount: 10267, avgDailyOutput: 1724 },
+      { date: '10-06', registeredStores: 156, activeStores: 88, gmv: 165000, writeOffAmount: 66000, writeOffCount: 11300, avgDailyOutput: 1875 },
+      { date: '10-07', registeredStores: 156, activeStores: 89, gmv: 175000, writeOffAmount: 70000, writeOffCount: 12000, avgDailyOutput: 1966 },
+      { date: '10-08', registeredStores: 156, activeStores: 89, gmv: 185000, writeOffAmount: 74000, writeOffCount: 12667, avgDailyOutput: 2079 },
+      { date: '10-09', registeredStores: 156, activeStores: 89, gmv: 190000, writeOffAmount: 76000, writeOffCount: 13000, avgDailyOutput: 2135 },
+      { date: '10-10', registeredStores: 156, activeStores: 89, gmv: 195000, writeOffAmount: 78000, writeOffCount: 13333, avgDailyOutput: 2191 },
     ],
     // 渠道数据
     channels: [
@@ -244,31 +239,31 @@ const Dashboard: React.FC = () => {
       { name: '碰一下', usedCount: 12000 },
       { name: 'H5', usedCount: 4000 },
     ],
-    // 零售商数据 - 支持5个指标
+    // 门店数据 - 支持5个指标
     retailers: [
-      { name: '华润万家大卖场', usedCount: 65000, gmv: 1300000, batchCount: 5, discount: 130000, roi: 10.0, orderCount: 13000, usageRate: 45.2 },
-      { name: '沃尔玛', usedCount: 58000, gmv: 1160000, batchCount: 4, discount: 116000, roi: 10.0, orderCount: 11600, usageRate: 42.8 },
-      { name: '山姆', usedCount: 52000, gmv: 1040000, batchCount: 4, discount: 104000, roi: 10.0, orderCount: 10400, usageRate: 41.5 },
-      { name: '大润发', usedCount: 45000, gmv: 900000, batchCount: 3, discount: 90000, roi: 10.0, orderCount: 9000, usageRate: 38.9 },
-      { name: '永辉', usedCount: 38000, gmv: 760000, batchCount: 3, discount: 76000, roi: 10.0, orderCount: 7600, usageRate: 36.2 },
-      { name: '物美超市', usedCount: 32000, gmv: 640000, batchCount: 2, discount: 64000, roi: 10.0, orderCount: 6400, usageRate: 34.8 },
-      { name: '麦德龙', usedCount: 28000, gmv: 560000, batchCount: 2, discount: 56000, roi: 10.0, orderCount: 5600, usageRate: 33.1 },
-      { name: '大张盛德美', usedCount: 24000, gmv: 480000, batchCount: 2, discount: 48000, roi: 10.0, orderCount: 4800, usageRate: 31.5 },
-      { name: '永旺', usedCount: 20000, gmv: 400000, batchCount: 1, discount: 40000, roi: 10.0, orderCount: 4000, usageRate: 29.8 },
-      { name: '华润苏果便利店', usedCount: 18000, gmv: 360000, batchCount: 1, discount: 36000, roi: 10.0, orderCount: 3600, usageRate: 28.2 },
+      { name: '芙蓉兴盛', usedCount: 65000, gmv: 1300000, batchCount: 5, discount: 130000, roi: 10.0, orderCount: 13000, usageRate: 45.2 },
+      { name: '怡福百货', usedCount: 58000, gmv: 1160000, batchCount: 4, discount: 116000, roi: 10.0, orderCount: 11600, usageRate: 42.8 },
+      { name: '众和食杂', usedCount: 52000, gmv: 1040000, batchCount: 4, discount: 104000, roi: 10.0, orderCount: 10400, usageRate: 41.5 },
+      { name: '浩林便利店', usedCount: 45000, gmv: 900000, batchCount: 3, discount: 90000, roi: 10.0, orderCount: 9000, usageRate: 38.9 },
+      { name: '一号门士多', usedCount: 38000, gmv: 760000, batchCount: 3, discount: 76000, roi: 10.0, orderCount: 7600, usageRate: 36.2 },
+      { name: '天虹超市', usedCount: 32000, gmv: 640000, batchCount: 2, discount: 64000, roi: 10.0, orderCount: 6400, usageRate: 34.8 },
+      { name: '文发士多', usedCount: 28000, gmv: 560000, batchCount: 2, discount: 56000, roi: 10.0, orderCount: 5600, usageRate: 33.1 },
+      { name: '嘉利烟酒店', usedCount: 24000, gmv: 480000, batchCount: 2, discount: 48000, roi: 10.0, orderCount: 4800, usageRate: 31.5 },
+      { name: '好运来超市', usedCount: 20000, gmv: 400000, batchCount: 1, discount: 40000, roi: 10.0, orderCount: 4000, usageRate: 29.8 },
+      { name: '喜乐惠多', usedCount: 18000, gmv: 360000, batchCount: 1, discount: 36000, roi: 10.0, orderCount: 3600, usageRate: 28.2 },
     ],
     // 机制数据 - 支持5个指标
     mechanisms: [
-      { name: '满200减30', usedCount: 85000, gmv: 1700000, batchCount: 6, discount: 170000, roi: 10.0, orderCount: 17000, usageRate: 48.5 },
-      { name: '满100减15', usedCount: 72000, gmv: 1440000, batchCount: 5, discount: 144000, roi: 10.0, orderCount: 14400, usageRate: 45.8 },
-      { name: '满50减8', usedCount: 58000, gmv: 1160000, batchCount: 4, discount: 116000, roi: 10.0, orderCount: 11600, usageRate: 42.1 },
-      { name: '满300减50', usedCount: 45000, gmv: 900000, batchCount: 3, discount: 90000, roi: 10.0, orderCount: 9000, usageRate: 38.9 },
-      { name: '满150减25', usedCount: 38000, gmv: 760000, batchCount: 3, discount: 76000, roi: 10.0, orderCount: 7600, usageRate: 36.2 },
-      { name: '满80减12', usedCount: 32000, gmv: 640000, batchCount: 2, discount: 64000, roi: 10.0, orderCount: 6400, usageRate: 34.8 },
-      { name: '满60减10', usedCount: 28000, gmv: 560000, batchCount: 2, discount: 56000, roi: 10.0, orderCount: 5600, usageRate: 33.1 },
-      { name: '满120减20', usedCount: 24000, gmv: 480000, batchCount: 2, discount: 48000, roi: 10.0, orderCount: 4800, usageRate: 31.5 },
-      { name: '满88减15', usedCount: 18000, gmv: 360000, batchCount: 1, discount: 36000, roi: 10.0, orderCount: 3600, usageRate: 28.2 },
-      { name: '满168减28', usedCount: 15000, gmv: 300000, batchCount: 1, discount: 30000, roi: 10.0, orderCount: 3000, usageRate: 25.8 },
+      { name: '30元乐享', usedCount: 85000, gmv: 1700000, batchCount: 6, discount: 170000, roi: 10.0, orderCount: 17000, usageRate: 48.5 },
+      { name: '15元乐享', usedCount: 72000, gmv: 1440000, batchCount: 5, discount: 144000, roi: 10.0, orderCount: 14400, usageRate: 45.8 },
+      { name: '8元乐享', usedCount: 58000, gmv: 1160000, batchCount: 4, discount: 116000, roi: 10.0, orderCount: 11600, usageRate: 42.1 },
+      { name: '50元乐享', usedCount: 45000, gmv: 900000, batchCount: 3, discount: 90000, roi: 10.0, orderCount: 9000, usageRate: 38.9 },
+      { name: '25元乐享', usedCount: 38000, gmv: 760000, batchCount: 3, discount: 76000, roi: 10.0, orderCount: 7600, usageRate: 36.2 },
+      { name: '12元乐享', usedCount: 32000, gmv: 640000, batchCount: 2, discount: 64000, roi: 10.0, orderCount: 6400, usageRate: 34.8 },
+      { name: '10元乐享', usedCount: 28000, gmv: 560000, batchCount: 2, discount: 56000, roi: 10.0, orderCount: 5600, usageRate: 33.1 },
+      { name: '20元乐享', usedCount: 24000, gmv: 480000, batchCount: 2, discount: 48000, roi: 10.0, orderCount: 4800, usageRate: 31.5 },
+      { name: '15元乐享', usedCount: 18000, gmv: 360000, batchCount: 1, discount: 36000, roi: 10.0, orderCount: 3600, usageRate: 28.2 },
+      { name: '28元乐享', usedCount: 15000, gmv: 300000, batchCount: 1, discount: 30000, roi: 10.0, orderCount: 3000, usageRate: 25.8 },
     ],
     // SKU数据
     skus: [
@@ -368,25 +363,14 @@ const Dashboard: React.FC = () => {
     setDateRange(dateStrings);
   };
 
-  // 处理平台变更
-  const handlePlatformChange = (e: any) => {
-    const value = e.target.value;
-    if (value === 'wechat-store') {
-      // 跳转到微信小店页面
-      navigate('/client/store-marketing/small-store-dashboard');
-    } else {
-      setPlatform(value);
-    }
-  };
 
 
-
-  // 处理零售商/机制指标变更
+  // 处理门店/机制指标变更
   const handleRetailerMetricChange = (value: string) => {
     setRetailerMetric(value);
   };
 
-  // 获取排序后的零售商数据
+  // 获取排序后的门店数据
   const getSortedRetailers = () => {
     return [...stats.retailers].sort((a, b) => {
       const aValue = a[retailerMetric as keyof typeof a] as number;
@@ -430,10 +414,26 @@ const Dashboard: React.FC = () => {
         </div>
       </div>
       
+      {/* 演示说明 */}
+      <div style={{ 
+        backgroundColor: '#fff7e6', 
+        border: '1px solid #ffd591', 
+        borderRadius: '6px', 
+        padding: '12px 16px', 
+        marginBottom: 16,
+        display: 'flex',
+        alignItems: 'center'
+      }}>
+        <InfoCircleOutlined style={{ color: '#fa8c16', marginRight: 8, fontSize: '16px' }} />
+        <Text style={{ color: '#d46b08', fontSize: '14px' }}>
+          此页面为演示使用，正式发布不会有此过度，切换销售分析仅刷新页面内指标与图示。
+        </Text>
+      </div>
+      
       {/* 1. 筛选条件 */}
       <Card style={{ marginBottom: 16 }}>
         <Row gutter={32} align="middle">
-          <Col span={8}>
+          <Col span={12}>
             <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'nowrap' }}>
               <Radio.Group value={dateType} onChange={handleDateTypeChange} style={{ marginRight: 16, flexShrink: 0 }}>
                 <Radio.Button value="day">日</Radio.Button>
@@ -448,16 +448,20 @@ const Dashboard: React.FC = () => {
               />
             </div>
           </Col>
-          <Col span={16} style={{ paddingLeft: '24px', display: 'flex', justifyContent: 'flex-end' }}>
-            <Radio.Group value={platform} onChange={handlePlatformChange} buttonStyle="solid">
-              <Radio.Button value="all">全部</Radio.Button>
-              <Radio.Button value="wechat">微信</Radio.Button>
-              <Radio.Button value="alipay">支付宝</Radio.Button>
-              <Radio.Button value="douyin">抖音到店</Radio.Button>
-              <Radio.Button value="wechat-store">微信小店</Radio.Button>
-              <Radio.Button value="meituan" disabled>美团到店</Radio.Button>
-              <Radio.Button value="tmall" disabled>天猫校园</Radio.Button>
-            </Radio.Group>
+          <Col span={12} style={{ paddingLeft: '24px', display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
+            <div style={{ 
+              backgroundColor: '#f6ffed', 
+              border: '1px solid #b7eb8f', 
+              borderRadius: '6px', 
+              padding: '8px 12px',
+              display: 'flex',
+              alignItems: 'center'
+            }}>
+              <InfoCircleOutlined style={{ color: '#52c41a', marginRight: 6, fontSize: '14px' }} />
+              <Text style={{ color: '#389e0d', fontSize: '13px' }}>
+                演示环境，请点击浏览器返回，回到销售分析主页面
+              </Text>
+            </div>
           </Col>
         </Row>
       </Card>
@@ -465,15 +469,15 @@ const Dashboard: React.FC = () => {
       {/* 2. 核心指标与活动效果趋势 */}
       <Card title="核心指标" style={{ marginBottom: 16 }}>
         <Row gutter={0} style={{ display: 'flex', justifyContent: 'space-between' }}>
-          {/* 活动数 */}
-          <Col style={{ width: 'calc(20% - 8px)' }}>
+          {/* 报名门店数 */}
+          <Col style={{ width: 'calc(16.66% - 8px)' }}>
             <Card>
               <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
-                <span style={{ fontSize: '14px', color: '#262626' }}>活动数</span>
+                <span style={{ fontSize: '14px', color: '#262626' }}>报名门店数（个）</span>
                 <AntTooltip 
                   title={
                     <div style={{ maxWidth: 300 }}>
-                      <div>平台侧创建的活动数量之和</div>
+                      <div>参与活动报名的门店总数</div>
                     </div>
                   }
                   placement="topLeft"
@@ -483,38 +487,90 @@ const Dashboard: React.FC = () => {
               </div>
               <Statistic
                 title=""
-                value={stats.overview.batchCount}
+                value={stats.overview.registeredStores}
                 precision={0}
                 valueStyle={{ color: '#000000', fontSize: '24px', fontWeight: 'bold' }}
               />
               <div style={{ marginTop: 8 }}>
                 <span style={{ 
-                  color: stats.overview.batchCountYoY >= 0 ? 'red' : 'green', 
+                  color: stats.overview.registeredStoresYoY >= 0 ? 'red' : 'green', 
                   marginRight: 8,
-                  ...(stats.overview.batchCountYoY < 0 && {
+                  ...(stats.overview.registeredStoresYoY < 0 && {
                     position: 'relative'
                   })
                 }}>
-                  同比 {stats.overview.batchCountYoY >= 0 ? '+' : ''}{stats.overview.batchCountYoY}%
-                  {stats.overview.batchCountYoY < 0 && ' 📉'}
+                  同比 {stats.overview.registeredStoresYoY >= 0 ? '+' : ''}{stats.overview.registeredStoresYoY}%
+                  {stats.overview.registeredStoresYoY < 0 && ' 📉'}
                 </span>
                 <span style={{ 
-                  color: stats.overview.batchCountMoM >= 0 ? 'red' : 'green',
-                  ...(stats.overview.batchCountMoM < 0 && {
+                  color: stats.overview.registeredStoresMoM >= 0 ? 'red' : 'green',
+                  ...(stats.overview.registeredStoresMoM < 0 && {
                     borderLeft: '3px solid green',
                     paddingLeft: '8px',
                     fontFamily: 'monospace',
                     fontSize: '13px'
                   })
                 }}>
-                  环比 {stats.overview.batchCountMoM >= 0 ? '+' : ''}{stats.overview.batchCountMoM}%
+                  环比 {stats.overview.registeredStoresMoM >= 0 ? '+' : ''}{stats.overview.registeredStoresMoM}%
+                </span>
+              </div>
+            </Card>
+          </Col>
+          
+          {/* 动销门店数 */}
+          <Col style={{ width: 'calc(16.66% - 8px)' }}>
+            <Card>
+              <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
+                <span style={{ fontSize: '14px', color: '#262626' }}>动销门店数（个）</span>
+                <AntTooltip 
+                  title={
+                    <div style={{ maxWidth: 300 }}>
+                      <div>实际产生销售的门店数量</div>
+                    </div>
+                  }
+                  placement="topLeft"
+                >
+                  <QuestionCircleOutlined style={{ marginLeft: 4, color: '#8c8c8c', cursor: 'help' }} />
+                </AntTooltip>
+              </div>
+              <Statistic
+                title=""
+                value={stats.overview.activeStores}
+                precision={0}
+                valueStyle={{ color: '#000000', fontSize: '24px', fontWeight: 'bold' }}
+              />
+              <div style={{ marginTop: 8 }}>
+                <span style={{ 
+                  color: stats.overview.activeStoresYoY >= 0 ? 'red' : 'green', 
+                  marginRight: 8,
+                  ...(stats.overview.activeStoresYoY < 0 && {
+                    fontWeight: 'bold',
+                    textDecoration: 'underline',
+                    fontSize: '13px'
+                  })
+                }}>
+                  {stats.overview.activeStoresYoY < 0 && <ArrowDownOutlined style={{ marginRight: 4 }} />}
+                  同比 {stats.overview.activeStoresYoY >= 0 ? '+' : ''}{stats.overview.activeStoresYoY}%
+                </span>
+                <span style={{ 
+                  color: stats.overview.activeStoresMoM >= 0 ? 'red' : 'green',
+                  ...(stats.overview.activeStoresMoM < 0 && {
+                    fontStyle: 'italic',
+                    border: '1px solid green',
+                    padding: '2px 6px',
+                    borderRadius: '4px',
+                    fontSize: '12px'
+                  })
+                }}>
+                  {stats.overview.activeStoresMoM < 0 && '↓ '}
+                  环比 {stats.overview.activeStoresMoM >= 0 ? '+' : ''}{stats.overview.activeStoresMoM}%
                 </span>
               </div>
             </Card>
           </Col>
           
           {/* 销售额 */}
-          <Col style={{ width: 'calc(20% - 8px)' }}>
+          <Col style={{ width: 'calc(16.66% - 8px)' }}>
             <Card>
               <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
                 <span style={{ fontSize: '14px', color: '#262626' }}>销售额（元）</span>
@@ -569,11 +625,11 @@ const Dashboard: React.FC = () => {
             </Card>
           </Col>
           
-          {/* 优惠金额 */}
-          <Col style={{ width: 'calc(20% - 8px)' }}>
+          {/* 核销金额 */}
+          <Col style={{ width: 'calc(16.66% - 8px)' }}>
             <Card>
               <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
-                <span style={{ fontSize: '14px', color: '#262626' }}>优惠金额（元）</span>
+                <span style={{ fontSize: '14px', color: '#262626' }}>核销金额（元）</span>
                 <AntTooltip 
                   title={
                     <div style={{ maxWidth: 300 }}>
@@ -590,68 +646,31 @@ const Dashboard: React.FC = () => {
               </div>
               <Statistic
                 title=""
-                value={stats.overview.discount}
+                value={stats.overview.writeOffAmount}
                 precision={2}
                 valueStyle={{ color: '#000000', fontSize: '24px', fontWeight: 'bold' }}
               />
               <div style={{ marginTop: 8 }}>
-                <span style={{ color: stats.overview.discountYoY >= 0 ? 'red' : 'green', marginRight: 8 }}>
-                  同比 {stats.overview.discountYoY >= 0 ? '+' : ''}{stats.overview.discountYoY}%
+                <span style={{ color: stats.overview.writeOffAmountYoY >= 0 ? 'red' : 'green', marginRight: 8 }}>
+                  同比 {stats.overview.writeOffAmountYoY >= 0 ? '+' : ''}{stats.overview.writeOffAmountYoY}%
                 </span>
-                <span style={{ color: stats.overview.discountMoM >= 0 ? 'red' : 'green' }}>
-                  环比 {stats.overview.discountMoM >= 0 ? '+' : ''}{stats.overview.discountMoM}%
-                </span>
-              </div>
-            </Card>
-          </Col>
-          
-          {/* ROI */}
-          <Col style={{ width: 'calc(20% - 8px)' }}>
-            <Card>
-              <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
-                <span style={{ fontSize: '14px', color: '#262626' }}>ROI</span>
-                <AntTooltip 
-                  title={
-                    <div style={{ maxWidth: 300 }}>
-                      <div style={{ marginBottom: 8, fontWeight: 'bold' }}>投资回报率</div>
-                      <div>ROI = 销售额 / 优惠金额</div>
-                      <div style={{ marginTop: 8, fontSize: '12px', color: '#666' }}>
-                        该指标反映每投入1元优惠金额能带来多少销售额
-                      </div>
-                    </div>
-                  }
-                  placement="topLeft"
-                >
-                  <QuestionCircleOutlined style={{ marginLeft: 4, color: '#8c8c8c', cursor: 'help' }} />
-                </AntTooltip>
-              </div>
-              <Statistic
-                title=""
-                value={stats.overview.roi}
-                precision={1}
-                valueStyle={{ color: '#000000', fontSize: '24px', fontWeight: 'bold' }}
-              />
-              <div style={{ marginTop: 8 }}>
-                <span style={{ color: stats.overview.roiYoY >= 0 ? 'red' : 'green', marginRight: 8 }}>
-                  同比 {stats.overview.roiYoY >= 0 ? '+' : ''}{stats.overview.roiYoY}%
-                </span>
-                <span style={{ color: stats.overview.roiMoM >= 0 ? 'red' : 'green' }}>
-                  环比 {stats.overview.roiMoM >= 0 ? '+' : ''}{stats.overview.roiMoM}%
+                <span style={{ color: stats.overview.writeOffAmountMoM >= 0 ? 'red' : 'green' }}>
+                  环比 {stats.overview.writeOffAmountMoM >= 0 ? '+' : ''}{stats.overview.writeOffAmountMoM}%
                 </span>
               </div>
             </Card>
           </Col>
           
-          {/* 订单数 */}
-          <Col style={{ width: 'calc(20% - 8px)' }}>
+          {/* 核销份数 */}
+          <Col style={{ width: 'calc(16.66% - 8px)' }}>
             <Card>
               <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
-                <span style={{ fontSize: '14px', color: '#262626' }}>订单数</span>
+                <span style={{ fontSize: '14px', color: '#262626' }}>核销份数（份）</span>
                 <AntTooltip 
                   title={
                     <div style={{ maxWidth: 300 }}>
                       <div style={{ marginBottom: 4 }}><strong>微信/支付宝：</strong></div>
-                      <div style={{ marginBottom: 8 }}>平台下载的正向账单数量之和（已扣除退款）</div>
+                      <div style={{ marginBottom: 8 }}>核销的优惠券份数总和（已扣除退款）</div>
                       <div style={{ marginBottom: 4 }}><strong>抖音到店：</strong></div>
                       <div>待补充</div>
                     </div>
@@ -663,33 +682,70 @@ const Dashboard: React.FC = () => {
               </div>
               <Statistic
                 title=""
-                value={stats.overview.orderCount}
+                value={stats.overview.writeOffCount}
                 precision={0}
                 valueStyle={{ color: '#000000', fontSize: '24px', fontWeight: 'bold' }}
               />
               <div style={{ marginTop: 8 }}>
                 <span style={{ 
-                  color: stats.overview.orderCountYoY >= 0 ? 'red' : 'green', 
+                  color: stats.overview.writeOffCountYoY >= 0 ? 'red' : 'green', 
                   marginRight: 8,
-                  ...(stats.overview.orderCountYoY < 0 && {
+                  ...(stats.overview.writeOffCountYoY < 0 && {
                     background: 'linear-gradient(90deg, transparent 0%, rgba(0,255,0,0.1) 50%, transparent 100%)',
                     padding: '2px 4px',
                     borderRadius: '3px'
                   })
                 }}>
-                  同比 {stats.overview.orderCountYoY >= 0 ? '+' : ''}{stats.overview.orderCountYoY}%
-                  {stats.overview.orderCountYoY < 0 && ' ⬇'}
+                  同比 {stats.overview.writeOffCountYoY >= 0 ? '+' : ''}{stats.overview.writeOffCountYoY}%
+                  {stats.overview.writeOffCountYoY < 0 && ' ⬇'}
                 </span>
                 <span style={{ 
-                  color: stats.overview.orderCountMoM >= 0 ? 'red' : 'green',
-                  ...(stats.overview.orderCountMoM < 0 && {
+                  color: stats.overview.writeOffCountMoM >= 0 ? 'red' : 'green',
+                  ...(stats.overview.writeOffCountMoM < 0 && {
                     textShadow: '1px 1px 2px rgba(0,128,0,0.3)',
                     fontWeight: '600',
                     letterSpacing: '0.5px'
                   })
                 }}>
-                  {stats.overview.orderCountMoM < 0 && <ArrowDownOutlined style={{ marginRight: 4 }} />}
-                  环比 {stats.overview.orderCountMoM >= 0 ? '+' : ''}{stats.overview.orderCountMoM}%
+                  {stats.overview.writeOffCountMoM < 0 && <ArrowDownOutlined style={{ marginRight: 4 }} />}
+                  环比 {stats.overview.writeOffCountMoM >= 0 ? '+' : ''}{stats.overview.writeOffCountMoM}%
+                </span>
+              </div>
+            </Card>
+          </Col>
+          
+          {/* 店均日产出 */}
+          <Col style={{ width: 'calc(16.66% - 8px)' }}>
+            <Card>
+              <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
+                <span style={{ fontSize: '14px', color: '#262626' }}>店均日产出（元）</span>
+                <AntTooltip 
+                  title={
+                    <div style={{ maxWidth: 300 }}>
+                      <div style={{ marginBottom: 8, fontWeight: 'bold' }}>平均每个门店每日的销售产出</div>
+                      <div>店均日产出 = 销售额 / 动销门店数 / 天数</div>
+                      <div style={{ marginTop: 8, fontSize: '12px', color: '#666' }}>
+                        该指标反映门店的平均销售效率
+                      </div>
+                    </div>
+                  }
+                  placement="topLeft"
+                >
+                  <QuestionCircleOutlined style={{ marginLeft: 4, color: '#8c8c8c', cursor: 'help' }} />
+                </AntTooltip>
+              </div>
+              <Statistic
+                title=""
+                value={stats.overview.avgDailyOutput}
+                precision={0}
+                valueStyle={{ color: '#000000', fontSize: '24px', fontWeight: 'bold' }}
+              />
+              <div style={{ marginTop: 8 }}>
+                <span style={{ color: stats.overview.avgDailyOutputYoY >= 0 ? 'red' : 'green', marginRight: 8 }}>
+                  同比 {stats.overview.avgDailyOutputYoY >= 0 ? '+' : ''}{stats.overview.avgDailyOutputYoY}%
+                </span>
+                <span style={{ color: stats.overview.avgDailyOutputMoM >= 0 ? 'red' : 'green' }}>
+                  环比 {stats.overview.avgDailyOutputMoM >= 0 ? '+' : ''}{stats.overview.avgDailyOutputMoM}%
                 </span>
               </div>
             </Card>
@@ -700,11 +756,12 @@ const Dashboard: React.FC = () => {
         <div style={{ marginBottom: 16, marginTop: 32 }}>
           <div style={{ marginBottom: 16, display: 'flex', alignItems: 'center', gap: '20px', flexWrap: 'wrap' }}>
             {[
-              { key: 'batchCount', label: '活动数', color: '#1890ff' },
-              { key: 'gmv', label: '销售额', color: '#52c41a' },
-              { key: 'discount', label: '优惠金额', color: '#faad14' },
-              { key: 'roi', label: 'ROI', color: '#722ed1' },
-              { key: 'orderCount', label: '订单数', color: '#f5222d' }
+              { key: 'registeredStores', label: '报名门店数（个）', color: '#1890ff' },
+              { key: 'activeStores', label: '动销门店数（个）', color: '#52c41a' },
+              { key: 'gmv', label: '销售额（元）', color: '#faad14' },
+              { key: 'writeOffAmount', label: '核销金额（元）', color: '#722ed1' },
+              { key: 'writeOffCount', label: '核销份数（份）', color: '#f5222d' },
+              { key: 'avgDailyOutput', label: '店均日产出（元）', color: '#13c2c2' }
             ].map(metric => (
               <div 
                 key={metric.key} 
@@ -719,11 +776,12 @@ const Dashboard: React.FC = () => {
                   opacity: visibleLines[metric.key] ? 1 : 0.5
                 }}
                 onClick={() => setVisibleLines({
-                  batchCount: false,
+                  registeredStores: false,
+                  activeStores: false,
                   gmv: false,
-                  discount: false,
-                  roi: false,
-                  orderCount: false,
+                  writeOffAmount: false,
+                  writeOffCount: false,
+                  avgDailyOutput: false,
                   [metric.key]: true
                 })}
                 onMouseEnter={(e) => {
@@ -767,16 +825,17 @@ const Dashboard: React.FC = () => {
               <YAxis yAxisId="right" orientation="right" />
               <Tooltip formatter={(value, name) => {
                 const metricLabels: {[key: string]: string} = {
-                  'batchCount': '活动数',
-                  'gmv': '销售额',
-                  'discount': '优惠金额',
-                  'roi': 'ROI',
-                  'orderCount': '订单数'
+                  'registeredStores': '报名门店数（个）',
+                  'activeStores': '动销门店数（个）',
+                  'gmv': '销售额（元）',
+                  'writeOffAmount': '核销金额（元）',
+                  'writeOffCount': '核销份数（份）',
+                  'avgDailyOutput': '店均日产出（元）'
                 };
                 
-                if (name === 'roi') {
-                  return [`${value}`, metricLabels[name as string]];
-                } else if (name === 'gmv' || name === 'discount') {
+                if (name === 'registeredStores' || name === 'activeStores' || name === 'writeOffCount') {
+                  return [(value as number).toLocaleString(), metricLabels[name as string]];
+                } else if (name === 'gmv' || name === 'writeOffAmount' || name === 'avgDailyOutput') {
                   return [`${(value as number).toLocaleString()} 元`, metricLabels[name as string]];
                 } else {
                   return [(value as number).toLocaleString(), metricLabels[name as string]];
@@ -785,15 +844,27 @@ const Dashboard: React.FC = () => {
               <Legend />
               
               {/* 动态渲染所有可见的折线 */}
-              {visibleLines.batchCount && (
+              {visibleLines.registeredStores && (
                 <RechartsLine
                   yAxisId="left"
                   type="monotone"
-                  dataKey="batchCount"
+                  dataKey="registeredStores"
                   stroke="#1890ff"
                   strokeWidth={2}
                   activeDot={{ r: 6 }}
-                  name="活动数"
+                  name="报名门店数（个）"
+                />
+              )}
+              
+              {visibleLines.activeStores && (
+                <RechartsLine
+                  yAxisId="left"
+                  type="monotone"
+                  dataKey="activeStores"
+                  stroke="#52c41a"
+                  strokeWidth={2}
+                  activeDot={{ r: 6 }}
+                  name="动销门店数（个）"
                 />
               )}
               
@@ -802,46 +873,46 @@ const Dashboard: React.FC = () => {
                   yAxisId="left"
                   type="monotone"
                   dataKey="gmv"
-                  stroke="#52c41a"
-                  strokeWidth={2}
-                  activeDot={{ r: 6 }}
-                  name="销售额"
-                />
-              )}
-              
-              {visibleLines.discount && (
-                <RechartsLine
-                  yAxisId="left"
-                  type="monotone"
-                  dataKey="discount"
                   stroke="#faad14"
                   strokeWidth={2}
                   activeDot={{ r: 6 }}
-                  name="优惠金额"
+                  name="销售额（元）"
                 />
               )}
               
-              {visibleLines.roi && (
-                <RechartsLine
-                  yAxisId="right"
-                  type="monotone"
-                  dataKey="roi"
-                  stroke="#722ed1"
-                  strokeWidth={2}
-                  activeDot={{ r: 6 }}
-                  name="ROI"
-                />
-              )}
-              
-              {visibleLines.orderCount && (
+              {visibleLines.writeOffAmount && (
                 <RechartsLine
                   yAxisId="left"
                   type="monotone"
-                  dataKey="orderCount"
+                  dataKey="writeOffAmount"
+                  stroke="#722ed1"
+                  strokeWidth={2}
+                  activeDot={{ r: 6 }}
+                  name="核销金额（元）"
+                />
+              )}
+              
+              {visibleLines.writeOffCount && (
+                <RechartsLine
+                  yAxisId="left"
+                  type="monotone"
+                  dataKey="writeOffCount"
                   stroke="#f5222d"
                   strokeWidth={2}
                   activeDot={{ r: 6 }}
-                  name="订单数"
+                  name="核销份数（份）"
+                />
+              )}
+              
+              {visibleLines.avgDailyOutput && (
+                <RechartsLine
+                  yAxisId="left"
+                  type="monotone"
+                  dataKey="avgDailyOutput"
+                  stroke="#13c2c2"
+                  strokeWidth={2}
+                  activeDot={{ r: 6 }}
+                  name="店均日产出（元）"
                 />
               )}
             </LineChart>
@@ -849,210 +920,11 @@ const Dashboard: React.FC = () => {
         </div>
       </Card>
       
-      {/* 发券渠道模块 - 重新设计为平台视图 */}
-      <Card title="发券渠道" style={{ marginBottom: 16 }}>
-        <Row gutter={24}>
-          {/* 左侧：平台发券占比饼图 */}
-          <Col span={10}>
-            <div style={{ height: 320, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <RechartsPie
-                    data={getPlatformPieData()}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={true}
-                    label={(entry: any) => {
-                      const { name, percent } = entry;
-                      return `${name}\n${(percent * 100).toFixed(1)}%`;
-                    }}
-                    outerRadius={90}
-                    fill="#8884d8"
-                    dataKey="value"
-                    onClick={(data) => setSelectedPlatform(data.name)}
-                  >
-                    {getPlatformPieData().map((entry, index) => {
-                      const baseColor = PLATFORM_COLORS[entry.name as keyof typeof PLATFORM_COLORS] || COLORS[index % COLORS.length];
-                      const isSelected = selectedPlatform === entry.name;
-                      
-                      return (
-                        <Cell 
-                          key={`cell-${index}`} 
-                          fill={baseColor}
-                          style={{ 
-                            cursor: 'pointer',
-                            filter: isSelected ? 'brightness(1.2) drop-shadow(0 0 8px rgba(0,0,0,0.3))' : 'none',
-                            transition: 'all 0.3s ease'
-                          }}
-                        />
-                      );
-                    })}
-                  </RechartsPie>
-                  <Tooltip 
-                    formatter={(value, name) => {
-                      return [`${value.toLocaleString()}`, '发券数'];
-                    }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-            <div style={{ textAlign: 'center', marginTop: 8 }}>
-              <Text type="secondary" style={{ fontSize: '12px' }}>
-                点击饼图查看形态渠道明细
-              </Text>
-            </div>
-          </Col>
-          
-          {/* 右侧：选中平台的渠道数据明细 */}
-          <Col span={14}>
-            <div style={{ 
-              padding: '20px', 
-              backgroundColor: '#fafafa', 
-              borderRadius: '8px', 
-              height: '400px',
-              border: '1px solid #e8e8e8'
-            }}>
-              {selectedPlatform ? (
-                <>
-                  <div style={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'flex-start',
-                    marginBottom: 16,
-                    paddingBottom: 12,
-                    borderBottom: '2px solid #1890ff'
-                  }}>
-                    <Title level={4} style={{ margin: 0, color: '#1890ff' }}>
-                      {selectedPlatform}
-                    </Title>
-                  </div>
-                  <div style={{ maxHeight: '320px', overflowY: 'auto' }}>
-                    <Table
-                      dataSource={getSelectedPlatformChannels()}
-                      pagination={false}
-                      size="small"
-                      rowKey="name"
-                      bordered
-                      columns={[
-                        {
-                          title: '发券渠道',
-                          dataIndex: 'name',
-                          key: 'name',
-                          width: 120,
-                          render: (text) => (
-                            <span style={{ 
-                              fontWeight: 'bold',
-                              color: '#262626'
-                            }}>
-                              {text}
-                            </span>
-                          )
-                        },
-                        {
-                          title: '发券数',
-                          dataIndex: 'issuedCount',
-                          key: 'issuedCount',
-                          width: 90,
-                          align: 'right',
-                          render: (value) => (
-                            <span>
-                              {typeof value === 'string' ? value : value.toLocaleString()}
-                            </span>
-                          )
-                        },
-                        {
-                          title: '核券数',
-                          dataIndex: 'usedCount',
-                          key: 'usedCount',
-                          width: 90,
-                          align: 'right',
-                          render: (value) => (
-                            <span>
-                              {value.toLocaleString()}
-                            </span>
-                          )
-                        },
-                        {
-                          title: '核销率（%）',
-                          dataIndex: 'usageRate',
-                          key: 'usageRate',
-                          width: 80,
-                          align: 'center',
-                          render: (value) => (
-                            <span style={{ 
-                              color: '#8c8c8c',
-                              fontWeight: 'bold'
-                            }}>
-                              {typeof value === 'string' ? value : value.toFixed(1)}
-                            </span>
-                          )
-                        },
-                        {
-                          title: '销售额（元）',
-                          dataIndex: 'gmv',
-                          key: 'gmv',
-                          width: 100,
-                          align: 'right',
-                          render: (value) => (
-                            <span style={{ color: '#000000', fontWeight: 'bold' }}>
-                              {value.toFixed(2)}
-                            </span>
-                          )
-                        },
-                        {
-                          title: '销售额占比（%）',
-                          dataIndex: 'contributionRate',
-                          key: 'contributionRate',
-                          width: 80,
-                          align: 'center',
-                          render: (value, record) => {
-                            // 计算销售额占比：当前渠道销售额 / 所有渠道销售额总和 * 100
-                            const totalGmv = getSelectedPlatformChannels().reduce((sum: number, item: any) => sum + item.gmv, 0);
-                            const contributionRate = totalGmv > 0 ? (record.gmv / totalGmv * 100) : 0;
-                            return (
-                              <span style={{ 
-                                color: '#8c8c8c',
-                                fontWeight: 'bold'
-                              }}>
-                                {contributionRate.toFixed(1)}
-                              </span>
-                            );
-                          }
-                        }
-                      ]}
-                    />
-                  </div>
-                </>
-              ) : (
-                <div style={{ 
-                  display: 'flex', 
-                  flexDirection: 'column',
-                  alignItems: 'center', 
-                  justifyContent: 'center', 
-                  height: '100%',
-                  color: '#999',
-                  fontSize: '16px'
-                }}>
-                  <div style={{ 
-                    fontSize: '48px', 
-                    marginBottom: '16px',
-                    color: '#d9d9d9'
-                  }}>
-                    📊
-                  </div>
-                  <div>点击左侧饼图查看平台渠道数据明细</div>
-                  <div style={{ fontSize: '12px', marginTop: '8px', color: '#bfbfbf' }}>
-                    支持查看各平台下的具体渠道分布情况
-                  </div>
-                </div>
-              )}
-            </div>
-          </Col>
-        </Row>
-      </Card>
+
+
       
-      {/* 5. 零售商/机制 Top10 */}
-      <Card title="零售商/机制 Top10" style={{ marginBottom: 16 }}>
+      {/* 5. 门店/机制 Top10 */}
+        <Card title="门店/机制 Top10" style={{ marginBottom: 16 }}>
         <Tabs 
           defaultActiveKey="retailers" 
           size="small"
@@ -1060,17 +932,19 @@ const Dashboard: React.FC = () => {
             <Select
               value={retailerMetric}
               onChange={handleRetailerMetricChange}
-              style={{ width: 150 }}
+              style={{ width: 180 }}
               size="small"
             >
+              <Option value="registeredStores">报名门店数</Option>
+              <Option value="activeStores">动销门店数</Option>
               <Option value="gmv">销售额</Option>
-              <Option value="discount">优惠金额</Option>
-              <Option value="roi">ROI</Option>
-              <Option value="orderCount">订单数</Option>
+              <Option value="writeOffAmount">核销金额</Option>
+              <Option value="writeOffCount">核销份数</Option>
+              <Option value="avgDailyOutput">店均日产出</Option>
             </Select>
           }
         >
-          <TabPane tab="零售商" key="retailers">
+          <TabPane tab="门店" key="retailers">
             <div style={{ height: 300 }}>
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
@@ -1159,95 +1033,7 @@ const Dashboard: React.FC = () => {
         </Tabs>
       </Card>
       
-      {/* 6. SKU Top10 单独模块 */}
-      <Card 
-        title="SKU Top10" 
-        style={{ marginBottom: 16 }}
-        extra={
-          <Select
-            value={skuSortBy}
-            onChange={setSkuSortBy}
-            style={{ width: 120 }}
-            size="small"
-          >
-            <Option value="gmv">销售额</Option>
-            <Option value="contributionRate">销售额占比</Option>
-            <Option value="salesVolume">销售件数</Option>
-            <Option value="discount">优惠金额</Option>
-          </Select>
-        }
-      >
-        <Table
-          dataSource={[...stats.skus]
-            .sort((a, b) => (b as any)[skuSortBy] - (a as any)[skuSortBy])
-            .slice(0, 10)
-            .map((item, index) => ({
-              key: index,
-              rank: index + 1,
-              name: item.name,
-              code69: item.code69,
-              gmv: item.gmv,
-              contributionRate: (item as any).contributionRate || ((item.gmv / stats.skus.reduce((sum: number, sku: any) => sum + sku.gmv, 0)) * 100),
-              discount: item.discount,
-              salesVolume: item.salesVolume,
-            }))}
-          columns={[
-            {
-              title: '排名',
-              dataIndex: 'rank',
-              key: 'rank',
-              width: '10%',
-              render: (rank: number) => (
-                <Tag color={rank <= 3 ? 'gold' : 'default'}>
-                  {rank}
-                </Tag>
-              ),
-            },
-            {
-              title: '商品名称',
-              dataIndex: 'name',
-              key: 'name',
-              width: '30%',
-              ellipsis: true,
-              render: (name: string, record: any) => (
-                <div>
-                  {name}({record.code69})
-                </div>
-              ),
-            },
-            {
-              title: '销售额（元）',
-              dataIndex: 'gmv',
-              key: 'gmv',
-              width: '15%',
-              render: (value: number) => value.toFixed(2),
-            },
-            {
-              title: '销售额占比（%）',
-              dataIndex: 'contributionRate',
-              key: 'contributionRate',
-              width: '15%',
-              render: (value: number) => value.toFixed(1),
-            },
-            {
-              title: '销售件数（件）',
-              dataIndex: 'salesVolume',
-              key: 'salesVolume',
-              width: '15%',
-              render: (value: number) => value.toLocaleString(),
-            },
-            {
-              title: '优惠金额（元）',
-              dataIndex: 'discount',
-              key: 'discount',
-              width: '15%',
-              render: (value: number) => value.toFixed(2),
-            },
-          ]}
-          pagination={false}
-          size="middle"
-        />
-      </Card>
+
       
       {/* 6. 时段分析热力图 */}
       <Card title="时段分析" style={{ marginBottom: 16 }}>
@@ -1558,4 +1344,4 @@ const Dashboard: React.FC = () => {
   );
 };
 
-export default Dashboard;
+export default SmalStoreDashboard;

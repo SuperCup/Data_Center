@@ -28,7 +28,6 @@ interface ActivityData {
   zeroUsageRetailers?: string[]; // 0核销零售商名称列表
   salesAmount: number;   // 销售金额
   platforms: string[];   // 活动平台（微信、支付宝、抖音到店、美团到店、天猫校园）
-  activityType: 'KA' | '小店'; // 活动类型
 }
 
 // 模拟全量活动数据
@@ -49,9 +48,8 @@ const mockAllActivities: ActivityData[] = [
     discount: 32000,
     usageRate: 78.5,
     zeroUsageRetailers: ['华润万家(北京朝阳店)', '华润万家(北京海淀店)', '华润万家(北京西城店)'],
-    salesAmount: 128000,
-    platforms: ['微信', '支付宝', '抖音到店'],
-    activityType: 'KA',
+    salesAmount: 120000,
+    platforms: ['微信', '支付宝', '微信小店'],
   },
   {
     key: '2',
@@ -70,8 +68,7 @@ const mockAllActivities: ActivityData[] = [
     usageRate: 82.3,
     zeroUsageRetailers: ['华润万家(北京东城店)', '华润万家(北京丰台店)'],
     salesAmount: 95000,
-    platforms: ['微信'],
-    activityType: '小店',
+    platforms: ['微信', '微信小店'],
   },
   {
     key: '3',
@@ -90,8 +87,7 @@ const mockAllActivities: ActivityData[] = [
     usageRate: 85.1,
     zeroUsageRetailers: ['华润万家(北京石景山店)', '华润万家(北京通州店)', '华润万家(北京昌平店)', '华润万家(北京大兴店)'],
     salesAmount: 76000,
-    platforms: ['支付宝', '抖音到店', '美团到店'],
-    activityType: 'KA',
+    platforms: ['支付宝', '抖音到店', '美团到店', '微信小店'],
   },
   {
     key: '4',
@@ -110,8 +106,7 @@ const mockAllActivities: ActivityData[] = [
     usageRate: 0,
     zeroUsageRetailers: [],
     salesAmount: 0,
-    platforms: ['微信', '支付宝', '抖音到店', '美团到店'],
-    activityType: '小店',
+    platforms: ['微信', '支付宝', '抖音到店', '美团到店', '微信小店'],
   },
   {
     key: '5',
@@ -130,8 +125,7 @@ const mockAllActivities: ActivityData[] = [
     usageRate: 0,
     zeroUsageRetailers: [],
     salesAmount: 0,
-    platforms: ['微信', '支付宝', '天猫校园'],
-    activityType: 'KA',
+    platforms: ['微信', '支付宝', '天猫校园', '微信小店'],
   },
   {
     key: '6',
@@ -150,8 +144,7 @@ const mockAllActivities: ActivityData[] = [
     usageRate: 88.0,
     zeroUsageRetailers: ['华润万家(北京房山店)', '华润万家(北京顺义店)'],
     salesAmount: 58000,
-    platforms: ['微信', '抖音到店'],
-    activityType: '小店',
+    platforms: ['微信', '抖音到店', '微信小店'],
   },
 ];
 
@@ -161,7 +154,6 @@ const AllActivities: React.FC = () => {
   const [searchText, setSearchText] = useState('');
   const [selectedStatus, setSelectedStatus] = useState<string | undefined>(undefined);
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
-  const [selectedActivityType, setSelectedActivityType] = useState<string | undefined>(undefined);
   const [dateRange, setDateRange] = useState<[dayjs.Dayjs | null, dayjs.Dayjs | null] | null>(null);
   
   // 侧边抽屉状态
@@ -176,12 +168,8 @@ const AllActivities: React.FC = () => {
   const [verifySearchText, setVerifySearchText] = useState('');
 
   // 活动分析页面跳转
-  const handleActivityAnalysis = (activityId: string, activityType: 'KA' | '小店') => {
-    if (activityType === '小店') {
-      navigate(`/client/small-store-activity-analysis?activityId=${activityId}`);
-    } else {
-      navigate(`/client/activity-analysis/${activityId}`);
-    }
+  const handleActivityAnalysis = (activityId: string) => {
+    navigate(`/client/activity-analysis/${activityId}`);
   };
 
   // 领券明细处理函数
@@ -268,7 +256,6 @@ const AllActivities: React.FC = () => {
     search: string,
     status: string | undefined,
     platforms: string[],
-    activityType: string | undefined,
     dateRangeValue: [dayjs.Dayjs | null, dayjs.Dayjs | null] | null
   ) => {
     let filtered = mockAllActivities;
@@ -291,11 +278,6 @@ const AllActivities: React.FC = () => {
       filtered = filtered.filter(item =>
         platforms.some(platform => item.platforms.includes(platform))
       );
-    }
-
-    // 按活动类型筛选
-    if (activityType) {
-      filtered = filtered.filter(item => item.activityType === activityType);
     }
 
     // 按日期范围筛选
@@ -348,17 +330,6 @@ const AllActivities: React.FC = () => {
       ),
     },
     {
-      title: '活动类型',
-      dataIndex: 'activityType',
-      key: 'activityType',
-      width: 100,
-      render: (type: string) => (
-        <Tag color={type === 'KA' ? 'blue' : 'orange'}>
-          {type}
-        </Tag>
-      ),
-    },
-    {
       title: '活动平台',
       dataIndex: 'platforms',
       key: 'platforms',
@@ -373,6 +344,7 @@ const AllActivities: React.FC = () => {
               case '抖音到店': color = 'black'; break;
               case '美团到店': color = 'gold'; break;
               case '天猫校园': color = 'red'; break;
+              case '微信小店': color = 'cyan'; break;
             }
             return (
               <Tag key={index} color={color} style={{ marginBottom: 4 }}>
@@ -429,17 +401,11 @@ const AllActivities: React.FC = () => {
     {
       title: '操作',
       key: 'action',
-      width: 150,
       fixed: 'right',
+      width: 100,
       render: (_, record) => (
-        <Space size="small">
-          <Button 
-            type="link" 
-            size="small"
-            onClick={() => handleActivityAnalysis(record.activityId, record.activityType)}
-          >
-            活动分析
-          </Button>
+        <Space size="middle">
+          <a onClick={() => handleActivityAnalysis(record.activityId)}>活动分析</a>
         </Space>
       ),
     },
@@ -468,7 +434,7 @@ const AllActivities: React.FC = () => {
               value={searchText}
               onChange={(e) => {
                 setSearchText(e.target.value);
-                filterData(e.target.value, selectedStatus, selectedPlatforms, selectedActivityType, dateRange);
+                filterData(e.target.value, selectedStatus, selectedPlatforms, dateRange);
               }}
               style={{ width: '100%' }}
             />
@@ -480,28 +446,13 @@ const AllActivities: React.FC = () => {
               value={selectedStatus}
               onChange={(value) => {
                 setSelectedStatus(value);
-                filterData(searchText, value, selectedPlatforms, selectedActivityType, dateRange);
+                filterData(searchText, value, selectedPlatforms, dateRange);
               }}
               allowClear
             >
               <Option value="进行中">进行中</Option>
               <Option value="已结束">已结束</Option>
               <Option value="待开始">待开始</Option>
-            </Select>
-          </Col>
-          <Col span={3}>
-            <Select
-              placeholder="活动类型"
-              style={{ width: '100%' }}
-              value={selectedActivityType}
-              onChange={(value) => {
-                setSelectedActivityType(value);
-                filterData(searchText, selectedStatus, selectedPlatforms, value, dateRange);
-              }}
-              allowClear
-            >
-              <Option value="KA">KA</Option>
-              <Option value="小店">小店</Option>
             </Select>
           </Col>
           <Col span={4}>
@@ -512,7 +463,7 @@ const AllActivities: React.FC = () => {
               value={selectedPlatforms}
               onChange={(value) => {
                 setSelectedPlatforms(value);
-                filterData(searchText, selectedStatus, value, selectedActivityType, dateRange);
+                filterData(searchText, selectedStatus, value, dateRange);
               }}
               allowClear
             >
@@ -521,6 +472,7 @@ const AllActivities: React.FC = () => {
               <Option value="抖音到店">抖音到店</Option>
               <Option value="美团到店">美团到店</Option>
               <Option value="天猫校园">天猫校园</Option>
+              <Option value="微信小店">微信小店</Option>
             </Select>
           </Col>
           <Col span={5}>
@@ -530,7 +482,7 @@ const AllActivities: React.FC = () => {
               value={dateRange}
               onChange={(dates) => {
                 setDateRange(dates);
-                filterData(searchText, selectedStatus, selectedPlatforms, selectedActivityType, dates);
+                filterData(searchText, selectedStatus, selectedPlatforms, dates);
               }}
             />
           </Col>
