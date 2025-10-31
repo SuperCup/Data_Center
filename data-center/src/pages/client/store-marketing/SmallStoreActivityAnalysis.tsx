@@ -30,7 +30,7 @@ const mockActivities = [
     // 新增核心指标数据
     registeredStores: 229,  // 报名门店数
     activeStores: 192,       // 动销门店数
-    targetStores: 250,       // 目标门店数
+    targetStores: 250,       // 计划门店数
     redeemAmount: 6400,     // 核销金额
     redeemCount: 3200,      // 核销份数
     avgDailyOutput: 2.08,    // 店均日产出
@@ -64,7 +64,7 @@ const mockActivities = [
     // 新增核心指标数据
     registeredStores: 229,   // 报名门店数
     activeStores: 192,       // 动销门店数
-    targetStores: 220,       // 目标门店数
+    targetStores: 220,       // 计划门店数
     redeemAmount: 6400,     // 核销金额
     redeemCount: 3200,      // 核销份数
     avgDailyOutput: 2.08,    // 店均日产出
@@ -95,7 +95,7 @@ const mockActivities = [
     // 新增核心指标数据
     registeredStores: 229,   // 报名门店数
     activeStores: 192,       // 动销门店数
-    targetStores: 200,       // 目标门店数
+    targetStores: 200,       // 计划门店数
     redeemAmount: 6400,     // 核销金额
     redeemCount: 3200,      // 核销份数
     avgDailyOutput: 2.08,    // 店均日产出
@@ -264,7 +264,7 @@ const SmallStoreActivityAnalysis: React.FC = () => {
       render: (_: any, __: any, index: number) => smallStoreStartIndex + index + 1,
     },
     {
-      title: '小店名称',
+      title: '门店名称',
       dataIndex: 'name',
       key: 'name',
       width: 140,
@@ -634,9 +634,9 @@ const SmallStoreActivityAnalysis: React.FC = () => {
                     />
                   </div>
                   
-                  {/* 目标门店数 */}
+                  {/* 计划门店数 */}
                   <div style={{ marginTop: 16 }}>
-                    <Text>目标门店数：</Text>
+                    <Text>计划门店数：</Text>
                     <Text strong style={{ color: '#3f8600' }}>
                       {currentActivity.targetStores}家
                     </Text>
@@ -647,7 +647,7 @@ const SmallStoreActivityAnalysis: React.FC = () => {
                     <div style={{ marginBottom: 4 }}>
                       <Text>完成进度：</Text>
                       <Text strong style={{ color: '#52c41a' }}>
-                        {currentActivity.activeStores}/{currentActivity.targetStores}
+                        {currentActivity.registeredStores}/{currentActivity.targetStores}
                       </Text>
                     </div>
                     <Progress 
@@ -1148,7 +1148,7 @@ const SmallStoreActivityAnalysis: React.FC = () => {
 
       {/* 5. 零售商分析 */}
      <Card 
-       title="小店"
+       title="门店"
        style={{ marginBottom: 16 }}
      >
        <Table
@@ -1187,10 +1187,10 @@ const SmallStoreActivityAnalysis: React.FC = () => {
                <Col span={6}>
                  <Card size="small" style={{ textAlign: 'center' }}>
                    <Statistic
-                     title="销售额"
+                     title="销售额（元）"
                      value={selectedRetailerTrend.gmv}
                      precision={0}
-                     prefix="¥"
+                     prefix=""
                      valueStyle={{ color: '#1890ff', fontSize: 18 }}
                    />
                  </Card>
@@ -1198,10 +1198,10 @@ const SmallStoreActivityAnalysis: React.FC = () => {
                <Col span={6}>
                  <Card size="small" style={{ textAlign: 'center' }}>
                    <Statistic
-                     title="优惠金额"
+                     title="优惠金额（元）"
                      value={selectedRetailerTrend.discount}
                      precision={0}
-                     prefix="¥"
+                     prefix=""
                      valueStyle={{ color: '#52c41a', fontSize: 18 }}
                    />
                  </Card>
@@ -1209,10 +1209,10 @@ const SmallStoreActivityAnalysis: React.FC = () => {
                <Col span={6}>
                  <Card size="small" style={{ textAlign: 'center' }}>
                    <Statistic
-                     title="日均订单数"
-                     value={Math.round(selectedRetailerTrend.usedCount / 30)}
+                     title="订单数（笔）"
+                     value={selectedRetailerTrend.usedCount}
                      precision={0}
-                     suffix="单"
+                     suffix=""
                      valueStyle={{ color: '#722ed1', fontSize: 18 }}
                    />
                  </Card>
@@ -1220,10 +1220,10 @@ const SmallStoreActivityAnalysis: React.FC = () => {
                <Col span={6}>
                  <Card size="small" style={{ textAlign: 'center' }}>
                    <Statistic
-                     title="单均价"
-                     value={selectedRetailerTrend.avgPrice}
-                     precision={1}
-                     prefix="¥"
+                     title="日均订单数（笔）"
+                     value={Math.round(selectedRetailerTrend.usedCount / 30)}
+                     precision={0}
+                     suffix=""
                      valueStyle={{ color: '#fa8c16', fontSize: 18 }}
                    />
                  </Card>
