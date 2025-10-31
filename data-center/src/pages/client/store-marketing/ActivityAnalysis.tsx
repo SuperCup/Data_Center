@@ -3,7 +3,7 @@ import { Row, Col, Card, Statistic, Progress, Select, Typography, Button, Table,
 import { ShoppingOutlined, DollarOutlined, TagOutlined, AppstoreOutlined, QuestionCircleOutlined, SearchOutlined, PushpinOutlined, PushpinFilled } from '@ant-design/icons';
 import { ScatterChart, Scatter, LineChart, Line as RechartsLine, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import dayjs from 'dayjs';
-import { useLocation, useParams } from 'react-router-dom';
+import { useLocation, useParams, useNavigate } from 'react-router-dom';
 
 const { Option } = Select;
 const { Title, Text } = Typography;
@@ -135,6 +135,7 @@ const mockProducts = [
 ];
 
 const ActivityAnalysis: React.FC = () => {
+  const navigate = useNavigate();
   const location = useLocation();
   const { activityId } = useParams<{ activityId?: string }>();
   const [selectedActivity, setSelectedActivity] = useState<string>('1');
@@ -593,7 +594,7 @@ const ActivityAnalysis: React.FC = () => {
                                 <Button 
                                   type="link" 
                                   size="small"
-                                  onClick={() => window.location.href = '/client/small-store-activity-analysis'}
+                                  onClick={() => navigate('/client/small-store-activity-analysis')}
                                   style={{ 
                                     fontSize: '12px',
                                     padding: '0 8px',

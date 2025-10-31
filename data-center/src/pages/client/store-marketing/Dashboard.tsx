@@ -646,7 +646,7 @@ const Dashboard: React.FC = () => {
           <Col style={{ width: 'calc(20% - 8px)' }}>
             <Card>
               <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
-                <span style={{ fontSize: '14px', color: '#262626' }}>订单数</span>
+                <span style={{ fontSize: '14px', color: '#262626' }}>订单数（笔）</span>
                 <AntTooltip 
                   title={
                     <div style={{ maxWidth: 300 }}>
