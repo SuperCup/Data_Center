@@ -17,8 +17,8 @@ import ChannelAnalysis from './pages/client/store-marketing/ChannelAnalysis';
 import RequestCenter from './pages/client/store-marketing/RequestCenter';
 // 即时零售
 import InstantRetail from './pages/client/instant-retail/InstantRetail';
-import PriceMonitoring from './pages/client/store-marketing/PriceMonitoring';
-import PriceMonitoringDashboard from './pages/client/store-marketing/PriceMonitoringDashboard';
+import PriceMonitoring from './pages/client/instant-retail/PriceMonitoring';
+import PriceMonitoringDashboard from './pages/client/instant-retail/PriceMonitoringDashboard';
 // 物码营销
 import QrMarketing from './pages/client/qr-marketing/QrMarketing';
 // 专属定制

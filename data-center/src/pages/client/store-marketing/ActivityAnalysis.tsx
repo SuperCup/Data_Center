@@ -252,7 +252,7 @@ const ActivityAnalysis: React.FC = () => {
       render: (_: any, __: any, index: number) => smallStoreStartIndex + index + 1,
     },
     {
-      title: '小店名称',
+      title: '门店名称',
       dataIndex: 'name',
       key: 'name',
       width: 140,
@@ -282,7 +282,7 @@ const ActivityAnalysis: React.FC = () => {
       render: (value: number) => value.toLocaleString(),
     },
     {
-      title: '订单数',
+      title: '订单数(笔）',
       dataIndex: 'usedCount',
       key: 'usedCount',
       width: 90,
@@ -353,7 +353,7 @@ const ActivityAnalysis: React.FC = () => {
       render: (value: number) => value.toLocaleString(),
     },
     {
-      title: '订单数',
+      title: '订单数(笔）',
       dataIndex: 'usedCount',
       key: 'usedCount',
       width: 90,
@@ -601,7 +601,7 @@ const ActivityAnalysis: React.FC = () => {
                                     height: '20px'
                                   }}
                                 >
-                                  查看分析
+                                  更多数据
                                 </Button>
                               )}
                             </div>
@@ -1328,7 +1328,7 @@ const ActivityAnalysis: React.FC = () => {
                 <span>门店</span>
                 {/* 排序功能说明，仅对精明购业务角色可见，客户账号不可见 */}
                 <Text type="secondary" style={{ fontSize: '12px', fontWeight: 'normal' }}>
-                  （仅支付宝活动有阔店维度，平台回传，仅供参考）
+                  （仅支付宝活动有门店维度）
                 </Text>
               </div>
             } 
@@ -1364,10 +1364,6 @@ const ActivityAnalysis: React.FC = () => {
             title={
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <span>商品</span>
-                {/* 排序功能说明，仅对精明购业务角色可见，客户账号不可见 */}
-                <Text type="secondary" style={{ fontSize: '12px', fontWeight: 'normal' }}>
-                  （排序功能为精明购业务角色可用，客户账号只可见排序结果）
-                </Text>
               </div>
             } 
             style={{ marginBottom: 16 }}

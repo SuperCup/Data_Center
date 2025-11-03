@@ -900,7 +900,7 @@ const UserAnalysis: React.FC = () => {
               <Col span={6}>
                 <Card size="small" style={{ textAlign: 'center' }}>
                   <Statistic
-                    title="订单数"
+                    title="订单数（笔）"
                     value={16280}
                     valueStyle={{ color: '#000000', fontSize: '24px' }}
                   />

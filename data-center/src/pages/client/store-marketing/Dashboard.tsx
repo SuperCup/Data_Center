@@ -1161,7 +1161,7 @@ const Dashboard: React.FC = () => {
       
       {/* 6. SKU Top10 单独模块 */}
       <Card 
-        title="SKU Top10" 
+        title="商品 Top10" 
         style={{ marginBottom: 16 }}
         extra={
           <Select
