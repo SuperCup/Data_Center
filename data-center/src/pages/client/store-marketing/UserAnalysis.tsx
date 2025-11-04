@@ -338,13 +338,13 @@ const UserAnalysis: React.FC = () => {
   const getCurrentUnit = () => {
     switch (rankingType) {
       case 'orderCount':
-        return '张';
+        return '订单数（笔）';
       case 'salesAmount':
-        return '元';
+        return '销售额（元）';
       case 'discountAmount':
-        return '元';
+        return '优惠金额（元）';
       default:
-        return '张';
+        return '订单数（笔）';
     }
   };
 
@@ -951,10 +951,10 @@ const UserAnalysis: React.FC = () => {
                 border: '1px solid #e8e8e8'
               }}>
                 <Statistic
-                  title="订单数"
+                  title="订单数（笔）"
                   value={15680}
                   valueStyle={{ color: '#1890ff', fontSize: '16px' }}
-                  suffix="张"
+                  suffix=""
                 />
               </div>
             </div>
@@ -1022,10 +1022,10 @@ const UserAnalysis: React.FC = () => {
                     title={getCurrentUnit()}
                     value={getTotalValue()}
                     valueStyle={{ color: '#1890ff', fontSize: '16px' }}
-                    suffix={rankingType === 'orderCount' ? '张' : ''}
+                    suffix={rankingType === 'orderCount' ? '' : ''}
                     formatter={(value) => {
                       if (rankingType === 'salesAmount' || rankingType === 'discountAmount') {
-                        return `¥${value.toLocaleString()}`;
+                        return `${value.toLocaleString()}`;
                       }
                       return value.toLocaleString();
                     }}
@@ -1046,7 +1046,7 @@ const UserAnalysis: React.FC = () => {
                      <th style={{ padding: '8px 4px', textAlign: 'left', fontSize: '12px', color: '#666' }}>序号</th>
                      <th style={{ padding: '8px 4px', textAlign: 'left', fontSize: '12px', color: '#666' }}>省份/城市</th>
                      <th style={{ padding: '8px 4px', textAlign: 'right', fontSize: '12px', color: '#666' }}>
-                       {rankingType === 'orderCount' ? '订单数' : rankingType === 'salesAmount' ? '销售额' : '优惠金额'}
+                       {rankingType === 'orderCount' ? '订单数（笔）' : rankingType === 'salesAmount' ? '销售额（元）' : '优惠金额（元）'}
                      </th>
                      <th style={{ padding: '8px 4px', textAlign: 'right', fontSize: '12px', color: '#666' }}>占比（%）</th>
                    </tr>
@@ -1082,7 +1082,7 @@ const UserAnalysis: React.FC = () => {
                            fontWeight: index < 3 ? 'bold' : 'normal'
                          }}>
                            {rankingType === 'salesAmount' || rankingType === 'discountAmount' 
-                             ? `¥${currentValue.toLocaleString()}` 
+                             ? `${currentValue.toLocaleString()}` 
                              : currentValue.toLocaleString()
                            }
                          </td>
@@ -1152,7 +1152,7 @@ const UserAnalysis: React.FC = () => {
                 border: '1px solid #e8e8e8'
               }}>
                 <Statistic
-                  title="复购总次数"
+                  title="复购总人数"
                   value={3680}
                   valueStyle={{ color: '#1890ff', fontSize: '16px' }}
                   suffix="次"

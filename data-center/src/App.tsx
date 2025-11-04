@@ -19,6 +19,9 @@ import RequestCenter from './pages/client/store-marketing/RequestCenter';
 import InstantRetail from './pages/client/instant-retail/InstantRetail';
 import PriceMonitoring from './pages/client/instant-retail/PriceMonitoring';
 import PriceMonitoringDashboard from './pages/client/instant-retail/PriceMonitoringDashboard';
+import MarketingCalendar from './pages/client/instant-retail/MarketingCalendar';
+import ActivityProgress from './pages/client/instant-retail/ActivityProgress';
+import ActivityAnalysisInstant from './pages/client/instant-retail/ActivityAnalysis';
 // 物码营销
 import QrMarketing from './pages/client/qr-marketing/QrMarketing';
 // 专属定制
@@ -45,6 +48,9 @@ function App() {
           <Route path="price-monitoring" element={<PriceMonitoring />} />
           <Route path="price-monitoring-dashboard" element={<PriceMonitoringDashboard />} />
           <Route path="price-monitoring-dashboard/:taskId" element={<PriceMonitoringDashboard />} />
+          <Route path="marketing-calendar" element={<MarketingCalendar />} />
+          <Route path="activity-progress" element={<ActivityProgress />} />
+          <Route path="activity-analysis-instant" element={<ActivityAnalysisInstant />} />
           <Route path="qr-marketing" element={<QrMarketing />} />
           <Route path="custom-service" element={<CustomService />} />
           <Route index element={<AllActivities />} />

@@ -15,7 +15,10 @@ import {
   UnorderedListOutlined,
   TagOutlined,
   DatabaseOutlined,
-  MonitorOutlined
+  MonitorOutlined,
+  CalendarOutlined,
+  ProjectOutlined,
+  LineChartOutlined
 } from '@ant-design/icons';
 import logo from '../assets/system_logo.png';
 
@@ -84,6 +87,21 @@ const ClientLayout: React.FC = () => {
       key: 'instant-retail-group',
       label: '即时零售',
       type: 'group' as const,
+    },
+    {
+      key: 'marketing-calendar',
+      label: '营销日历',
+      icon: <CalendarOutlined />,
+    },
+    {
+      key: 'activity-progress',
+      label: '活动进度',
+      icon: <ProjectOutlined />,
+    },
+    {
+      key: 'activity-analysis-instant',
+      label: '活动分析',
+      icon: <LineChartOutlined />,
     },
     {
       key: 'price-monitoring',
