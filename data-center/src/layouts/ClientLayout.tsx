@@ -70,7 +70,7 @@ const ClientLayout: React.FC = () => {
     },
     {
       key: 'all-activities',
-      label: '全量活动',
+      label: '活动管理',
       icon: <UnorderedListOutlined />,
     },
     {
@@ -80,7 +80,7 @@ const ClientLayout: React.FC = () => {
     },
     {
       key: 'user-analysis',
-      label: '用户分析',
+      label: '行为分析',
       icon: <BarChartOutlined />,
     },
     {

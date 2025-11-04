@@ -1051,112 +1051,65 @@ const Dashboard: React.FC = () => {
         </Row>
       </Card>
       
-      {/* 5. 零售商/机制 Top10 */}
-      <Card title="零售商/机制 Top10" style={{ marginBottom: 16 }}>
-        <Tabs 
-          defaultActiveKey="retailers" 
-          size="small"
-          tabBarExtraContent={
-            <Select
-              value={retailerMetric}
-              onChange={handleRetailerMetricChange}
-              style={{ width: 150 }}
-              size="small"
+      {/* 5. 零售商 Top10 */}
+      <Card 
+        title="零售商 Top10" 
+        style={{ marginBottom: 16 }}
+        extra={
+          <Select
+            value={retailerMetric}
+            onChange={handleRetailerMetricChange}
+            style={{ width: 150 }}
+            size="small"
+          >
+            <Option value="gmv">销售额</Option>
+            <Option value="discount">优惠金额</Option>
+            <Option value="roi">ROI</Option>
+            <Option value="orderCount">订单数</Option>
+          </Select>
+        }
+      >
+        <div style={{ height: 300 }}>
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart
+              layout="vertical"
+              data={getSortedRetailers().slice(0, 10)}
+              margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
             >
-              <Option value="gmv">销售额</Option>
-              <Option value="discount">优惠金额</Option>
-              <Option value="roi">ROI</Option>
-              <Option value="orderCount">订单数</Option>
-            </Select>
-          }
-        >
-          <TabPane tab="零售商" key="retailers">
-            <div style={{ height: 300 }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  layout="vertical"
-                  data={getSortedRetailers().slice(0, 10)}
-                  margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis type="number" />
-                  <YAxis 
-                    dataKey="name" 
-                    type="category" 
-                    tick={({ y, payload }) => {
-                      const sortedData = getSortedRetailers();
-                      const index = sortedData.findIndex(item => item.name === payload.value);
-                      return (
-                        <text 
-                          x={0} 
-                          y={y} 
-                          dy={4} 
-                          textAnchor="start" 
-                          fill={index < 3 ? HIGHLIGHT_COLORS[index === 0 ? 'first' : index === 1 ? 'second' : 'third'] : '#666'}
-                          fontWeight={index < 3 ? 'bold' : 'normal'}
-                          fontSize={11}
-                        >
-                          {payload.value}
-                        </text>
-                      );
-                    }}
-                  />
-                  <Tooltip formatter={(value) => [getMetricInfo(retailerMetric).formatter(value as number), getMetricInfo(retailerMetric).label]} />
-                  <Bar dataKey={retailerMetric} name={getMetricInfo(retailerMetric).label}>
-                    {getSortedRetailers().slice(0, 10).map((entry, index) => {
-                      const colorKeys = ['first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh', 'eighth', 'ninth', 'tenth'];
-                      const color = index < 10 ? HIGHLIGHT_COLORS[colorKeys[index] as keyof typeof HIGHLIGHT_COLORS] : HIGHLIGHT_COLORS.normal;
-                      return <Cell key={`cell-${index}`} fill={color} />;
-                    })}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </TabPane>
-          <TabPane tab="机制" key="mechanisms">
-            <div style={{ height: 300 }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  layout="vertical"
-                  data={getSortedMechanisms().slice(0, 10)}
-                  margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis type="number" />
-                  <YAxis 
-                    dataKey="name" 
-                    type="category" 
-                    tick={({ y, payload }) => {
-                      const sortedData = getSortedMechanisms();
-                      const index = sortedData.findIndex(item => item.name === payload.value);
-                      return (
-                        <text 
-                          x={0} 
-                          y={y} 
-                          dy={4} 
-                          textAnchor="start" 
-                          fill={index < 3 ? HIGHLIGHT_COLORS[index === 0 ? 'first' : index === 1 ? 'second' : 'third'] : '#666'}
-                          fontWeight={index < 3 ? 'bold' : 'normal'}
-                          fontSize={11}
-                        >
-                          {payload.value}
-                        </text>
-                      );
-                    }}
-                  />
-                  <Tooltip formatter={(value) => [getMetricInfo(retailerMetric).formatter(value as number), getMetricInfo(retailerMetric).label]} />
-                  <Bar dataKey={retailerMetric} name={getMetricInfo(retailerMetric).label}>
-                    {getSortedMechanisms().slice(0, 10).map((entry, index) => {
-                      const colorKeys = ['first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh', 'eighth', 'ninth', 'tenth'];
-                      const color = index < 10 ? HIGHLIGHT_COLORS[colorKeys[index] as keyof typeof HIGHLIGHT_COLORS] : HIGHLIGHT_COLORS.normal;
-                      return <Cell key={`cell-${index}`} fill={color} />;
-                    })}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </TabPane>
-        </Tabs>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis type="number" />
+              <YAxis 
+                dataKey="name" 
+                type="category" 
+                tick={({ y, payload }) => {
+                  const sortedData = getSortedRetailers();
+                  const index = sortedData.findIndex(item => item.name === payload.value);
+                  return (
+                    <text 
+                      x={0} 
+                      y={y} 
+                      dy={4} 
+                      textAnchor="start" 
+                      fill={index < 3 ? HIGHLIGHT_COLORS[index === 0 ? 'first' : index === 1 ? 'second' : 'third'] : '#666'}
+                      fontWeight={index < 3 ? 'bold' : 'normal'}
+                      fontSize={11}
+                    >
+                      {payload.value}
+                    </text>
+                  );
+                }}
+              />
+              <Tooltip formatter={(value) => [getMetricInfo(retailerMetric).formatter(value as number), getMetricInfo(retailerMetric).label]} />
+              <Bar dataKey={retailerMetric} name={getMetricInfo(retailerMetric).label}>
+                {getSortedRetailers().slice(0, 10).map((entry, index) => {
+                  const colorKeys = ['first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh', 'eighth', 'ninth', 'tenth'];
+                  const color = index < 10 ? HIGHLIGHT_COLORS[colorKeys[index] as keyof typeof HIGHLIGHT_COLORS] : HIGHLIGHT_COLORS.normal;
+                  return <Cell key={`cell-${index}`} fill={color} />;
+                })}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
       </Card>
       
       {/* 6. SKU Top10 单独模块 */}

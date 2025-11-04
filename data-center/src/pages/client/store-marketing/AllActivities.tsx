@@ -330,6 +330,33 @@ const AllActivities: React.FC = () => {
       ),
     },
     {
+      title: '状态',
+      dataIndex: 'status',
+      key: 'status',
+      width: 100,
+      render: (status: string) => {
+        let color = 'default';
+        if (status === '进行中') color = 'processing';
+        else if (status === '已结束') color = 'success';
+        else if (status === '待开始') color = 'warning';
+        return <Tag color={color}>{status}</Tag>;
+      },
+    },
+    {
+      title: '开始时间',
+      dataIndex: 'startDate',
+      key: 'startDate',
+      width: 120,
+      render: (date: string) => dayjs(date).format('YYYY-MM-DD'),
+    },
+    {
+      title: '结束时间',
+      dataIndex: 'endDate',
+      key: 'endDate',
+      width: 120,
+      render: (date: string) => dayjs(date).format('YYYY-MM-DD'),
+    },
+    {
       title: '活动平台',
       dataIndex: 'platforms',
       key: 'platforms',
@@ -372,40 +399,19 @@ const AllActivities: React.FC = () => {
       render: (value: number) => value.toLocaleString(),
     },
     {
-      title: '状态',
-      dataIndex: 'status',
-      key: 'status',
-      width: 100,
-      render: (status: string) => {
-        let color = 'default';
-        if (status === '进行中') color = 'processing';
-        else if (status === '已结束') color = 'success';
-        else if (status === '待开始') color = 'warning';
-        return <Tag color={color}>{status}</Tag>;
-      },
-    },
-    {
-      title: '开始时间',
-      dataIndex: 'startDate',
-      key: 'startDate',
-      width: 120,
-      render: (date: string) => dayjs(date).format('YYYY-MM-DD'),
-    },
-    {
-      title: '结束时间',
-      dataIndex: 'endDate',
-      key: 'endDate',
-      width: 120,
-      render: (date: string) => dayjs(date).format('YYYY-MM-DD'),
-    },
-    {
       title: '操作',
       key: 'action',
       fixed: 'right',
       width: 100,
       render: (_, record) => (
         <Space size="middle">
-          <a onClick={() => handleActivityAnalysis(record.activityId)}>活动分析</a>
+          <a
+            href={`/client/activity-analysis/${record.activityId}`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            活动详情
+          </a>
         </Space>
       ),
     },
@@ -415,7 +421,7 @@ const AllActivities: React.FC = () => {
     <div className="all-activities-container">
       {/* 页面标题 */}
       <div style={{ display: 'flex', alignItems: 'center', marginBottom: 16 }}>
-        <Title level={2} style={{ margin: 0, marginRight: 8 }}>全量活动</Title>
+        <Title level={2} style={{ margin: 0, marginRight: 8 }}>活动管理</Title>
         <div style={{ marginLeft: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
           <Text type="secondary">数据更新时间：2025-01-27 14:30:00</Text>
           <Text type="secondary" style={{ fontSize: '12px', color: '#999' }}>

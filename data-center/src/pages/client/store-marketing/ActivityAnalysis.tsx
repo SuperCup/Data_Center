@@ -508,7 +508,7 @@ const ActivityAnalysis: React.FC = () => {
       <div className="activity-analysis-container">
         {/* 页面标题 */}
         <div style={{ display: 'flex', alignItems: 'center', marginBottom: 16 }}>
-          <Title level={2} style={{ margin: 0, marginRight: 8 }}>活动分析</Title>
+          <Title level={2} style={{ margin: 0, marginRight: 8 }}>活动详情</Title>
           <div style={{ marginLeft: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
             <Text type="secondary">数据更新时间：2025-01-27 14:30:00</Text>
             <Text type="secondary" style={{ fontSize: '12px', color: '#999' }}>
