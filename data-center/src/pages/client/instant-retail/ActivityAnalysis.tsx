@@ -1,353 +1,1106 @@
-import React, { useState, useEffect } from 'react';
-import { Card, Row, Col, Statistic, Table, Select, DatePicker, Button, Space, Typography, Tabs, Progress, Tag, Modal } from 'antd';
-import { Line, Column, Pie, Area } from '@ant-design/plots';
-import { DownloadOutlined, ReloadOutlined, TrophyOutlined, RiseOutlined, FallOutlined } from '@ant-design/icons';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Card, Row, Col, Statistic, Table, Select, DatePicker, Button, Typography, Tooltip as AntTooltip, Switch, Empty, message } from 'antd';
+import { QuestionCircleOutlined, ArrowUpOutlined, ArrowDownOutlined } from '@ant-design/icons';
+import ReactECharts from 'echarts-for-react';
+import * as echarts from 'echarts';
 import type { ColumnsType } from 'antd/es/table';
 import dayjs from 'dayjs';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
-const { RangePicker } = DatePicker;
-const { TabPane } = Tabs;
 
-interface ActivityData {
+// 核心指标数据接口
+interface CoreMetrics {
+  gmv: number; // GMV
+  orderCount: number; // 订单数（张）
+  salesVolume: number; // 销量（件）
+  avgPrice: number; // 客单价（元）
+  roi: number; // ROI
+  gmvMonthOnMonth: number; // GMV月环比
+  gmvYearOnYear: number; // GMV年同比
+  orderCountMonthOnMonth: number; // 订单数月环比
+  orderCountYearOnYear: number; // 订单数年同比
+  salesVolumeMonthOnMonth: number; // 销量月环比
+  salesVolumeYearOnYear: number; // 销量年同比
+  avgPriceMonthOnMonth: number; // 客单价月环比
+  avgPriceYearOnYear: number; // 客单价年同比
+  roiMonthOnMonth: number; // ROI月环比
+  roiYearOnYear: number; // ROI年同比
+}
+
+// 区域分布数据接口
+interface RegionData {
   id: string;
-  name: string;
-  type: string;
-  startDate: string;
-  endDate: string;
-  status: string;
-  totalSales: number;
-  orderCount: number;
-  participantCount: number;
-  conversionRate: number;
-  roi: number;
-  cost: number;
+  city: string; // 城市
+  province: string; // 省份
+  gmv: number; // GMV
+  gmvPercentage: number; // GMV占比
+  gmvMonthOnMonth: number; // GMV月环比
+  gmvYearOnYear: number; // GMV年同比
+  orderCount: number; // 订单数
+  salesVolume: number; // 销量
+  avgPrice: number; // 客单价
+  originalPrice: number; // 商品原价
+  roi: number; // 活动ROI
 }
 
-interface SalesData {
+// 趋势数据接口
+interface TrendData {
   date: string;
-  sales: number;
-  orders: number;
-  activity: string;
-}
-
-interface CategoryData {
-  category: string;
-  sales: number;
-  percentage: number;
+  gmv: number;
+  orderCount: number;
+  salesVolume: number;
+  avgPrice: number;
+  roi: number;
 }
 
 const ActivityAnalysis: React.FC = () => {
-  const [selectedActivity, setSelectedActivity] = useState<string>('all');
-  const [dateRange, setDateRange] = useState<[dayjs.Dayjs, dayjs.Dayjs]>([
-    dayjs().subtract(30, 'day'),
-    dayjs()
-  ]);
-  const [loading, setLoading] = useState(false);
+  const [selectedMonth, setSelectedMonth] = useState<dayjs.Dayjs>(dayjs());
+  const [selectedPlatform, setSelectedPlatform] = useState<string>('美团闪购');
+  const [mapReady, setMapReady] = useState(false);
+  const [selectedMetric, setSelectedMetric] = useState<string>('gmv'); // 选中的趋势指标
+  const [showSecondaryMetric, setShowSecondaryMetric] = useState<boolean>(false); // 是否显示副指标
+  const [secondaryMetric, setSecondaryMetric] = useState<string>('orderCount'); // 选中的副指标
+  const [regionSortMetric, setRegionSortMetric] = useState<string>('gmv'); // 区域分布排序指标
+  const [selectedProvince, setSelectedProvince] = useState<string | null>(null); // 选中的省份，用于下钻
+  const [mapView, setMapView] = useState<'province' | 'city'>('province'); // 地图视图：省份或城市
+  const [highlightedProvince, setHighlightedProvince] = useState<string | null>(null); // 高亮的省份（省份视图）
+  const [provinceMapReady, setProvinceMapReady] = useState<{ [key: string]: boolean }>({}); // 省份地图加载状态
+  const [chinaMapData, setChinaMapData] = useState<any>(null); // 保存中国地图数据，用于提取省份地图
 
-  // 进入页面弹窗一次提醒
+  // 当主指标改变时，如果副指标与主指标相同，自动切换副指标
   useEffect(() => {
-    Modal.info({
-      title: '提醒',
-      content: '感谢关注，当前页面设计中，请完成后查看。',
-      okText: '知道了'
+    if (showSecondaryMetric && secondaryMetric === selectedMetric) {
+      const availableMetrics = ['gmv', 'orderCount', 'salesVolume', 'avgPrice', 'roi'].filter(m => m !== selectedMetric);
+      if (availableMetrics.length > 0) {
+        setSecondaryMetric(availableMetrics[0]);
+      }
+    }
+  }, [selectedMetric, showSecondaryMetric, secondaryMetric]);
+
+  // 模拟核心指标数据
+  const [coreMetrics] = useState<CoreMetrics>({
+    gmv: 2580000,
+      orderCount: 15420,
+    salesVolume: 45600,
+    avgPrice: 56.6,
+      roi: 4.2,
+    gmvMonthOnMonth: 12.5,
+    gmvYearOnYear: 28.3,
+    orderCountMonthOnMonth: 8.7,
+    orderCountYearOnYear: 22.1,
+    salesVolumeMonthOnMonth: 15.2,
+    salesVolumeYearOnYear: 35.6,
+    avgPriceMonthOnMonth: -2.3,
+    avgPriceYearOnYear: 5.8,
+    roiMonthOnMonth: 10.5,
+    roiYearOnYear: 18.9
+  });
+
+  // 模拟区域分布数据
+  const [regionData] = useState<RegionData[]>([
+    // 北京
+    { id: '1', city: '北京', province: '北京', gmv: 485000, gmvPercentage: 18.8, gmvMonthOnMonth: 15.2, gmvYearOnYear: 32.5, orderCount: 2850, salesVolume: 8560, avgPrice: 58.2, originalPrice: 65.0, roi: 4.5 },
+    { id: '11', city: '朝阳区', province: '北京', gmv: 185000, gmvPercentage: 7.2, gmvMonthOnMonth: 14.5, gmvYearOnYear: 30.2, orderCount: 1080, salesVolume: 3240, avgPrice: 57.8, originalPrice: 64.5, roi: 4.3 },
+    { id: '12', city: '海淀区', province: '北京', gmv: 165000, gmvPercentage: 6.4, gmvMonthOnMonth: 16.8, gmvYearOnYear: 33.1, orderCount: 980, salesVolume: 2940, avgPrice: 58.1, originalPrice: 65.0, roi: 4.4 },
+    { id: '13', city: '丰台区', province: '北京', gmv: 135000, gmvPercentage: 5.2, gmvMonthOnMonth: 13.2, gmvYearOnYear: 28.5, orderCount: 790, salesVolume: 2370, avgPrice: 57.5, originalPrice: 64.2, roi: 4.2 },
+    
+    // 上海
+    { id: '2', city: '上海', province: '上海', gmv: 420000, gmvPercentage: 16.3, gmvMonthOnMonth: 12.8, gmvYearOnYear: 28.9, orderCount: 2450, salesVolume: 7350, avgPrice: 57.1, originalPrice: 64.0, roi: 4.3 },
+    { id: '14', city: '浦东新区', province: '上海', gmv: 195000, gmvPercentage: 7.6, gmvMonthOnMonth: 13.5, gmvYearOnYear: 29.8, orderCount: 1150, salesVolume: 3450, avgPrice: 57.2, originalPrice: 64.1, roi: 4.3 },
+    { id: '15', city: '黄浦区', province: '上海', gmv: 125000, gmvPercentage: 4.8, gmvMonthOnMonth: 11.2, gmvYearOnYear: 26.5, orderCount: 740, salesVolume: 2220, avgPrice: 57.0, originalPrice: 63.8, roi: 4.2 },
+    { id: '16', city: '徐汇区', province: '上海', gmv: 100000, gmvPercentage: 3.9, gmvMonthOnMonth: 10.8, gmvYearOnYear: 25.3, orderCount: 590, salesVolume: 1770, avgPrice: 56.9, originalPrice: 63.7, roi: 4.1 },
+    
+    // 广东
+    { id: '3', city: '广州', province: '广东', gmv: 380000, gmvPercentage: 14.7, gmvMonthOnMonth: 18.5, gmvYearOnYear: 35.2, orderCount: 2250, salesVolume: 6750, avgPrice: 56.3, originalPrice: 63.0, roi: 4.1 },
+    { id: '4', city: '深圳', province: '广东', gmv: 350000, gmvPercentage: 13.6, gmvMonthOnMonth: 20.1, gmvYearOnYear: 38.7, orderCount: 2050, salesVolume: 6150, avgPrice: 56.9, originalPrice: 63.5, roi: 4.2 },
+    { id: '17', city: '佛山', province: '广东', gmv: 145000, gmvPercentage: 5.6, gmvMonthOnMonth: 15.3, gmvYearOnYear: 32.1, orderCount: 860, salesVolume: 2580, avgPrice: 56.2, originalPrice: 62.8, roi: 4.0 },
+    { id: '18', city: '东莞', province: '广东', gmv: 125000, gmvPercentage: 4.8, gmvMonthOnMonth: 14.8, gmvYearOnYear: 30.5, orderCount: 740, salesVolume: 2220, avgPrice: 56.1, originalPrice: 62.7, roi: 3.9 },
+    
+    // 浙江
+    { id: '5', city: '杭州', province: '浙江', gmv: 285000, gmvPercentage: 11.0, gmvMonthOnMonth: 14.3, gmvYearOnYear: 29.6, orderCount: 1680, salesVolume: 5040, avgPrice: 55.8, originalPrice: 62.5, roi: 4.0 },
+    { id: '19', city: '宁波', province: '浙江', gmv: 135000, gmvPercentage: 5.2, gmvMonthOnMonth: 13.5, gmvYearOnYear: 28.2, orderCount: 790, salesVolume: 2370, avgPrice: 55.6, originalPrice: 62.3, roi: 3.9 },
+    { id: '20', city: '温州', province: '浙江', gmv: 115000, gmvPercentage: 4.5, gmvMonthOnMonth: 12.8, gmvYearOnYear: 27.1, orderCount: 680, salesVolume: 2040, avgPrice: 55.5, originalPrice: 62.2, roi: 3.8 },
+    
+    // 四川
+    { id: '6', city: '成都', province: '四川', gmv: 240000, gmvPercentage: 9.3, gmvMonthOnMonth: 16.7, gmvYearOnYear: 31.2, orderCount: 1420, salesVolume: 4260, avgPrice: 56.3, originalPrice: 63.0, roi: 3.9 },
+    { id: '21', city: '绵阳', province: '四川', gmv: 85000, gmvPercentage: 3.3, gmvMonthOnMonth: 12.5, gmvYearOnYear: 25.8, orderCount: 500, salesVolume: 1500, avgPrice: 56.0, originalPrice: 62.7, roi: 3.7 },
+    { id: '22', city: '德阳', province: '四川', gmv: 65000, gmvPercentage: 2.5, gmvMonthOnMonth: 11.8, gmvYearOnYear: 24.2, orderCount: 380, salesVolume: 1140, avgPrice: 55.9, originalPrice: 62.6, roi: 3.6 },
+    
+    // 湖北
+    { id: '7', city: '武汉', province: '湖北', gmv: 195000, gmvPercentage: 7.6, gmvMonthOnMonth: 11.9, gmvYearOnYear: 26.8, orderCount: 1150, salesVolume: 3450, avgPrice: 56.5, originalPrice: 63.2, roi: 3.8 },
+    { id: '23', city: '宜昌', province: '湖北', gmv: 75000, gmvPercentage: 2.9, gmvMonthOnMonth: 10.5, gmvYearOnYear: 23.5, orderCount: 440, salesVolume: 1320, avgPrice: 56.2, originalPrice: 62.9, roi: 3.7 },
+    { id: '24', city: '襄阳', province: '湖北', gmv: 65000, gmvPercentage: 2.5, gmvMonthOnMonth: 9.8, gmvYearOnYear: 22.1, orderCount: 380, salesVolume: 1140, avgPrice: 56.1, originalPrice: 62.8, roi: 3.6 },
+    
+    // 陕西
+    { id: '8', city: '西安', province: '陕西', gmv: 165000, gmvPercentage: 6.4, gmvMonthOnMonth: 13.4, gmvYearOnYear: 27.5, orderCount: 980, salesVolume: 2940, avgPrice: 56.1, originalPrice: 62.8, roi: 3.7 },
+    { id: '25', city: '宝鸡', province: '陕西', gmv: 55000, gmvPercentage: 2.1, gmvMonthOnMonth: 9.2, gmvYearOnYear: 20.8, orderCount: 320, salesVolume: 960, avgPrice: 56.0, originalPrice: 62.7, roi: 3.6 },
+    { id: '26', city: '咸阳', province: '陕西', gmv: 45000, gmvPercentage: 1.7, gmvMonthOnMonth: 8.5, gmvYearOnYear: 19.5, orderCount: 260, salesVolume: 780, avgPrice: 55.9, originalPrice: 62.6, roi: 3.5 },
+    
+    // 江苏
+    { id: '9', city: '南京', province: '江苏', gmv: 145000, gmvPercentage: 5.6, gmvMonthOnMonth: 9.8, gmvYearOnYear: 24.3, orderCount: 860, salesVolume: 2580, avgPrice: 56.4, originalPrice: 63.1, roi: 3.6 },
+    { id: '27', city: '苏州', province: '江苏', gmv: 155000, gmvPercentage: 6.0, gmvMonthOnMonth: 14.2, gmvYearOnYear: 28.9, orderCount: 920, salesVolume: 2760, avgPrice: 56.5, originalPrice: 63.2, roi: 3.7 },
+    { id: '28', city: '无锡', province: '江苏', gmv: 105000, gmvPercentage: 4.1, gmvMonthOnMonth: 12.5, gmvYearOnYear: 26.2, orderCount: 620, salesVolume: 1860, avgPrice: 56.3, originalPrice: 63.0, roi: 3.6 },
+    
+    // 重庆
+    { id: '10', city: '重庆', province: '重庆', gmv: 125000, gmvPercentage: 4.8, gmvMonthOnMonth: 10.5, gmvYearOnYear: 25.1, orderCount: 740, salesVolume: 2220, avgPrice: 56.2, originalPrice: 62.9, roi: 3.5 },
+    { id: '29', city: '万州区', province: '重庆', gmv: 55000, gmvPercentage: 2.1, gmvMonthOnMonth: 9.8, gmvYearOnYear: 22.5, orderCount: 320, salesVolume: 960, avgPrice: 56.1, originalPrice: 62.8, roi: 3.5 },
+    { id: '30', city: '涪陵区', province: '重庆', gmv: 45000, gmvPercentage: 1.7, gmvMonthOnMonth: 8.9, gmvYearOnYear: 21.2, orderCount: 260, salesVolume: 780, avgPrice: 56.0, originalPrice: 62.7, roi: 3.4 }
+  ]);
+
+  // 模拟趋势数据
+  const [trendData] = useState<TrendData[]>([
+    { date: '2024-11-01', gmv: 125000, orderCount: 850, salesVolume: 2550, avgPrice: 55.2, roi: 3.8 },
+    { date: '2024-11-02', gmv: 145000, orderCount: 920, salesVolume: 2760, avgPrice: 56.1, roi: 3.9 },
+    { date: '2024-11-03', gmv: 168000, orderCount: 1050, salesVolume: 3150, avgPrice: 56.5, roi: 4.0 },
+    { date: '2024-11-04', gmv: 189000, orderCount: 1180, salesVolume: 3540, avgPrice: 56.8, roi: 4.1 },
+    { date: '2024-11-05', gmv: 210000, orderCount: 1320, salesVolume: 3960, avgPrice: 57.0, roi: 4.2 },
+    { date: '2024-11-06', gmv: 195000, orderCount: 1250, salesVolume: 3750, avgPrice: 56.9, roi: 4.1 },
+    { date: '2024-11-07', gmv: 178000, orderCount: 1100, salesVolume: 3300, avgPrice: 56.7, roi: 4.0 },
+    { date: '2024-11-08', gmv: 156000, orderCount: 980, salesVolume: 2940, avgPrice: 56.4, roi: 3.9 },
+    { date: '2024-11-09', gmv: 142000, orderCount: 890, salesVolume: 2670, avgPrice: 56.2, roi: 3.8 },
+    { date: '2024-11-10', gmv: 235000, orderCount: 1580, salesVolume: 4740, avgPrice: 57.5, roi: 4.3 },
+    { date: '2024-11-11', gmv: 385000, orderCount: 2450, salesVolume: 7350, avgPrice: 58.2, roi: 4.5 },
+    { date: '2024-11-12', gmv: 298000, orderCount: 1890, salesVolume: 5670, avgPrice: 57.8, roi: 4.4 },
+    { date: '2024-11-13', gmv: 215000, orderCount: 1350, salesVolume: 4050, avgPrice: 57.2, roi: 4.2 },
+    { date: '2024-11-14', gmv: 178000, orderCount: 1120, salesVolume: 3360, avgPrice: 56.8, roi: 4.0 },
+    { date: '2024-11-15', gmv: 156000, orderCount: 985, salesVolume: 2955, avgPrice: 56.5, roi: 3.9 }
+  ]);
+
+  // 省份名称到地图文件名的映射
+  const provinceMapFileMapping: { [key: string]: string } = {
+    '北京': 'beijing',
+    '上海': 'shanghai',
+    '广东': 'guangdong',
+    '浙江': 'zhejiang',
+    '四川': 'sichuan',
+    '湖北': 'hubei',
+    '陕西': 'shanxi',
+    '江苏': 'jiangsu',
+    '重庆': 'chongqing'
+  };
+
+  // 注册中国地图
+  useEffect(() => {
+    fetch('/china-map.json')
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then((chinaGeoData) => {
+        const processedGeoData = {
+          ...chinaGeoData,
+          features: chinaGeoData.features.map((feature: any) => ({
+            ...feature,
+            properties: {
+              ...feature.properties,
+              name: feature.properties.name || feature.properties.NAME || '未知'
+            }
+          }))
+        };
+        echarts.registerMap('china', processedGeoData);
+        setChinaMapData(processedGeoData); // 保存地图数据
+        setMapReady(true);
+      })
+      .catch((error) => {
+        console.error('Failed to load China map data:', error);
+        setMapReady(false);
     });
   }, []);
 
-  // 模拟活动数据
-  const [activities] = useState<ActivityData[]>([
-    {
-      id: '1',
-      name: '双十一大促',
-      type: '促销活动',
-      startDate: '2024-11-01',
-      endDate: '2024-11-15',
-      status: '已结束',
-      totalSales: 2580000,
-      orderCount: 15420,
-      participantCount: 45600,
-      conversionRate: 33.8,
-      roi: 4.2,
-      cost: 614000
-    },
-    {
-      id: '2',
-      name: '春季新品发布',
-      type: '新品推广',
-      startDate: '2024-03-01',
-      endDate: '2024-03-31',
-      status: '已结束',
-      totalSales: 1250000,
-      orderCount: 8900,
-      participantCount: 28500,
-      conversionRate: 31.2,
-      roi: 3.8,
-      cost: 329000
-    },
-    {
-      id: '3',
-      name: '夏日清仓',
-      type: '清仓活动',
-      startDate: '2024-07-01',
-      endDate: '2024-07-20',
-      status: '已结束',
-      totalSales: 890000,
-      orderCount: 12300,
-      participantCount: 35200,
-      conversionRate: 34.9,
-      roi: 2.9,
-      cost: 307000
+  // 省份完整名称映射
+  const provinceFullNameMap: { [key: string]: string } = {
+    '北京': '北京市',
+    '上海': '上海市',
+    '广东': '广东省',
+    '浙江': '浙江省',
+    '四川': '四川省',
+    '湖北': '湖北省',
+    '陕西': '陕西省',
+    '江苏': '江苏省',
+    '重庆': '重庆市'
+  };
+
+  // 从中国地图数据中提取省份地图
+  const extractProvinceMap = (provinceName: string) => {
+    if (!chinaMapData) return null;
+    
+    const fullProvinceName = provinceFullNameMap[provinceName] || provinceName;
+    
+    // 从中国地图数据中提取该省份的feature
+    const provinceFeatures = chinaMapData.features.filter((feature: any) => {
+      const featureName = feature.properties?.name || feature.properties?.NAME || '';
+      return featureName === fullProvinceName || featureName === provinceName;
+    });
+    
+    if (provinceFeatures.length === 0) {
+      return null;
     }
-  ]);
+    
+    // 创建省份地图数据
+    return {
+      type: 'FeatureCollection',
+      features: provinceFeatures
+    };
+  };
 
-  // 模拟销售趋势数据
-  const [salesTrendData] = useState<SalesData[]>([
-    { date: '2024-11-01', sales: 125000, orders: 850, activity: '双十一大促' },
-    { date: '2024-11-02', sales: 145000, orders: 920, activity: '双十一大促' },
-    { date: '2024-11-03', sales: 168000, orders: 1050, activity: '双十一大促' },
-    { date: '2024-11-04', sales: 189000, orders: 1180, activity: '双十一大促' },
-    { date: '2024-11-05', sales: 210000, orders: 1320, activity: '双十一大促' },
-    { date: '2024-11-06', sales: 195000, orders: 1250, activity: '双十一大促' },
-    { date: '2024-11-07', sales: 178000, orders: 1100, activity: '双十一大促' },
-    { date: '2024-11-08', sales: 156000, orders: 980, activity: '双十一大促' },
-    { date: '2024-11-09', sales: 142000, orders: 890, activity: '双十一大促' },
-    { date: '2024-11-10', sales: 235000, orders: 1580, activity: '双十一大促' },
-    { date: '2024-11-11', sales: 385000, orders: 2450, activity: '双十一大促' },
-    { date: '2024-11-12', sales: 298000, orders: 1890, activity: '双十一大促' },
-    { date: '2024-11-13', sales: 215000, orders: 1350, activity: '双十一大促' },
-    { date: '2024-11-14', sales: 178000, orders: 1120, activity: '双十一大促' },
-    { date: '2024-11-15', sales: 156000, orders: 985, activity: '双十一大促' }
-  ]);
+  // 加载或创建省份地图数据
+  useEffect(() => {
+    if (mapView === 'city' && selectedProvince && chinaMapData) {
+      if (provinceMapReady[selectedProvince] === undefined) {
+        const mapFileName = provinceMapFileMapping[selectedProvince];
+        
+        // 首先尝试加载独立的省份地图文件
+        if (mapFileName) {
+          fetch(`/${mapFileName}-map.json`)
+            .then(response => {
+              if (response.ok) {
+                return response.json();
+              }
+              return null;
+            })
+            .then((provinceGeoData) => {
+              if (provinceGeoData) {
+                const processedGeoData = {
+                  ...provinceGeoData,
+                  features: provinceGeoData.features.map((feature: any) => ({
+                    ...feature,
+                    properties: {
+                      ...feature.properties,
+                      name: feature.properties.name || feature.properties.NAME || '未知'
+                    }
+                  }))
+                };
+                echarts.registerMap(selectedProvince, processedGeoData);
+                setProvinceMapReady(prev => ({ ...prev, [selectedProvince]: true }));
+              } else {
+                // 如果省份地图文件不存在，从中国地图中提取
+                const extractedMap = extractProvinceMap(selectedProvince);
+                if (extractedMap) {
+                  echarts.registerMap(selectedProvince, extractedMap);
+                  setProvinceMapReady(prev => ({ ...prev, [selectedProvince]: true }));
+                } else {
+                  setProvinceMapReady(prev => ({ ...prev, [selectedProvince]: false }));
+                }
+              }
+            })
+            .catch((error) => {
+              console.error(`Failed to load ${selectedProvince} map data:`, error);
+              // 尝试从中国地图中提取
+              const extractedMap = extractProvinceMap(selectedProvince);
+              if (extractedMap) {
+                echarts.registerMap(selectedProvince, extractedMap);
+                setProvinceMapReady(prev => ({ ...prev, [selectedProvince]: true }));
+              } else {
+                setProvinceMapReady(prev => ({ ...prev, [selectedProvince]: false }));
+              }
+            });
+        } else {
+          // 没有映射文件名，直接从中国地图中提取
+          const extractedMap = extractProvinceMap(selectedProvince);
+          if (extractedMap) {
+            echarts.registerMap(selectedProvince, extractedMap);
+            setProvinceMapReady(prev => ({ ...prev, [selectedProvince]: true }));
+          } else {
+            setProvinceMapReady(prev => ({ ...prev, [selectedProvince]: false }));
+          }
+        }
+      }
+    }
+  }, [mapView, selectedProvince, chinaMapData]);
 
-  // 模拟品类销售数据
-  const [categoryData] = useState<CategoryData[]>([
-    { category: '服装', sales: 1250000, percentage: 48.4 },
-    { category: '数码', sales: 680000, percentage: 26.4 },
-    { category: '家居', sales: 420000, percentage: 16.3 },
-    { category: '美妆', sales: 230000, percentage: 8.9 }
-  ]);
+  // 渲染环比/同比指标
+  const renderComparison = (monthOnMonth: number, yearOnYear: number) => {
+    const renderValue = (value: number) => {
+      const isPositive = value >= 0;
+      // 上升用红色，下降用绿色
+      return (
+        <span style={{ color: isPositive ? '#ff4d4f' : '#52c41a' }}>
+          {isPositive ? <ArrowUpOutlined /> : <ArrowDownOutlined />}
+          {Math.abs(value)}%
+        </span>
+      );
+    };
 
-  // 活动对比数据
-  const comparisonData = activities.map(activity => ({
-    activity: activity.name,
-    销售额: activity.totalSales,
-    订单数: activity.orderCount,
-    转化率: activity.conversionRate,
-    ROI: activity.roi
-  }));
-
-  const activityColumns: ColumnsType<ActivityData> = [
-    {
-      title: '活动名称',
-      dataIndex: 'name',
-      key: 'name',
-      render: (text, record) => (
+    return (
+      <div style={{ marginTop: '8px', fontSize: '12px' }}>
         <div>
-          <Text strong>{text}</Text>
-          <br />
-          <Tag color="blue">{record.type}</Tag>
+          <Text type="secondary">月环比：</Text>
+          {renderValue(monthOnMonth)}
         </div>
-      )
-    },
-    {
-      title: '活动周期',
-      key: 'period',
-      render: (_, record) => (
         <div>
-          <Text>{record.startDate}</Text>
-          <br />
-          <Text>至 {record.endDate}</Text>
+          <Text type="secondary">年同比：</Text>
+          {renderValue(yearOnYear)}
         </div>
-      )
+      </div>
+    );
+  };
+
+  // 区域分布表格列定义 - 根据视图动态生成
+  const regionColumns: ColumnsType<RegionData> = useMemo(() => [
+    {
+      title: '序号',
+      key: 'index',
+      width: 60,
+      render: (_: any, __: any, index: number) => index + 1
+    },
+    // 只在城市视图显示城市字段
+    ...(mapView === 'city' && selectedProvince ? [{
+      title: '城市',
+      dataIndex: 'city',
+      key: 'city',
+      width: 100
+    }] : []),
+    {
+      title: '省份',
+      dataIndex: 'province',
+      key: 'province',
+      width: 100
     },
     {
-      title: '销售额',
-      dataIndex: 'totalSales',
-      key: 'totalSales',
-      render: (value) => (
-        <Statistic
-          value={value}
-          precision={0}
-          prefix="¥"
-          valueStyle={{ fontSize: '14px' }}
-        />
-      ),
-      sorter: (a, b) => a.totalSales - b.totalSales
+      title: 'GMV（元）',
+      dataIndex: 'gmv',
+      key: 'gmv',
+      width: 120,
+      render: (value: number) => value.toLocaleString()
     },
     {
-      title: '订单数',
+      title: 'GMV占比（%）',
+      dataIndex: 'gmvPercentage',
+      key: 'gmvPercentage',
+      width: 100,
+      render: (value: number) => `${value}%`
+    },
+    {
+      title: 'GMV月环比（%）',
+      dataIndex: 'gmvMonthOnMonth',
+      key: 'gmvMonthOnMonth',
+      width: 110,
+      render: (value: number) => {
+        const isPositive = value >= 0;
+        // 上升用红色，下降用绿色
+        return (
+          <span style={{ color: isPositive ? '#ff4d4f' : '#52c41a' }}>
+            {isPositive ? <ArrowUpOutlined /> : <ArrowDownOutlined />}
+            {Math.abs(value)}%
+          </span>
+        );
+      }
+    },
+    {
+      title: 'GMV年同比（%）',
+      dataIndex: 'gmvYearOnYear',
+      key: 'gmvYearOnYear',
+      width: 110,
+      render: (value: number) => {
+        const isPositive = value >= 0;
+        // 上升用红色，下降用绿色
+        return (
+          <span style={{ color: isPositive ? '#ff4d4f' : '#52c41a' }}>
+            {isPositive ? <ArrowUpOutlined /> : <ArrowDownOutlined />}
+            {Math.abs(value)}%
+          </span>
+        );
+      }
+    },
+    {
+      title: '订单数（张）',
       dataIndex: 'orderCount',
       key: 'orderCount',
-      render: (value) => (
-        <Statistic
-          value={value}
-          precision={0}
-          valueStyle={{ fontSize: '14px' }}
-        />
-      ),
-      sorter: (a, b) => a.orderCount - b.orderCount
+      width: 100,
+      render: (value: number) => value.toLocaleString()
     },
     {
-      title: '参与人数',
-      dataIndex: 'participantCount',
-      key: 'participantCount',
-      render: (value) => (
-        <Statistic
-          value={value}
-          precision={0}
-          valueStyle={{ fontSize: '14px' }}
-        />
-      )
+      title: '销量（件）',
+      dataIndex: 'salesVolume',
+      key: 'salesVolume',
+      width: 100,
+      render: (value: number) => value.toLocaleString()
     },
     {
-      title: '转化率',
-      dataIndex: 'conversionRate',
-      key: 'conversionRate',
-      render: (value) => (
-        <div>
-          <Text>{value}%</Text>
-          <br />
-          <Progress percent={value} size="small" showInfo={false} />
-        </div>
-      ),
-      sorter: (a, b) => a.conversionRate - b.conversionRate
+      title: '客单价（元）',
+      dataIndex: 'avgPrice',
+      key: 'avgPrice',
+      width: 100,
+      render: (value: number) => value.toFixed(2)
     },
     {
-      title: 'ROI',
+      title: '商品原价（元）',
+      dataIndex: 'originalPrice',
+      key: 'originalPrice',
+      width: 100,
+      render: (value: number) => value.toFixed(2)
+    },
+    {
+      title: '活动ROI（x）',
       dataIndex: 'roi',
       key: 'roi',
-      render: (value) => (
-        <Statistic
-          value={value}
-          precision={1}
-          suffix="x"
-          valueStyle={{ 
-            fontSize: '14px',
-            color: value >= 3 ? '#52c41a' : value >= 2 ? '#faad14' : '#ff4d4f'
-          }}
-        />
-      ),
-      sorter: (a, b) => a.roi - b.roi
+      width: 100,
+      render: (value: number) => (
+        <span style={{ color: value >= 3 ? '#52c41a' : value >= 2 ? '#faad14' : '#ff4d4f' }}>
+          {value.toFixed(1)}
+        </span>
+      )
     }
-  ];
+  ], [mapView, selectedProvince]);
 
-  // 销售趋势图配置
-  const salesTrendConfig = {
-    data: salesTrendData,
-    xField: 'date',
-    yField: 'sales',
-    smooth: true,
-    color: '#1890ff',
-    point: {
-      size: 3,
-      shape: 'circle'
-    },
-    tooltip: {
-      formatter: (datum: any) => ({
-        name: '销售额',
-        value: `¥${datum.sales.toLocaleString()}`
-      })
-    },
-    xAxis: {
-      type: 'time',
-      tickCount: 5
-    },
-    yAxis: {
-      label: {
-        formatter: (v: string) => `¥${(+v / 10000).toFixed(0)}万`
+  // 根据排序指标获取排序后的区域数据
+  const getSortedRegionData = () => {
+    const currentData = getCurrentViewData();
+    return [...currentData].sort((a, b) => getSortValue(b, regionSortMetric) - getSortValue(a, regionSortMetric));
+  };
+
+  // 地图配置
+  const getMapOption = () => {
+    const currentData = getCurrentViewData();
+    // 根据选择的排序指标对区域数据进行排序，只取前10名
+    const sortedRegions = getSortedRegionData().slice(0, 10);
+    
+    // 获取指标数值用于地图显示
+    const getMetricNumberValue = (item: RegionData, metric: string): number => {
+      switch (metric) {
+        case 'gmv':
+          return item.gmv;
+        case 'orderCount':
+          return item.orderCount;
+        case 'salesVolume':
+          return item.salesVolume;
+        case 'avgPrice':
+          return item.avgPrice;
+        case 'roi':
+          return item.roi;
+        default:
+          return item.gmv;
       }
-    }
-  };
+    };
 
-  // 订单趋势图配置
-  const orderTrendConfig = {
-    data: salesTrendData,
-    xField: 'date',
-    yField: 'orders',
-    smooth: true,
-    color: '#52c41a',
-    point: {
-      size: 3,
-      shape: 'circle'
-    },
+    // 根据视图类型生成地图数据
+    let mapData: any[];
+    if (mapView === 'city' && selectedProvince) {
+      // 城市视图：显示该省份的城市
+      mapData = currentData.map(item => {
+        const rank = sortedRegions.findIndex(r => r.city === item.city);
+        return {
+          name: item.city,
+          value: getMetricNumberValue(item, regionSortMetric),
+          rank: rank >= 0 ? rank : -1
+        };
+      });
+    } else {
+      // 省份视图：显示省份
+      // 按省份聚合数据
+      const provinceMap = new Map<string, RegionData>();
+      regionData.forEach(item => {
+        const existing = provinceMap.get(item.province);
+        if (!existing || getSortValue(item, regionSortMetric) > getSortValue(existing, regionSortMetric)) {
+          provinceMap.set(item.province, item);
+        }
+      });
+      
+      // 省份名称到完整名称的映射（用于地图显示）
+      const provinceToFullName: { [key: string]: string } = {
+        '北京': '北京市',
+        '上海': '上海市',
+        '广东': '广东省',
+        '浙江': '浙江省',
+        '四川': '四川省',
+        '湖北': '湖北省',
+        '陕西': '陕西省',
+        '江苏': '江苏省',
+        '重庆': '重庆市'
+      };
+      
+      mapData = Array.from(provinceMap.values()).map(item => {
+        const rank = sortedRegions.findIndex(r => r.province === item.province);
+        // 使用完整省份名称用于地图匹配
+        const fullProvinceName = provinceToFullName[item.province] || item.province;
+        return {
+          name: fullProvinceName, // 使用完整名称
+          value: getMetricNumberValue(item, regionSortMetric),
+          rank: rank >= 0 ? rank : -1,
+          isHighlighted: highlightedProvince === item.province,
+          originalProvince: item.province // 保存原始省份名称
+        };
+      });
+    }
+
+    // 定义颜色：前10名由深到浅的蓝色（初始化时颜色加深）
+    const getProvinceColor = (rank: number) => {
+      if (rank < 0) return '#e6f7ff'; // 未排名的使用浅蓝色
+      const colors = [
+        '#002c8c', // 第1名 - 最深蓝（加深）
+        '#003a8c', // 第2名（加深）
+        '#0050b3', // 第3名（加深）
+        '#096dd9', // 第4名
+        '#1890ff', // 第5名
+        '#40a9ff', // 第6名
+        '#69c0ff', // 第7名
+        '#91d5ff', // 第8名
+        '#bae7ff', // 第9名
+        '#d6f4ff'  // 第10名
+      ];
+      return colors[rank] || '#e6f7ff';
+    };
+
+    // 获取指标显示值
+    const getMetricValue = (region: RegionData, metric: string): string => {
+      switch (metric) {
+        case 'gmv':
+          return region.gmv.toLocaleString();
+        case 'orderCount':
+          return region.orderCount.toLocaleString();
+        case 'salesVolume':
+          return region.salesVolume.toLocaleString();
+        case 'avgPrice':
+          return region.avgPrice.toFixed(2);
+        case 'roi':
+          return region.roi.toFixed(1);
+        default:
+          return region.gmv.toLocaleString();
+      }
+    };
+
+    const metricLabels: { [key: string]: string } = {
+      gmv: 'GMV',
+      orderCount: '订单数',
+      salesVolume: '销量',
+      avgPrice: '客单价',
+      roi: 'ROI'
+    };
+
+    // 城市坐标映射（主要城市的大致经纬度）
+    const cityCoordinates: { [key: string]: [number, number] } = {
+      '北京': [116.4, 39.9],
+      '朝阳区': [116.45, 39.92],
+      '海淀区': [116.3, 39.95],
+      '丰台区': [116.28, 39.85],
+      '上海': [121.5, 31.2],
+      '浦东新区': [121.6, 31.22],
+      '黄浦区': [121.48, 31.23],
+      '徐汇区': [121.43, 31.18],
+      '广州': [113.3, 23.1],
+      '深圳': [114.1, 22.5],
+      '佛山': [113.1, 23.0],
+      '东莞': [113.75, 23.05],
+      '杭州': [120.2, 30.3],
+      '宁波': [121.55, 29.88],
+      '温州': [120.7, 28.0],
+      '成都': [104.1, 30.7],
+      '绵阳': [104.73, 31.48],
+      '德阳': [104.4, 31.13],
+      '武汉': [114.3, 30.6],
+      '宜昌': [111.3, 30.7],
+      '襄阳': [112.15, 32.0],
+      '西安': [108.9, 34.3],
+      '宝鸡': [107.15, 34.37],
+      '咸阳': [108.7, 34.33],
+      '南京': [118.8, 32.1],
+      '苏州': [120.6, 31.3],
+      '无锡': [120.3, 31.59],
+      '重庆': [106.5, 29.6],
+      '万州区': [108.4, 30.8],
+      '涪陵区': [107.4, 29.7]
+    };
+
+    // 如果是城市视图，使用散点图叠加在地图上，只显示当前省份
+    if (mapView === 'city' && selectedProvince) {
+      // 检查是否有城市数据
+      if (currentData.length === 0) {
+        return {
     tooltip: {
-      formatter: (datum: any) => ({
-        name: '订单数',
-        value: datum.orders.toLocaleString()
-      })
-    },
-    xAxis: {
-      type: 'time',
-      tickCount: 5
-    }
-  };
+            show: false
+          },
+          geo: {
+            map: 'china',
+            roam: false,
+            zoom: 1.2,
+            center: [116.4, 39.9],
+            itemStyle: {
+              areaColor: '#f5f5f5',
+              borderColor: '#d9d9d9'
+            }
+          },
+          graphic: [
+            {
+              type: 'text',
+              left: 'center',
+              top: 'center',
+              style: {
+                text: '当前省份无活动',
+                fontSize: 20,
+                fill: '#999',
+                fontWeight: 'bold'
+              }
+            }
+          ]
+        };
+      }
 
-  // 品类销售饼图配置
-  const categoryPieConfig = {
-    data: categoryData,
-    angleField: 'sales',
-    colorField: 'category',
-    radius: 0.8,
+      const scatterData = currentData.map(item => {
+        const coords = cityCoordinates[item.city] || [116.4, 39.9]; // 默认北京坐标
+        const rank = sortedRegions.findIndex(r => r.city === item.city);
+        return {
+          name: item.city,
+          value: [...coords, getMetricNumberValue(item, regionSortMetric)],
+          rank: rank >= 0 ? rank : -1
+        };
+      });
+
+      // 获取省份中心坐标
+      const getProvinceCenter = (province: string): [number, number] => {
+        const centerMap: { [key: string]: [number, number] } = {
+          '北京': [116.4, 39.9],
+          '广东': [113.3, 23.1],
+          '上海': [121.5, 31.2],
+          '浙江': [120.2, 30.3],
+          '四川': [104.1, 30.7],
+          '湖北': [114.3, 30.6],
+          '陕西': [108.9, 34.3],
+          '江苏': [118.8, 32.1],
+          '重庆': [106.5, 29.6]
+        };
+        return centerMap[province] || [116.4, 39.9];
+      };
+
+      // 确定使用的地图类型 - 必须使用省份地图，如果不存在则从中国地图提取
+      const hasProvinceMap = provinceMapReady[selectedProvince] === true;
+      const mapType = hasProvinceMap ? selectedProvince : 'china'; // 如果省份地图未准备好，暂时使用china，但会通过regions只显示该省份
+      
+      const provinceFullName = provinceFullNameMap[selectedProvince] || selectedProvince;
+
+      return {
+    tooltip: {
+          trigger: 'item',
+          formatter: (params: any) => {
+            if (params.seriesType === 'scatter') {
+              const region = regionData.find(r => r.city === params.name && r.province === selectedProvince);
+              if (region) {
+                return `
+                  <div style="padding: 8px;">
+                    <div style="font-weight: bold; margin-bottom: 4px;">${params.name}</div>
+                    <div>${metricLabels[regionSortMetric]}: ${getMetricValue(region, regionSortMetric)}</div>
+                    <div>GMV: ${region.gmv.toLocaleString()}</div>
+                    <div>订单数: ${region.orderCount.toLocaleString()}</div>
+                    <div>销量: ${region.salesVolume.toLocaleString()}</div>
+                    <div>ROI: ${region.roi.toFixed(1)}</div>
+                  </div>
+                `;
+              }
+            }
+            return `${params.name}: ${params.value?.[2]?.toLocaleString() || 0}`;
+          }
+        },
+        geo: {
+          map: mapType,
+          roam: false,
+          zoom: hasProvinceMap ? 1.0 : 1.0, // 省份地图使用正常缩放
+          center: hasProvinceMap ? undefined : getProvinceCenter(selectedProvince), // 省份地图不需要设置center
+          itemStyle: {
+            areaColor: '#e6f7ff', // 省份地图所有区域显示蓝色
+            borderColor: '#91d5ff',
+            borderWidth: 1
+          },
+          label: {
+            show: true, // 显示城市/区域名称
+            fontSize: 12
+          },
+          // 如果省份地图未准备好，使用中国地图但只显示当前省份
+          ...(hasProvinceMap ? {} : {
+            regions: (() => {
+              // 获取所有省份名称
+              const allProvinces = [
+                '北京市', '天津市', '河北省', '山西省', '内蒙古自治区',
+                '辽宁省', '吉林省', '黑龙江省', '上海市', '江苏省',
+                '浙江省', '安徽省', '福建省', '江西省', '山东省',
+                '河南省', '湖北省', '湖南省', '广东省', '广西壮族自治区',
+                '海南省', '重庆市', '四川省', '贵州省', '云南省',
+                '西藏自治区', '陕西省', '甘肃省', '青海省', '宁夏回族自治区',
+                '新疆维吾尔自治区', '台湾省', '香港特别行政区', '澳门特别行政区'
+              ];
+              
+              // 为所有省份设置样式：当前省份显示，其他省份完全隐藏（透明且无边框）
+              return allProvinces.map(province => ({
+                name: province,
+                itemStyle: {
+                  areaColor: (province === provinceFullName || province === selectedProvince) ? '#e6f7ff' : 'rgba(0,0,0,0)', // 其他省份完全透明
+                  borderColor: (province === provinceFullName || province === selectedProvince) ? '#91d5ff' : 'rgba(0,0,0,0)',
+                  borderWidth: (province === provinceFullName || province === selectedProvince) ? 2 : 0
+                },
+                label: {
+                  show: false // 隐藏所有标签，只显示当前省份的散点图标签
+                },
+                emphasis: {
+                  itemStyle: {
+                    areaColor: '#bae7ff'
+                  }
+                }
+              }));
+            })()
+          }),
+          emphasis: {
+            itemStyle: {
+              areaColor: '#bae7ff'
+            }
+          }
+        },
+        series: [
+          {
+            name: '城市数据',
+            type: 'scatter',
+            coordinateSystem: 'geo',
+            data: scatterData,
+            symbolSize: (val: number[]) => {
+              const value = val[2];
+              const maxValue = Math.max(...scatterData.map(d => d.value[2]));
+              return Math.max(10, Math.min(30, (value / maxValue) * 30));
+            },
+            itemStyle: {
+              color: (params: any) => {
+                const rank = params.data.rank;
+                return getProvinceColor(rank);
+              },
+              opacity: 0.8
+            },
+            label: {
+              show: true,
+              position: 'right',
+              formatter: '{b}',
+              fontSize: 12
+            },
+            emphasis: {
+              label: {
+                show: true,
+                fontSize: 14
+              },
+              itemStyle: {
+                borderColor: '#1890ff',
+                borderWidth: 2
+              }
+            }
+          }
+        ]
+      };
+    }
+    
+    // 省份视图：使用地图
+    return {
+      tooltip: {
+        trigger: 'item',
+        formatter: (params: any) => {
+          // 省份视图：查找该省份的代表数据（取GMV最大的城市）
+          let provinceName = params.name;
+          // 转换省份名称
+          const reverseMapping: { [key: string]: string } = {
+            '北京市': '北京',
+            '上海市': '上海',
+            '广东省': '广东',
+            '浙江省': '浙江',
+            '四川省': '四川',
+            '湖北省': '湖北',
+            '陕西省': '陕西',
+            '江苏省': '江苏',
+            '重庆市': '重庆'
+          };
+          provinceName = reverseMapping[provinceName] || provinceName;
+          const provinceRegions = regionData.filter(r => r.province === provinceName);
+          const region = provinceRegions.sort((a, b) => b.gmv - a.gmv)[0];
+          
+          if (region) {
+            return `
+              <div style="padding: 8px;">
+                <div style="font-weight: bold; margin-bottom: 4px;">${params.name}</div>
+                <div>${metricLabels[regionSortMetric]}: ${getMetricValue(region, regionSortMetric)}</div>
+                <div>GMV: ${region.gmv.toLocaleString()}</div>
+                <div>订单数: ${region.orderCount.toLocaleString()}</div>
+                <div>销量: ${region.salesVolume.toLocaleString()}</div>
+                <div>ROI: ${region.roi.toFixed(1)}</div>
+              </div>
+            `;
+          }
+          return `${params.name}: ${params.value?.toLocaleString() || 0}`;
+        }
+      },
+      visualMap: {
+        show: false
+      },
+      series: [
+        {
+          name: 'GMV',
+          type: 'map',
+          map: 'china',
+          roam: false,
     label: {
-      type: 'outer',
-      content: '{name} {percentage}'
-    },
-    tooltip: {
-      formatter: (datum: any) => ({
-        name: datum.category,
-        value: `¥${datum.sales.toLocaleString()}`
-      })
-    }
+            show: false // 默认不显示名称
+          },
+          itemStyle: {
+            areaColor: '#e6f7ff' // 默认蓝色
+          },
+          data: mapData.map(item => ({
+            name: item.name,
+            value: item.value,
+            itemStyle: {
+              // 如果被高亮，显示蓝色；否则使用排名颜色
+              areaColor: item.isHighlighted ? '#1890ff' : getProvinceColor(item.rank),
+              borderColor: item.isHighlighted ? '#0050b3' : undefined,
+              borderWidth: item.isHighlighted ? 2 : 0
+            }
+          })),
+          emphasis: {
+            label: {
+              show: true // 鼠标移入时显示名称
+            },
+            itemStyle: {
+              areaColor: '#1890ff' // 鼠标移入时高亮
+            }
+          }
+        }
+      ]
+    };
   };
 
-  // 活动对比柱状图配置
-  const comparisonConfig = {
-    data: comparisonData,
-    xField: 'activity',
-    yField: '销售额',
-    color: '#722ed1',
-    columnWidthRatio: 0.6,
+  // 趋势图配置
+  const getTrendOption = () => {
+    const metricLabels: { [key: string]: string } = {
+      gmv: 'GMV',
+      orderCount: '订单数',
+      salesVolume: '销量',
+      avgPrice: '客单价',
+      roi: 'ROI'
+    };
+
+    const metricColors: { [key: string]: string } = {
+      gmv: '#1890ff',
+      orderCount: '#52c41a',
+      salesVolume: '#722ed1',
+      avgPrice: '#faad14',
+      roi: '#f5222d'
+    };
+
+    const getYAxisFormatter = (metric: string) => {
+      if (metric === 'gmv') {
+        return (value: number) => `${(value / 10000).toFixed(0)}万`;
+      } else if (metric === 'orderCount' || metric === 'salesVolume') {
+        return (value: number) => value.toLocaleString();
+      } else if (metric === 'avgPrice') {
+        return (value: number) => value.toFixed(2);
+      } else {
+        return (value: number) => value.toFixed(1);
+      }
+    };
+
+    const formatTooltipValue = (value: number, metric: string) => {
+      if (metric === 'gmv') {
+        return value.toLocaleString();
+      } else if (metric === 'avgPrice') {
+        return value.toFixed(2);
+      } else if (metric === 'roi') {
+        return value.toFixed(1);
+      } else {
+        return value.toLocaleString();
+      }
+    };
+
+    const series: any[] = [
+      {
+        name: metricLabels[selectedMetric],
+        type: 'line',
+        smooth: true,
+        yAxisIndex: 0,
+        data: trendData.map(item => item[selectedMetric as keyof TrendData]),
+        itemStyle: {
+          color: metricColors[selectedMetric]
+        },
+        areaStyle: {
+          color: {
+            type: 'linear',
+            x: 0,
+            y: 0,
+            x2: 0,
+            y2: 1,
+            colorStops: [
+              { offset: 0, color: metricColors[selectedMetric] + '80' },
+              { offset: 1, color: metricColors[selectedMetric] + '10' }
+            ]
+          }
+        }
+      }
+    ];
+
+    // 如果开启了副指标，添加副指标系列
+    if (showSecondaryMetric && secondaryMetric !== selectedMetric) {
+      series.push({
+        name: metricLabels[secondaryMetric],
+        type: 'line',
+        smooth: true,
+        yAxisIndex: 1,
+        data: trendData.map(item => item[secondaryMetric as keyof TrendData]),
+        itemStyle: {
+          color: metricColors[secondaryMetric]
+        }
+      });
+    }
+
+    return {
     tooltip: {
-      formatter: (datum: any) => ({
-        name: '销售额',
-        value: `¥${datum.销售额.toLocaleString()}`
-      })
-    },
-    yAxis: {
-      label: {
-        formatter: (v: string) => `¥${(+v / 10000).toFixed(0)}万`
+        trigger: 'axis',
+        formatter: (params: any) => {
+          let result = `${params[0].name}<br/>`;
+          params.forEach((param: any) => {
+            const value = formatTooltipValue(param.value, param.seriesName === metricLabels[selectedMetric] ? selectedMetric : secondaryMetric);
+            result += `${param.marker}${param.seriesName}: ${value}<br/>`;
+          });
+          return result;
+        }
+      },
+      grid: {
+        left: '3%',
+        right: showSecondaryMetric ? '8%' : '4%',
+        bottom: '3%',
+        containLabel: true
+      },
+      xAxis: {
+        type: 'category',
+        boundaryGap: false,
+        data: trendData.map(item => item.date)
+      },
+      yAxis: [
+        {
+          type: 'value',
+          position: 'left',
+          axisLabel: {
+            formatter: getYAxisFormatter(selectedMetric)
+          }
+        },
+        ...(showSecondaryMetric && secondaryMetric !== selectedMetric ? [{
+          type: 'value',
+          position: 'right',
+          axisLabel: {
+            formatter: getYAxisFormatter(secondaryMetric)
+          }
+        }] : [])
+      ],
+      series
+    };
+  };
+
+  // 省份名称映射（将地图返回的名称转换为数据中的名称）
+  const provinceNameMapping: { [key: string]: string } = {
+    '北京市': '北京',
+    '北京': '北京',
+    '上海市': '上海',
+    '上海': '上海',
+    '广东省': '广东',
+    '广东': '广东',
+    '浙江省': '浙江',
+    '浙江': '浙江',
+    '四川省': '四川',
+    '四川': '四川',
+    '湖北省': '湖北',
+    '湖北': '湖北',
+    '陕西省': '陕西',
+    '陕西': '陕西',
+    '江苏省': '江苏',
+    '江苏': '江苏',
+    '重庆市': '重庆',
+    '重庆': '重庆',
+    // 添加更多可能的变体
+    '广东省（含深圳）': '广东',
+    '广东省（含广州）': '广东',
+    '广东（含深圳）': '广东',
+    '广东（含广州）': '广东'
+  };
+
+  // 处理地图点击事件 - 支持下钻到城市
+  const handleMapClick = (params: any) => {
+    if (params.componentType === 'series' && params.data) {
+      let provinceName = params.data.name;
+      
+      // 转换省份名称（处理地图可能返回的各种格式）
+      const normalizedName = provinceNameMapping[provinceName] || provinceName;
+      
+      // 如果当前是省份视图，点击后下钻到城市
+      if (mapView === 'province') {
+        // 检查该省份是否有城市数据（尝试多种匹配方式）
+        let provinceCities = regionData.filter(item => item.province === normalizedName);
+        
+        // 如果没找到，尝试反向匹配（数据中的省份名称可能包含"省"字）
+        if (provinceCities.length === 0) {
+          provinceCities = regionData.filter(item => 
+            item.province === normalizedName || 
+            item.province === normalizedName + '省' ||
+            normalizedName === item.province + '省' ||
+            item.province.includes(normalizedName) ||
+            normalizedName.includes(item.province)
+          );
+        }
+        
+        if (provinceCities.length > 0) {
+          // 使用找到的第一个城市的省份名称（确保一致性）
+          const actualProvinceName = provinceCities[0].province;
+          // 设置高亮（使用数据中的省份名称）
+          setHighlightedProvince(actualProvinceName);
+          setSelectedProvince(actualProvinceName);
+          setMapView('city');
+        } else {
+          // 如果没有城市数据，显示提示
+          message.warning('当前省份无活动');
+          // 即使无活动，也设置高亮以便用户看到点击效果
+          setHighlightedProvince(normalizedName);
+        }
+      } else if (mapView === 'city') {
+        // 城市视图下点击，不做任何操作（或者可以添加城市详情功能）
+        // 如果需要切换省份，需要先返回省份视图
       }
     }
   };
 
-  const handleRefresh = () => {
-    setLoading(true);
-    // 模拟数据刷新
-    setTimeout(() => {
-      setLoading(false);
-    }, 1000);
+  // 获取当前视图的区域数据（省份或城市）
+  const getCurrentViewData = () => {
+    if (mapView === 'city' && selectedProvince) {
+      // 城市视图：只显示选中省份的城市
+      return regionData.filter(item => item.province === selectedProvince);
+    } else {
+      // 省份视图：按省份聚合数据
+      const provinceMap = new Map<string, RegionData>();
+      regionData.forEach(item => {
+        const existing = provinceMap.get(item.province);
+        if (!existing || getSortValue(item, regionSortMetric) > getSortValue(existing, regionSortMetric)) {
+          provinceMap.set(item.province, item);
+        }
+      });
+      return Array.from(provinceMap.values());
+    }
   };
 
-  const handleExport = () => {
-    // 模拟导出功能
-    console.log('导出数据');
+  // 获取排序值（用于排序函数）
+  const getSortValue = (item: RegionData, metric: string): number => {
+    switch (metric) {
+      case 'gmv':
+        return item.gmv;
+      case 'orderCount':
+        return item.orderCount;
+      case 'salesVolume':
+        return item.salesVolume;
+      case 'avgPrice':
+        return item.avgPrice;
+      case 'roi':
+        return item.roi;
+      default:
+        return item.gmv;
+    }
   };
-
-  // 计算总体指标
-  const totalSales = activities.reduce((sum, activity) => sum + activity.totalSales, 0);
-  const totalOrders = activities.reduce((sum, activity) => sum + activity.orderCount, 0);
-  const totalParticipants = activities.reduce((sum, activity) => sum + activity.participantCount, 0);
-  const avgConversionRate = activities.reduce((sum, activity) => sum + activity.conversionRate, 0) / activities.length;
-  const avgROI = activities.reduce((sum, activity) => sum + activity.roi, 0) / activities.length;
 
   return (
-    <div className="activity-analysis-container">
+    <div className="activity-analysis-container" style={{ padding: '24px', backgroundColor: '#f5f5f5', minHeight: '100vh' }}>
       {/* 页面标题 */}
-      <div style={{ display: 'flex', alignItems: 'center', marginBottom: 16 }}>
-        <Title level={2} style={{ margin: 0, marginRight: 8 }}>活动分析</Title>
-        <div style={{ marginLeft: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
-          <Text type="secondary">数据更新时间：2025-01-27 14:30:00</Text>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+        <Title level={2} style={{ margin: 0 }}>活动分析</Title>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
+          <Text type="secondary" style={{ fontSize: '12px' }}>
+            数据更新时间：{dayjs().format('YYYY-MM-DD HH:mm:ss')}
+          </Text>
           <Text type="secondary" style={{ fontSize: '12px', color: '#999' }}>
             该数据仅作业务分析参考，不作为最终结算依据。
           </Text>
@@ -356,202 +1109,336 @@ const ActivityAnalysis: React.FC = () => {
 
       {/* 筛选条件 */}
       <Card style={{ marginBottom: 16 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
-            <Select
-              value={selectedActivity}
-              onChange={setSelectedActivity}
-              style={{ width: 200 }}
-              placeholder="选择活动"
-            >
-              <Option value="all">全部活动</Option>
-              {activities.map(activity => (
-                <Option key={activity.id} value={activity.id}>
-                  {activity.name}
-                </Option>
-              ))}
-            </Select>
-            <RangePicker
-              value={dateRange}
-              onChange={(dates) => setDateRange(dates as [dayjs.Dayjs, dayjs.Dayjs])}
-              style={{ width: 240 }}
+        <div style={{ display: 'flex', gap: 16, alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Text strong style={{ width: '60px' }}>月份：</Text>
+            <DatePicker
+              picker="month"
+              value={selectedMonth}
+              onChange={(date) => date && setSelectedMonth(date)}
+              style={{ width: 160 }}
+              format="YYYY年MM月"
             />
           </div>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <Button icon={<ReloadOutlined />} onClick={handleRefresh} loading={loading}>
-              刷新
-            </Button>
-            <Button type="primary" icon={<DownloadOutlined />} onClick={handleExport}>
-              导出报告
-            </Button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ 
+              display: 'inline-flex', 
+              border: '1px solid #d9d9d9', 
+              borderRadius: '6px',
+              padding: '2px',
+              backgroundColor: '#fafafa',
+              overflow: 'hidden'
+            }}>
+              {[
+                { value: '美团闪购', label: '美团闪购' },
+                { value: '淘宝闪购', label: '淘宝闪购' },
+                { value: '京东到家', label: '京东到家' }
+              ].map((item, index) => (
+                <div
+                  key={item.value}
+                  onClick={() => setSelectedPlatform(item.value)}
+                  style={{
+                    padding: '6px 16px',
+                    cursor: 'pointer',
+                    fontSize: '14px',
+                    borderRadius: '4px',
+                    transition: 'all 0.2s',
+                    backgroundColor: selectedPlatform === item.value ? '#1890ff' : 'transparent',
+                    color: selectedPlatform === item.value ? '#fff' : '#000',
+                    borderRight: index < 2 ? '1px solid #d9d9d9' : 'none',
+                    whiteSpace: 'nowrap',
+                    fontWeight: selectedPlatform === item.value ? '500' : 'normal'
+                  }}
+                >
+                  {item.label}
+                </div>
+              ))}
+          </div>
           </div>
         </div>
       </Card>
 
-      {/* 核心指标概览 */}
-      <Row gutter={16} style={{ marginBottom: '24px' }}>
-        <Col span={4}>
+      {/* 核心指标 */}
+      <Card title="核心指标" style={{ marginBottom: 0, borderBottom: 'none' }}>
+        <Row gutter={0} style={{ display: 'flex', justifyContent: 'space-between' }}>
+          {/* GMV */}
+          <Col style={{ width: 'calc(20% - 8px)' }}>
           <Card>
+              <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
+                <span style={{ fontSize: '14px', color: '#000000' }}>GMV（元）</span>
+                <AntTooltip 
+                  title="该数据仅供参考，不作为最终结算依据"
+                  placement="topLeft"
+                >
+                  <QuestionCircleOutlined style={{ marginLeft: 4, color: '#000000', cursor: 'help' }} />
+                </AntTooltip>
+              </div>
             <Statistic
-              title="总销售额"
-              value={totalSales}
+                title=""
+                value={coreMetrics.gmv}
               precision={0}
-              prefix="¥"
-              valueStyle={{ color: '#1890ff' }}
+                valueStyle={{ color: '#262626', fontSize: '24px', fontWeight: 'bold' }}
             />
+              {renderComparison(coreMetrics.gmvMonthOnMonth, coreMetrics.gmvYearOnYear)}
           </Card>
         </Col>
-        <Col span={4}>
+
+          {/* 订单数 */}
+          <Col style={{ width: 'calc(20% - 8px)' }}>
           <Card>
+              <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
+                <span style={{ fontSize: '14px', color: '#000000' }}>订单数（张）</span>
+                <AntTooltip 
+                  title="该数据仅供参考，不作为最终结算依据"
+                  placement="topLeft"
+                >
+                  <QuestionCircleOutlined style={{ marginLeft: 4, color: '#000000', cursor: 'help' }} />
+                </AntTooltip>
+              </div>
             <Statistic
-              title="总订单数"
-              value={totalOrders}
+                title=""
+                value={coreMetrics.orderCount}
               precision={0}
-              valueStyle={{ color: '#52c41a' }}
+                valueStyle={{ color: '#262626', fontSize: '24px', fontWeight: 'bold' }}
             />
+              {renderComparison(coreMetrics.orderCountMonthOnMonth, coreMetrics.orderCountYearOnYear)}
           </Card>
         </Col>
-        <Col span={4}>
+
+          {/* 销量 */}
+          <Col style={{ width: 'calc(20% - 8px)' }}>
           <Card>
+              <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
+                <span style={{ fontSize: '14px', color: '#000000' }}>销量（件）</span>
+                <AntTooltip 
+                  title="该数据仅供参考，不作为最终结算依据"
+                  placement="topLeft"
+                >
+                  <QuestionCircleOutlined style={{ marginLeft: 4, color: '#000000', cursor: 'help' }} />
+                </AntTooltip>
+              </div>
             <Statistic
-              title="参与人数"
-              value={totalParticipants}
+                title=""
+                value={coreMetrics.salesVolume}
               precision={0}
-              valueStyle={{ color: '#722ed1' }}
+                valueStyle={{ color: '#262626', fontSize: '24px', fontWeight: 'bold' }}
             />
+              {renderComparison(coreMetrics.salesVolumeMonthOnMonth, coreMetrics.salesVolumeYearOnYear)}
           </Card>
         </Col>
-        <Col span={4}>
+
+          {/* 客单价 */}
+          <Col style={{ width: 'calc(20% - 8px)' }}>
           <Card>
+              <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
+                <span style={{ fontSize: '14px', color: '#000000' }}>客单价（元）</span>
+                <AntTooltip 
+                  title="该数据仅供参考，不作为最终结算依据"
+                  placement="topLeft"
+                >
+                  <QuestionCircleOutlined style={{ marginLeft: 4, color: '#000000', cursor: 'help' }} />
+                </AntTooltip>
+              </div>
             <Statistic
-              title="平均转化率"
-              value={avgConversionRate}
+                title=""
+                value={coreMetrics.avgPrice}
+                precision={2}
+                valueStyle={{ color: '#262626', fontSize: '24px', fontWeight: 'bold' }}
+              />
+              {renderComparison(coreMetrics.avgPriceMonthOnMonth, coreMetrics.avgPriceYearOnYear)}
+          </Card>
+        </Col>
+
+          {/* ROI */}
+          <Col style={{ width: 'calc(20% - 8px)' }}>
+          <Card>
+              <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
+                <span style={{ fontSize: '14px', color: '#000000' }}>ROI（x）</span>
+                <AntTooltip 
+                  title="GMV ÷ 优惠金额"
+                  placement="topLeft"
+                >
+                  <QuestionCircleOutlined style={{ marginLeft: 4, color: '#000000', cursor: 'help' }} />
+                </AntTooltip>
+              </div>
+            <Statistic
+                title=""
+                value={coreMetrics.roi}
               precision={1}
-              suffix="%"
-              valueStyle={{ color: '#faad14' }}
-            />
-          </Card>
-        </Col>
-        <Col span={4}>
-          <Card>
-            <Statistic
-              title="平均ROI"
-              value={avgROI}
-              precision={1}
-              suffix="x"
-              valueStyle={{ color: '#f5222d' }}
-            />
-          </Card>
-        </Col>
-        <Col span={4}>
-          <Card>
-            <Statistic
-              title="活动数量"
-              value={activities.length}
-              precision={0}
-              suffix="个"
-              valueStyle={{ color: '#13c2c2' }}
-            />
+                valueStyle={{ color: '#262626', fontSize: '24px', fontWeight: 'bold' }}
+              />
+              {renderComparison(coreMetrics.roiMonthOnMonth, coreMetrics.roiYearOnYear)}
           </Card>
         </Col>
       </Row>
+              </Card>
 
-      {/* 分析图表 */}
-      <Tabs defaultActiveKey="trend">
-        <TabPane tab="趋势分析" key="trend">
-          <Row gutter={16}>
-            <Col span={12}>
-              <Card title="销售额趋势" style={{ marginBottom: '16px' }}>
-                <Line {...salesTrendConfig} height={300} />
-              </Card>
-            </Col>
-            <Col span={12}>
-              <Card title="订单数趋势" style={{ marginBottom: '16px' }}>
-                <Line {...orderTrendConfig} height={300} />
-              </Card>
-            </Col>
-          </Row>
-        </TabPane>
-
-        <TabPane tab="品类分析" key="category">
-          <Row gutter={16}>
-            <Col span={12}>
-              <Card title="品类销售分布">
-                <Pie {...categoryPieConfig} height={400} />
-              </Card>
-            </Col>
-            <Col span={12}>
-              <Card title="品类销售排行">
-                <div style={{ padding: '20px 0' }}>
-                  {categoryData.map((item, index) => (
-                    <div key={item.category} style={{ marginBottom: '16px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                        <span>
-                          {index === 0 && <TrophyOutlined style={{ color: '#faad14', marginRight: '8px' }} />}
-                          {item.category}
+      {/* 趋势图 */}
+      <Card style={{ marginBottom: 16, marginTop: 0, borderTop: 'none' }}>
+        <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          {/* 主指标选择器 - 使用销售分析样式 */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '20px', flexWrap: 'wrap' }}>
+            {[
+              { key: 'gmv', label: 'GMV', color: '#1890ff' },
+              { key: 'orderCount', label: '订单数', color: '#52c41a' },
+              { key: 'salesVolume', label: '销量', color: '#722ed1' },
+              { key: 'avgPrice', label: '客单价', color: '#faad14' },
+              { key: 'roi', label: 'ROI', color: '#f5222d' }
+            ].map(metric => (
+              <div 
+                key={metric.key} 
+                style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  cursor: 'pointer',
+                  padding: '4px 8px',
+                  borderRadius: '4px',
+                  transition: 'all 0.2s ease',
+                  backgroundColor: selectedMetric === metric.key ? 'rgba(0,0,0,0.02)' : 'transparent',
+                  opacity: selectedMetric === metric.key ? 1 : 0.5
+                }}
+                onClick={() => setSelectedMetric(metric.key)}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'rgba(0,0,0,0.05)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = selectedMetric === metric.key ? 'rgba(0,0,0,0.02)' : 'transparent';
+                }}
+              >
+                <div 
+                  style={{ 
+                    width: '12px', 
+                    height: '2px', 
+                    backgroundColor: selectedMetric === metric.key ? metric.color : '#ccc',
+                    marginRight: '8px',
+                    borderRadius: '1px',
+                    transition: 'background-color 0.2s ease'
+                  }} 
+                />
+                <span style={{ 
+                  color: selectedMetric === metric.key ? '#333' : '#999',
+                  fontSize: '14px',
+                  fontWeight: selectedMetric === metric.key ? '500' : '400',
+                  transition: 'all 0.2s ease'
+                }}>
+                  {metric.label}
                         </span>
-                        <span>¥{item.sales.toLocaleString()}</span>
-                      </div>
-                      <Progress percent={item.percentage} showInfo={false} />
                     </div>
                   ))}
                 </div>
+          {/* 副指标开关和选择 - 右对齐 */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Switch checked={showSecondaryMetric} onChange={setShowSecondaryMetric} />
+            <Text>开启副指标</Text>
+            {showSecondaryMetric && (
+              <Select
+                value={secondaryMetric}
+                onChange={setSecondaryMetric}
+                style={{ width: 120 }}
+                disabled={!showSecondaryMetric}
+              >
+                <Option value="gmv" disabled={selectedMetric === 'gmv'}>GMV</Option>
+                <Option value="orderCount" disabled={selectedMetric === 'orderCount'}>订单数</Option>
+                <Option value="salesVolume" disabled={selectedMetric === 'salesVolume'}>销量</Option>
+                <Option value="avgPrice" disabled={selectedMetric === 'avgPrice'}>客单价</Option>
+                <Option value="roi" disabled={selectedMetric === 'roi'}>ROI</Option>
+              </Select>
+            )}
+          </div>
+        </div>
+        {mapReady && (
+          <ReactECharts
+            option={getTrendOption()}
+            style={{ height: '400px' }}
+          />
+        )}
               </Card>
-            </Col>
-          </Row>
-        </TabPane>
 
-        <TabPane tab="活动对比" key="comparison">
-          <Row gutter={16}>
-            <Col span={16}>
-              <Card title="活动销售额对比">
-                <Column {...comparisonConfig} height={400} />
-              </Card>
-            </Col>
-            <Col span={8}>
-              <Card title="活动效果排行">
-                <div style={{ padding: '20px 0' }}>
-                  {activities
-                    .sort((a, b) => b.roi - a.roi)
-                    .map((activity, index) => (
-                      <div key={activity.id} style={{ marginBottom: '16px', padding: '12px', backgroundColor: '#fafafa', borderRadius: '6px' }}>
+      {/* 活动区域分布 */}
+      <Card 
+        title={
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <div>
-                            <Text strong>{activity.name}</Text>
-                            <br />
-                            <Text type="secondary">ROI: {activity.roi}x</Text>
+            <span>活动区域分布</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Text style={{ fontSize: '14px' }}>排序指标：</Text>
+              <Select
+                value={regionSortMetric}
+                onChange={setRegionSortMetric}
+                style={{ width: 120 }}
+                size="small"
+              >
+                <Option value="gmv">GMV</Option>
+                <Option value="orderCount">订单数</Option>
+                <Option value="salesVolume">销量</Option>
+                <Option value="avgPrice">客单价</Option>
+                <Option value="roi">ROI</Option>
+              </Select>
                           </div>
-                          <div style={{ textAlign: 'right' }}>
-                            {index === 0 && <RiseOutlined style={{ color: '#52c41a' }} />}
-                            {index === activities.length - 1 && <FallOutlined style={{ color: '#ff4d4f' }} />}
                           </div>
-                        </div>
-                        <Progress 
-                          percent={Math.round((activity.roi / Math.max(...activities.map(a => a.roi))) * 100)} 
+        }
+        style={{ marginBottom: 16 }}
+      >
+        <Row gutter={16}>
+          {/* 左侧地图 */}
+          <Col span={14}>
+            <div style={{ position: 'relative' }}>
+              {mapView === 'city' && selectedProvince && (
+                <div style={{ marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <Button 
                           size="small" 
-                          showInfo={false}
-                          strokeColor={index === 0 ? '#52c41a' : index === activities.length - 1 ? '#ff4d4f' : '#1890ff'}
-                        />
-                      </div>
-                    ))}
+                    onClick={() => {
+                      setMapView('province');
+                      setSelectedProvince(null);
+                      setHighlightedProvince(null); // 清除高亮
+                    }}
+                  >
+                    返回省份视图
+                  </Button>
+                  <Text>当前查看：{selectedProvince}</Text>
                 </div>
-              </Card>
+              )}
+              {mapReady ? (
+                <ReactECharts
+                  option={getMapOption()}
+                  style={{ height: '500px' }}
+                  onEvents={{
+                    click: handleMapClick
+                  }}
+                />
+              ) : (
+                <div style={{ height: '500px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#fafafa' }}>
+                  <Text type="secondary">地图加载中...</Text>
+                      </div>
+              )}
+                </div>
             </Col>
-          </Row>
-        </TabPane>
 
-        <TabPane tab="详细数据" key="detail">
-          <Card title="活动详细数据">
+          {/* 右侧统计明细 */}
+          <Col span={10}>
+            {(() => {
+              const sortedData = getSortedRegionData();
+              if (mapView === 'city' && selectedProvince && sortedData.length === 0) {
+                return (
+                  <div style={{ height: '500px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Empty description="当前省份无活动" />
+                  </div>
+                );
+              }
+              return (
             <Table
-              columns={activityColumns}
-              dataSource={activities}
+                  columns={regionColumns}
+                  dataSource={sortedData}
               rowKey="id"
-              pagination={{ pageSize: 10 }}
-              scroll={{ x: 1200 }}
-            />
+                  pagination={false}
+                  size="small"
+                  scroll={{ y: 500 }}
+                  bordered
+                />
+              );
+            })()}
+          </Col>
+        </Row>
           </Card>
-        </TabPane>
-      </Tabs>
     </div>
   );
 };
