@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Card, DatePicker, Select, Table, Tag, Typography, Tooltip, Empty } from 'antd';
+import { Card, DatePicker, Select, Table, Tag, Typography, Tooltip, Empty, Radio } from 'antd';
 import type { Dayjs } from 'dayjs';
 import dayjs from 'dayjs';
 import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
@@ -776,7 +776,7 @@ const MarketingCalendar: React.FC = () => {
   ];
 
   return (
-    <div className="marketing-calendar-container" style={{ padding: '24px', backgroundColor: '#f5f5f5', minHeight: '100vh' }}>
+    <div className="marketing-calendar-container">
       {/* 页面标题 */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
         <Title level={2} style={{ margin: 0 }}>营销日历</Title>
@@ -804,39 +804,11 @@ const MarketingCalendar: React.FC = () => {
             />
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div style={{ 
-              display: 'inline-flex', 
-              border: '1px solid #d9d9d9', 
-              borderRadius: '6px',
-              padding: '2px',
-              backgroundColor: '#fafafa',
-              overflow: 'hidden'
-            }}>
-              {[
-                { value: '美团闪购', label: '美团闪购' },
-                { value: '淘宝闪购', label: '淘宝闪购' },
-                { value: '京东到家', label: '京东到家' }
-              ].map((item, index) => (
-                <div
-                  key={item.value}
-                  onClick={() => setSelectedPlatform(item.value as Platform)}
-                  style={{
-                    padding: '6px 16px',
-                    cursor: 'pointer',
-                    fontSize: '14px',
-                    borderRadius: '4px',
-                    transition: 'all 0.2s',
-                    backgroundColor: selectedPlatform === item.value ? '#1890ff' : 'transparent',
-                    color: selectedPlatform === item.value ? '#fff' : '#000',
-                    borderRight: index < 2 ? '1px solid #d9d9d9' : 'none',
-                    whiteSpace: 'nowrap',
-                    fontWeight: selectedPlatform === item.value ? '500' : 'normal'
-                  }}
-                >
-                  {item.label}
-                </div>
-              ))}
-            </div>
+            <Radio.Group value={selectedPlatform} onChange={(e) => setSelectedPlatform(e.target.value as Platform)} buttonStyle="solid">
+              <Radio.Button value="美团闪购">美团闪购</Radio.Button>
+              <Radio.Button value="淘宝闪购">淘宝闪购</Radio.Button>
+              <Radio.Button value="京东到家">京东到家</Radio.Button>
+            </Radio.Group>
           </div>
         </div>
       </Card>

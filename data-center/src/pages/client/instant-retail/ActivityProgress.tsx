@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Card, Table, DatePicker, Select, Typography, Row, Col, Progress, Button, Drawer, Checkbox, Space } from 'antd';
+import { Card, Table, DatePicker, Select, Typography, Row, Col, Progress, Button, Drawer, Checkbox, Space, Radio } from 'antd';
 import { SettingOutlined, MenuOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import dayjs, { Dayjs } from 'dayjs';
@@ -1112,7 +1112,7 @@ const ActivityProgress: React.FC = () => {
   };
 
   return (
-    <div style={{ padding: '24px', backgroundColor: '#f5f5f5', minHeight: '100vh' }}>
+    <div className="activity-progress-container">
       {/* 页面标题 */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
         <Title level={2} style={{ margin: 0 }}>活动进度</Title>
@@ -1140,39 +1140,11 @@ const ActivityProgress: React.FC = () => {
             />
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div style={{ 
-              display: 'inline-flex', 
-              border: '1px solid #d9d9d9', 
-              borderRadius: '6px',
-              padding: '2px',
-              backgroundColor: '#fafafa',
-              overflow: 'hidden'
-            }}>
-              {[
-                { value: '美团闪购', label: '美团闪购' },
-                { value: '淘宝闪购', label: '淘宝闪购' },
-                { value: '京东到家', label: '京东到家' }
-              ].map((item, index) => (
-                <div
-                  key={item.value}
-                  onClick={() => setSelectedPlatform(item.value)}
-                  style={{
-                    padding: '6px 16px',
-                    cursor: 'pointer',
-                    fontSize: '14px',
-                    borderRadius: '4px',
-                    transition: 'all 0.2s',
-                    backgroundColor: selectedPlatform === item.value ? '#1890ff' : 'transparent',
-                    color: selectedPlatform === item.value ? '#fff' : '#000',
-                    borderRight: index < 2 ? '1px solid #d9d9d9' : 'none',
-                    whiteSpace: 'nowrap',
-                    fontWeight: selectedPlatform === item.value ? '500' : 'normal'
-                  }}
-                >
-                  {item.label}
-                </div>
-              ))}
-            </div>
+            <Radio.Group value={selectedPlatform} onChange={(e) => setSelectedPlatform(e.target.value)} buttonStyle="solid">
+              <Radio.Button value="美团闪购">美团闪购</Radio.Button>
+              <Radio.Button value="淘宝闪购">淘宝闪购</Radio.Button>
+              <Radio.Button value="京东到家">京东到家</Radio.Button>
+            </Radio.Group>
           </div>
         </div>
       </Card>
