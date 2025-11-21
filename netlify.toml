@@ -1,7 +1,7 @@
 [build]
   base = "data-center"
   publish = "data-center/build"
-  command = "npm run build"
+  command = "npm ci && npm run build"
 
 [[redirects]]
   from = "/*"
@@ -10,6 +10,9 @@
 
 [build.environment]
   NODE_VERSION = "18"
+  NODE_OPTIONS = "--max-old-space-size=4096"
+  CI = "false"
+  GENERATE_SOURCEMAP = "false"
 
 [[headers]]
   for = "/*"
