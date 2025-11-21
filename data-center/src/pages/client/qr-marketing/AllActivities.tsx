@@ -110,12 +110,12 @@ const AllActivities: React.FC = () => {
         const itemStartDate = dayjs(item.startDate);
         const itemEndDate = dayjs(item.endDate);
         return (
-          (itemStartDate.isAfter(startDate) || itemStartDate.isSame(startDate)) &&
-          (itemStartDate.isBefore(endDate) || itemStartDate.isSame(endDate)) ||
-          (itemEndDate.isAfter(startDate) || itemEndDate.isSame(startDate)) &&
-          (itemEndDate.isBefore(endDate) || itemEndDate.isSame(endDate)) ||
-          (itemStartDate.isBefore(startDate) || itemStartDate.isSame(startDate)) &&
-          (itemEndDate.isAfter(endDate) || itemEndDate.isSame(endDate))
+          ((itemStartDate.isAfter(startDate) || itemStartDate.isSame(startDate)) &&
+           (itemStartDate.isBefore(endDate) || itemStartDate.isSame(endDate))) ||
+          ((itemEndDate.isAfter(startDate) || itemEndDate.isSame(startDate)) &&
+           (itemEndDate.isBefore(endDate) || itemEndDate.isSame(endDate))) ||
+          ((itemStartDate.isBefore(startDate) || itemStartDate.isSame(startDate)) &&
+           (itemEndDate.isAfter(endDate) || itemEndDate.isSame(endDate)))
         );
       });
     }
