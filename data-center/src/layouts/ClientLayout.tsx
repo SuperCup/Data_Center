@@ -114,9 +114,14 @@ const ClientLayout: React.FC = () => {
       type: 'group' as const,
     },
     {
-      key: 'qr-marketing',
-      label: '物码营销',
-      icon: <QrcodeOutlined />,
+      key: 'qr-all-activities',
+      label: '全量活动',
+      icon: <UnorderedListOutlined />,
+    },
+    {
+      key: 'qr-user-analysis',
+      label: '用户分析',
+      icon: <BarChartOutlined />,
     },
     {
       key: 'custom-service-group',

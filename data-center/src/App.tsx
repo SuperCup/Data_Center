@@ -24,6 +24,10 @@ import ActivityProgress from './pages/client/instant-retail/ActivityProgress';
 import ActivityAnalysisInstant from './pages/client/instant-retail/ActivityAnalysis';
 // 物码营销
 import QrMarketing from './pages/client/qr-marketing/QrMarketing';
+import QrAllActivities from './pages/client/qr-marketing/AllActivities';
+import QrUserAnalysis from './pages/client/qr-marketing/UserAnalysis';
+import QrRealtime from './pages/client/qr-marketing/Realtime';
+import QrActivityAnalysis from './pages/client/qr-marketing/QrActivityAnalysis';
 // 专属定制
 import CustomService from './pages/client/custom-service/CustomService';
 // 数据资产
@@ -52,6 +56,10 @@ function App() {
           <Route path="activity-progress" element={<ActivityProgress />} />
           <Route path="activity-analysis-instant" element={<ActivityAnalysisInstant />} />
           <Route path="qr-marketing" element={<QrMarketing />} />
+          <Route path="qr-all-activities" element={<QrAllActivities />} />
+          <Route path="qr-user-analysis" element={<QrUserAnalysis />} />
+          <Route path="qr-realtime/:activityId" element={<QrRealtime />} />
+          <Route path="qr-activity-analysis/:activityId" element={<QrActivityAnalysis />} />
           <Route path="custom-service" element={<CustomService />} />
           <Route index element={<AllActivities />} />
         </Route>
