@@ -20,6 +20,7 @@ import InstantRetail from './pages/client/instant-retail/InstantRetail';
 import PriceMonitoring from './pages/client/instant-retail/PriceMonitoring';
 import PriceMonitoringDashboard from './pages/client/instant-retail/PriceMonitoringDashboard';
 import MarketingCalendar from './pages/client/instant-retail/MarketingCalendar';
+import MarketingCalendarV2 from './pages/client/instant-retail/MarketingCalendarV2';
 import ActivityProgress from './pages/client/instant-retail/ActivityProgress';
 import ActivityAnalysisInstant from './pages/client/instant-retail/ActivityAnalysis';
 // 物码营销
@@ -52,7 +53,7 @@ function App() {
           <Route path="price-monitoring" element={<PriceMonitoring />} />
           <Route path="price-monitoring-dashboard" element={<PriceMonitoringDashboard />} />
           <Route path="price-monitoring-dashboard/:taskId" element={<PriceMonitoringDashboard />} />
-          <Route path="marketing-calendar" element={<MarketingCalendar />} />
+          <Route path="marketing-calendar" element={<MarketingCalendarV2 />} />
           <Route path="activity-progress" element={<ActivityProgress />} />
           <Route path="activity-analysis-instant" element={<ActivityAnalysisInstant />} />
           <Route path="qr-marketing" element={<QrMarketing />} />
