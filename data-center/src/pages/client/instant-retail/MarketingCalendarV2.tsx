@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Card, DatePicker, Tag, Typography, Radio, Statistic, Row, Col, Modal, Button, Table, Switch, Tabs } from 'antd';
+import { Card, DatePicker, Tag, Typography, Radio, Statistic, Row, Col, Modal, Button, Table, Switch, Tabs, Alert, Empty } from 'antd';
 import type { Dayjs } from 'dayjs';
 import dayjs from 'dayjs';
 import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
@@ -210,6 +210,97 @@ const MarketingCalendarV2: React.FC = () => {
           ]
         }
       ]
+    },
+    {
+      id: '4',
+      planName: '25年12月万店满减神券',
+      platform: '美团闪购',
+      channel: '全渠道',
+      planId: '1970692819795308622',
+      submissionDeadline: '2025-11-20 23:59:59',
+      registrationStatus: '已提报',
+      dateData: [
+        {
+          date: '2025-12-12',
+          highlighted: true,
+          coupons: [
+            { id: '16', name: '双12零食下午茶满49减12_同享券', type: '同享券', startDate: '2025-12-01', endDate: '2025-12-31' },
+            { id: '17', name: '双12夜宵解馋满49减12_同享券', type: '同享券', startDate: '2025-12-10', endDate: '2025-12-25' },
+            { id: '18', name: '双12通用运费券59减8', type: '同享券', startDate: '2025-12-12', endDate: '2025-12-28' }
+          ]
+        },
+        {
+          date: '2025-12-25',
+          highlighted: true,
+          coupons: [
+            { id: '19', name: '圣诞节零食下午茶满29减7_同享券', type: '同享券', startDate: '2025-12-20', endDate: '2025-12-31' },
+            { id: '20', name: '圣诞节夜宵解馋满99减25_同享券', type: '同享券', startDate: '2025-12-25', endDate: '2025-12-31' }
+          ]
+        }
+      ]
+    },
+    {
+      id: '5',
+      planName: '25年12月新供给渠道加强',
+      platform: '美团闪购',
+      channel: '全渠道',
+      planId: '1970692819795308623',
+      submissionDeadline: '2025-11-25 23:59:59',
+      registrationStatus: '已提报',
+      dateData: [
+        {
+          date: '2025-12-07',
+          highlighted: true,
+          coupons: [
+            { id: '21', name: '12月全品类-共补券59-30(品牌15)', type: '共补券', startDate: '2025-12-01', endDate: '2025-12-20' }
+          ]
+        }
+      ]
+    },
+    {
+      id: '6',
+      planName: '12月万店满减神券',
+      platform: '淘宝闪购',
+      channel: '全渠道',
+      planId: '68199418',
+      submissionDeadline: '2025-11-15 23:59:59',
+      registrationStatus: '未提报',
+      dateData: [
+        {
+          date: '2025-12-12',
+          highlighted: true,
+          coupons: [
+            { id: '22', name: '双12通用运费券59减8', type: '同享券', startDate: '2025-12-05', endDate: '2025-12-25' },
+            { id: '23', name: '双12通用神券159减40', type: '同享券', startDate: '2025-12-12', endDate: '2025-12-31' }
+          ]
+        }
+      ]
+    },
+    {
+      id: '7',
+      planName: '12月年终大促活动',
+      platform: '京东到家',
+      channel: '部分渠道',
+      planId: 'JD202512001',
+      submissionDeadline: '2025-11-30 23:59:59',
+      registrationStatus: '已提报',
+      dateData: [
+        {
+          date: '2025-12-12',
+          highlighted: true,
+          coupons: [
+            { id: '24', name: '双12年终大促满199减50', type: '专享券', startDate: '2025-12-10', endDate: '2025-12-20' },
+            { id: '25', name: '双12年终大促满299减80', type: '专享券', startDate: '2025-12-12', endDate: '2025-12-22' }
+          ]
+        },
+        {
+          date: '2025-12-25',
+          highlighted: true,
+          coupons: [
+            { id: '26', name: '圣诞节特惠满99减30', type: '同享券', startDate: '2025-12-23', endDate: '2025-12-31' }
+          ]
+        }
+      ]
     }
   ]);
 
@@ -333,16 +424,23 @@ const MarketingCalendarV2: React.FC = () => {
     return null;
   };
 
-  // 筛选后的方案（只显示已提报且在当前月份有活动的方案）
+  // 筛选后的方案（根据Tab显示已提报或可提报的方案）
   const filteredPlans = useMemo(() => {
     return plans.filter(plan => {
       if (plan.platform !== selectedPlatform) {
         return false;
       }
       
-      // 只显示已提报的方案
-      if (plan.registrationStatus !== '已提报') {
-        return false;
+      // 根据Tab筛选已提报或可提报的方案
+      if (planStatusTab === '已提报') {
+        if (plan.registrationStatus !== '已提报') {
+          return false;
+        }
+      } else {
+        // 可提报（未提报）
+        if (plan.registrationStatus !== '未提报') {
+          return false;
+        }
       }
       
       // 检查方案是否有数据在当前选中月份
@@ -366,7 +464,7 @@ const MarketingCalendarV2: React.FC = () => {
       
       return hasDataInMonth;
     });
-  }, [plans, selectedMonth, selectedPlatform]);
+  }, [plans, selectedMonth, selectedPlatform, planStatusTab]);
 
   // 统计：已提报/可提报方案数
   const planStatistics = useMemo(() => {
@@ -402,10 +500,12 @@ const MarketingCalendarV2: React.FC = () => {
     let 待开始 = 0;
     let 进行中 = 0;
     let 已结束 = 0;
+    let 总数 = 0;
     
     plans.forEach(plan => {
       if (plan.platform === selectedPlatform) {
         const activities = getAllActivities(plan);
+        总数 += activities.length;
         activities.forEach(activity => {
           const status = getActivityStatus(activity);
           if (status === '待开始') {
@@ -419,7 +519,7 @@ const MarketingCalendarV2: React.FC = () => {
       }
     });
     
-    return { 待开始, 进行中, 已结束 };
+    return { 待开始, 进行中, 已结束, 总数 };
   }, [plans, selectedPlatform]);
 
   // 获取某日正在进行的方案和活动
@@ -511,6 +611,16 @@ const MarketingCalendarV2: React.FC = () => {
         </div>
       </Card>
 
+      {/* 页面交互说明 */}
+      <Alert
+        message="页面交互说明"
+        description="点击方案，可查看选中方案下已提报活动明细；点击日历中具体日期，可查看当前日期在进行的方案与活动明细。"
+        type="info"
+        showIcon
+        style={{ marginBottom: 16 }}
+        closable
+      />
+
 
       {/* 方案统计模块和日历模块 - 左右结构 */}
       <Row gutter={16} style={{ alignItems: 'stretch' }}>
@@ -550,14 +660,34 @@ const MarketingCalendarV2: React.FC = () => {
             bodyStyle={{ flex: 1, overflow: 'auto', minHeight: 0 }}
           >
         {filteredPlans.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '40px', color: '#999' }}>
-            暂无进行中的{getPlatformName(selectedPlatform)}
-          </div>
+          <Empty
+            description={planStatusTab === '已提报' 
+              ? `暂无已提报的${getPlatformName(selectedPlatform)}` 
+              : `暂无可提报的${getPlatformName(selectedPlatform)}`}
+            style={{ padding: '40px 0' }}
+          />
         ) : (
           <div style={{ marginTop: planViewMode === 'simple' ? '0' : '16px' }}>
             {filteredPlans.map(plan => {
               const progress = getPlanProgress(plan);
               const allActivities = getAllActivities(plan);
+              // 计算活动统计：总数、待开始、进行中、已结束
+              const activityStats = {
+                total: allActivities.length,
+                待开始: 0,
+                进行中: 0,
+                已结束: 0
+              };
+              allActivities.forEach(activity => {
+                const status = getActivityStatus(activity);
+                if (status === '待开始') {
+                  activityStats.待开始++;
+                } else if (status === '进行中') {
+                  activityStats.进行中++;
+                } else {
+                  activityStats.已结束++;
+                }
+              });
               const activeActivities = allActivities.filter(activity => {
                 const status = getActivityStatus(activity);
                 return status === '进行中';
@@ -604,15 +734,24 @@ const MarketingCalendarV2: React.FC = () => {
                 }
               }
               
-              // 根据方案状态选择颜色
-              const colors = [
-                '#1890ff', // 蓝色
-                '#52c41a', // 绿色
-                '#faad14', // 橙色
-                '#722ed1', // 紫色
-                '#eb2f96'  // 粉色
-              ];
-              const planColor = colors[parseInt(plan.id) % colors.length] || '#1890ff';
+              // 根据当前时间与方案时间跨度的关系选择颜色
+              let planColor = '#999'; // 默认灰色（已结束）
+              if (progress) {
+                const now = dayjs();
+                const progressStart = dayjs(progress.startDate);
+                const progressEnd = dayjs(progress.endDate);
+                
+                if (now.isBefore(progressStart, 'day')) {
+                  // 当前时间在方案开始前：黄色（与待开始同色）
+                  planColor = '#faad14';
+                } else if (now.isAfter(progressEnd, 'day')) {
+                  // 当前时间在方案结束后：灰色（与已结束同色）
+                  planColor = '#999';
+                } else {
+                  // 当前时间在方案跨度内：蓝色（与进行中同色）
+                  planColor = '#1890ff';
+                }
+              }
               
               // 简洁模式：一行显示方案信息
               if (planViewMode === 'simple') {
@@ -733,7 +872,9 @@ const MarketingCalendarV2: React.FC = () => {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
                       <Text strong style={{ fontSize: '16px' }}>{plan.planName}</Text>
                       <Tag color="blue">{plan.channel}</Tag>
-                      <Tag color="green">已提报</Tag>
+                      <Tag color={plan.registrationStatus === '已提报' ? 'green' : 'orange'}>
+                        {plan.registrationStatus === '已提报' ? '已提报' : '未提报'}
+                      </Tag>
                     </div>
                     <div style={{ marginBottom: '4px' }}>
                       <Text type="secondary" style={{ fontSize: '12px' }}>
@@ -742,7 +883,7 @@ const MarketingCalendarV2: React.FC = () => {
                     </div>
                     <div>
                       <Text type="secondary" style={{ fontSize: '12px' }}>
-                        进行中活动: {activeActivities.length} 个 | 总活动数: {allActivities.length} 个
+                        活动统计: 总数 {activityStats.total} | 待开始 {activityStats.待开始} | 进行中 {activityStats.进行中} | 已结束 {activityStats.已结束}
                       </Text>
                     </div>
                   </div>
@@ -820,6 +961,9 @@ const MarketingCalendarV2: React.FC = () => {
                 <span>活动日历</span>
                 {/* 活动状态统计 */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '12px' }}>
+                  <span style={{ color: '#333', fontWeight: 'bold' }}>
+                    总数: {activityStatistics.总数}
+                  </span>
                   <span style={{ color: '#faad14', fontWeight: 'bold' }}>
                     待开始: {activityStatistics.待开始}
                   </span>
@@ -887,6 +1031,9 @@ const MarketingCalendarV2: React.FC = () => {
               const { activePlans, activeActivities } = getActivePlansAndActivities(date);
               const isSelected = selectedDate && selectedDate.isSame(date, 'day');
               
+              // 判断是否为今日
+              const isToday = date.isSame(dayjs(), 'day');
+              
               // 判断是否为节假日（有营销节点且是节假日类型）
               const isHolidayDate = node && node.type === 'holiday';
               // 判断是否为周末
@@ -909,6 +1056,11 @@ const MarketingCalendarV2: React.FC = () => {
                 cellStyle.border = '2px solid #1890ff';
                 cellStyle.backgroundColor = '#e6f7ff';
                 cellStyle.boxShadow = '0 0 0 2px rgba(24, 144, 255, 0.2)';
+              } else if (isToday) {
+                // 今日：蓝色边框、浅蓝色背景
+                cellStyle.border = '2px solid #1890ff';
+                cellStyle.backgroundColor = '#e6f7ff';
+                cellStyle.boxShadow = '0 2px 4px rgba(24, 144, 255, 0.2)';
               } else if (isHolidayDate && node?.isMajor) {
                 // 重大节假日：红色边框、红色背景渐变
                 cellStyle.border = '2px solid #ff4d4f';
@@ -951,7 +1103,11 @@ const MarketingCalendarV2: React.FC = () => {
                     if (!isSelected) {
                       e.currentTarget.style.transform = 'scale(1.03)';
                       e.currentTarget.style.zIndex = '10';
-                      if (!isHolidayDate && !node) {
+                      if (isToday) {
+                        // 今日悬停时保持蓝色样式，但稍微加深
+                        e.currentTarget.style.backgroundColor = '#bae7ff';
+                        e.currentTarget.style.borderColor = '#1890ff';
+                      } else if (!isHolidayDate && !node) {
                         e.currentTarget.style.backgroundColor = '#f0f5ff';
                         e.currentTarget.style.borderColor = '#1890ff';
                       }
@@ -961,7 +1117,11 @@ const MarketingCalendarV2: React.FC = () => {
                     if (!isSelected) {
                       e.currentTarget.style.transform = 'scale(1)';
                       e.currentTarget.style.zIndex = '1';
-                      if (!isHolidayDate && !node) {
+                      if (isToday) {
+                        // 今日恢复为蓝色样式
+                        e.currentTarget.style.backgroundColor = '#e6f7ff';
+                        e.currentTarget.style.borderColor = '#1890ff';
+                      } else if (!isHolidayDate && !node) {
                         e.currentTarget.style.backgroundColor = '#fff';
                         e.currentTarget.style.borderColor = '#d9d9d9';
                       }
@@ -1070,58 +1230,65 @@ const MarketingCalendarV2: React.FC = () => {
               </div>
             </div>
             
-            <Table
-              columns={[
-                {
-                  title: '活动名称',
-                  dataIndex: 'name',
-                  key: 'name',
-                  width: 200
-                },
-                {
-                  title: '活动类型',
-                  dataIndex: 'type',
-                  key: 'type',
-                  width: 100,
-                  render: (type: string) => <Tag color="blue">{type || '-'}</Tag>
-                },
-                {
-                  title: '开始日期',
-                  dataIndex: 'startDate',
-                  key: 'startDate',
-                  width: 120
-                },
-                {
-                  title: '结束日期',
-                  dataIndex: 'endDate',
-                  key: 'endDate',
-                  width: 120
-                },
-                {
-                  title: '活动状态',
-                  key: 'status',
-                  width: 100,
-                  render: (_: any, record: CouponDetail) => {
-                    const status = getActivityStatus(record);
-                    const colorMap = {
-                      '待开始': 'default',
-                      '进行中': 'processing',
-                      '已结束': 'default'
-                    };
-                    return <Tag color={colorMap[status]}>{status}</Tag>;
+            {selectedPlan.registrationStatus === '未提报' ? (
+              <Empty
+                description="该方案尚未提报，暂无活动明细"
+                style={{ padding: '40px 0' }}
+              />
+            ) : (
+              <Table
+                columns={[
+                  {
+                    title: '活动名称',
+                    dataIndex: 'name',
+                    key: 'name',
+                    width: 200
+                  },
+                  {
+                    title: '活动类型',
+                    dataIndex: 'type',
+                    key: 'type',
+                    width: 100,
+                    render: (type: string) => <Tag color="blue">{type || '-'}</Tag>
+                  },
+                  {
+                    title: '开始日期',
+                    dataIndex: 'startDate',
+                    key: 'startDate',
+                    width: 120
+                  },
+                  {
+                    title: '结束日期',
+                    dataIndex: 'endDate',
+                    key: 'endDate',
+                    width: 120
+                  },
+                  {
+                    title: '活动状态',
+                    key: 'status',
+                    width: 100,
+                    render: (_: any, record: CouponDetail) => {
+                      const status = getActivityStatus(record);
+                      const colorMap = {
+                        '待开始': 'default',
+                        '进行中': 'processing',
+                        '已结束': 'default'
+                      };
+                      return <Tag color={colorMap[status]}>{status}</Tag>;
+                    }
                   }
-                }
-              ]}
-              dataSource={getAllActivities(selectedPlan)}
-              rowKey="id"
-              pagination={{
-                pageSize: 10,
-                showSizeChanger: true,
-                showQuickJumper: true,
-                showTotal: (total) => `共 ${total} 个活动`
-              }}
-              size="small"
-            />
+                ]}
+                dataSource={getAllActivities(selectedPlan)}
+                rowKey="id"
+                pagination={{
+                  pageSize: 10,
+                  showSizeChanger: true,
+                  showQuickJumper: true,
+                  showTotal: (total) => `共 ${total} 个活动`
+                }}
+                size="small"
+              />
+            )}
           </div>
         )}
       </Modal>

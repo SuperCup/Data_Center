@@ -21,7 +21,9 @@ interface ActivityData {
   channel: string; // 渠道
   subsidyThreshold: number; // 补贴门槛
   wallsContribution: number; // 和路雪出资
+  subsidyAmount?: number; // 补贴金额
   discountRate: number; // 折扣力度（百分比）
+  region?: string; // 区域（用于筛选）
   upc: number; // UPC
   remarks?: string; // 备注
   couponId?: string; // 券ID
@@ -49,6 +51,7 @@ interface ColumnConfig {
 const ActivityProgress: React.FC = () => {
   const [selectedMonth, setSelectedMonth] = useState<Dayjs>(dayjs());
   const [selectedPlatform, setSelectedPlatform] = useState<string>('美团闪购');
+  const [selectedRegions, setSelectedRegions] = useState<string[]>([]);
   const [columnConfigVisible, setColumnConfigVisible] = useState(false);
   
   // 定义所有可配置的列（除了固定的三个：方案名称、活动名称、机制名称）
@@ -61,21 +64,22 @@ const ActivityProgress: React.FC = () => {
     { key: 'discountStrength', title: '优惠力度', visible: true, order: 6 },
     { key: 'channel', title: '渠道', visible: true, order: 7 },
     { key: 'subsidyThreshold', title: '补贴门槛', visible: true, order: 8 },
-    { key: 'wallsContribution', title: '出资', visible: true, order: 9 },
-    { key: 'discountRate', title: '折扣力度', visible: true, order: 10 },
-    { key: 'upc', title: 'UPC', visible: true, order: 11 },
-    { key: 'remarks', title: '备注', visible: true, order: 12 },
-    { key: 'couponId', title: '券ID', visible: true, order: 13 },
-    { key: 'totalDays', title: '活动总天数', visible: false, order: 14 },
-    { key: 'remainingDays', title: '剩余活动天数', visible: false, order: 15 },
-    { key: 'activityProgress', title: '活动进度', visible: false, order: 16 },
-    { key: 'salesAmount', title: '活动销售金额', visible: false, order: 17 },
-    { key: 'activityBudget', title: '活动预算（未税）', visible: false, order: 18 },
-    { key: 'usedBudget', title: '已使用预算（未税）', visible: false, order: 19 },
-    { key: 'remainingBudget', title: '剩余预算', visible: false, order: 20 },
-    { key: 'usedBudgetRatio', title: '已使用预算占比', visible: false, order: 21 },
-    { key: 'costRatio', title: '活动费比', visible: false, order: 22 },
-    { key: 'dailyConsumption', title: '日消耗', visible: false, order: 23 }
+    { key: 'subsidyAmount', title: '补贴金额', visible: true, order: 9 },
+    { key: 'wallsContribution', title: '出资', visible: true, order: 10 },
+    { key: 'discountRate', title: '折扣力度', visible: true, order: 11 },
+    { key: 'upc', title: 'UPC', visible: true, order: 12 },
+    { key: 'remarks', title: '备注', visible: true, order: 13 },
+    { key: 'couponId', title: '券ID', visible: true, order: 14 },
+    { key: 'totalDays', title: '活动总天数', visible: false, order: 15 },
+    { key: 'remainingDays', title: '剩余活动天数', visible: false, order: 16 },
+    { key: 'activityProgress', title: '活动进度', visible: false, order: 17 },
+    { key: 'salesAmount', title: '活动销售金额', visible: false, order: 18 },
+    { key: 'activityBudget', title: '活动预算（未税）', visible: false, order: 19 },
+    { key: 'usedBudget', title: '已使用预算（未税）', visible: false, order: 20 },
+    { key: 'remainingBudget', title: '剩余预算', visible: false, order: 21 },
+    { key: 'usedBudgetRatio', title: '已使用预算占比', visible: false, order: 22 },
+    { key: 'costRatio', title: '活动费比', visible: false, order: 23 },
+    { key: 'dailyConsumption', title: '日消耗', visible: false, order: 24 }
   ];
 
   // 从localStorage加载列配置，并合并新增字段
@@ -168,11 +172,13 @@ const ActivityProgress: React.FC = () => {
       channel: '全渠道',
       subsidyThreshold: 129,
       wallsContribution: 30,
+      subsidyAmount: 4726,
       discountRate: 77,
       upc: 2,
       remarks: '',
       couponId: '',
       platform: '美团闪购',
+      region: '华东',
       totalDays: 31,
       remainingDays: 5,
       activityProgress: 84,
@@ -683,6 +689,198 @@ const ActivityProgress: React.FC = () => {
       remarks: '双十一活动',
       couponId: 'COUPON20251104',
       platform: '美团闪购'
+    },
+    {
+      id: '26',
+      planName: '2025年12月万店满减神券方案 67903624',
+      activityName: '12月万店满减神券',
+      mechanismName: '通用神券129减30',
+      onlineDate: '12.1-12.31',
+      budget: 5000,
+      budgetConsumption: 1200,
+      consumptionProgress: 24,
+      status: '进行中',
+      discountStrength: '129-30',
+      channel: '全渠道',
+      subsidyThreshold: 129,
+      wallsContribution: 30,
+      subsidyAmount: 1200,
+      discountRate: 77,
+      upc: 2,
+      remarks: '',
+      couponId: '',
+      platform: '美团闪购',
+      region: '华东',
+      totalDays: 31,
+      remainingDays: 25,
+      activityProgress: 6,
+      salesAmount: 52173.91,
+      activityBudget: 50000.00,
+      usedBudget: 12000.00,
+      remainingBudget: 38000.00,
+      usedBudgetRatio: 24.00,
+      costRatio: 23.00,
+      dailyConsumption: 480.00
+    },
+    {
+      id: '27',
+      planName: '2025年12月万店满减神券方案 67903624',
+      activityName: '12月万店满减神券',
+      mechanismName: '通用神券79减20',
+      onlineDate: '12.1-12.31',
+      budget: 5000,
+      budgetConsumption: 1150,
+      consumptionProgress: 23,
+      status: '进行中',
+      discountStrength: '79-20',
+      channel: '全渠道',
+      subsidyThreshold: 79,
+      wallsContribution: 20,
+      subsidyAmount: 1150,
+      discountRate: 75,
+      upc: 2,
+      remarks: '',
+      couponId: '',
+      platform: '美团闪购',
+      region: '华南',
+      totalDays: 31,
+      remainingDays: 25,
+      activityProgress: 6,
+      salesAmount: 46000.00,
+      activityBudget: 50000.00,
+      usedBudget: 11500.00,
+      remainingBudget: 38500.00,
+      usedBudgetRatio: 23.00,
+      costRatio: 25.00,
+      dailyConsumption: 460.00
+    },
+    {
+      id: '28',
+      planName: '2025年12月双十二大促方案 67903625',
+      activityName: '12月双十二大促',
+      mechanismName: '双十二专享券199减50',
+      onlineDate: '12.1-12.12',
+      budget: 8000,
+      budgetConsumption: 2100,
+      consumptionProgress: 26,
+      status: '进行中',
+      discountStrength: '199-50',
+      channel: '全渠道',
+      subsidyThreshold: 199,
+      wallsContribution: 50,
+      subsidyAmount: 2100,
+      discountRate: 75,
+      upc: 3,
+      remarks: '双十二活动',
+      couponId: 'COUPON20251201',
+      platform: '美团闪购',
+      region: '华北',
+      totalDays: 12,
+      remainingDays: 6,
+      activityProgress: 50,
+      salesAmount: 84000.00,
+      activityBudget: 80000.00,
+      usedBudget: 21000.00,
+      remainingBudget: 59000.00,
+      usedBudgetRatio: 26.25,
+      costRatio: 25.00,
+      dailyConsumption: 1750.00
+    },
+    {
+      id: '29',
+      planName: '2025年12月双十二大促方案 67903625',
+      activityName: '12月双十二大促',
+      mechanismName: '双十二专享券299减80',
+      onlineDate: '12.1-12.12',
+      budget: 8000,
+      budgetConsumption: 1980,
+      consumptionProgress: 25,
+      status: '进行中',
+      discountStrength: '299-80',
+      channel: '全渠道',
+      subsidyThreshold: 299,
+      wallsContribution: 80,
+      subsidyAmount: 1980,
+      discountRate: 73,
+      upc: 3,
+      remarks: '双十二活动',
+      couponId: 'COUPON20251202',
+      platform: '美团闪购',
+      region: '华中',
+      totalDays: 12,
+      remainingDays: 6,
+      activityProgress: 50,
+      salesAmount: 73259.26,
+      activityBudget: 80000.00,
+      usedBudget: 19800.00,
+      remainingBudget: 60200.00,
+      usedBudgetRatio: 24.75,
+      costRatio: 27.02,
+      dailyConsumption: 1650.00
+    },
+    {
+      id: '30',
+      planName: '2025年12月淘宝闪购方案 67903626',
+      activityName: '12月淘宝闪购活动',
+      mechanismName: '淘宝专享券99减20',
+      onlineDate: '12.1-12.31',
+      budget: 6000,
+      budgetConsumption: 1450,
+      consumptionProgress: 24,
+      status: '进行中',
+      discountStrength: '99-20',
+      channel: '淘宝',
+      subsidyThreshold: 99,
+      wallsContribution: 20,
+      subsidyAmount: 1450,
+      discountRate: 80,
+      upc: 2,
+      remarks: '',
+      couponId: 'TB20251201',
+      platform: '淘宝闪购',
+      region: '华东',
+      totalDays: 31,
+      remainingDays: 25,
+      activityProgress: 6,
+      salesAmount: 72500.00,
+      activityBudget: 60000.00,
+      usedBudget: 14500.00,
+      remainingBudget: 45500.00,
+      usedBudgetRatio: 24.17,
+      costRatio: 20.00,
+      dailyConsumption: 580.00
+    },
+    {
+      id: '31',
+      planName: '2025年12月京东到家方案 67903627',
+      activityName: '12月京东到家活动',
+      mechanismName: '京东专享券119减25',
+      onlineDate: '12.1-12.31',
+      budget: 7000,
+      budgetConsumption: 1680,
+      consumptionProgress: 24,
+      status: '进行中',
+      discountStrength: '119-25',
+      channel: '京东',
+      subsidyThreshold: 119,
+      wallsContribution: 25,
+      subsidyAmount: 1680,
+      discountRate: 79,
+      upc: 2,
+      remarks: '',
+      couponId: 'JD20251201',
+      platform: '京东到家',
+      region: '西南',
+      totalDays: 31,
+      remainingDays: 25,
+      activityProgress: 6,
+      salesAmount: 80000.00,
+      activityBudget: 70000.00,
+      usedBudget: 16800.00,
+      remainingBudget: 53200.00,
+      usedBudgetRatio: 24.00,
+      costRatio: 21.00,
+      dailyConsumption: 672.00
     }
   ]);
 
@@ -691,6 +889,11 @@ const ActivityProgress: React.FC = () => {
     return allActivities.filter(activity => {
       // 平台筛选
       if (selectedPlatform && activity.platform !== selectedPlatform) {
+        return false;
+      }
+      
+      // 区域筛选（支持多选）
+      if (selectedRegions && selectedRegions.length > 0 && activity.region && !selectedRegions.includes(activity.region)) {
         return false;
       }
       
@@ -717,7 +920,7 @@ const ActivityProgress: React.FC = () => {
       
       return true;
     });
-  }, [allActivities, selectedPlatform, selectedMonth]);
+  }, [allActivities, selectedPlatform, selectedMonth, selectedRegions]);
 
   // 计算汇总数据
   const summaryData = useMemo(() => {
@@ -725,13 +928,20 @@ const ActivityProgress: React.FC = () => {
     const totalUsedBudget = filteredActivities.reduce((sum, item) => sum + item.budgetConsumption, 0);
     const totalRemainingBudget = totalBudget - totalUsedBudget;
     const totalSalesAmount = filteredActivities.reduce((sum, item) => {
-      // 根据预算消耗和折扣力度估算销售金额
-      return sum + (item.budgetConsumption / (1 - item.discountRate / 100));
+      // 优先使用salesAmount，如果没有则根据预算消耗和折扣力度估算
+      return sum + (item.salesAmount || (item.budgetConsumption / (1 - item.discountRate / 100)));
     }, 0);
     
     const usedBudgetRatio = totalBudget > 0 ? (totalUsedBudget / totalBudget) * 100 : 0;
     const remainingRatio = totalBudget > 0 ? (totalRemainingBudget / totalBudget) * 100 : 0;
     const roi = totalUsedBudget > 0 ? Math.min(totalSalesAmount / totalUsedBudget, 10) : 0;
+    
+    // 计算全平台GMV和ROI（所有活动，不受筛选条件影响）
+    const allPlatformGMV = allActivities.reduce((sum, item) => {
+      return sum + (item.salesAmount || (item.budgetConsumption / (1 - item.discountRate / 100)));
+    }, 0);
+    const allPlatformUsedBudget = allActivities.reduce((sum, item) => sum + item.budgetConsumption, 0);
+    const allPlatformROI = allPlatformUsedBudget > 0 ? Math.min(allPlatformGMV / allPlatformUsedBudget, 10) : 0;
     
     return {
       totalBudget,
@@ -740,9 +950,11 @@ const ActivityProgress: React.FC = () => {
       totalSalesAmount,
       usedBudgetRatio,
       remainingRatio,
-      roi
+      roi,
+      allPlatformGMV,
+      allPlatformROI
     };
-  }, [filteredActivities]);
+  }, [filteredActivities, allActivities]);
 
   // 计算单元格合并信息
   const getRowSpan = (dataIndex: string, index: number) => {
@@ -838,6 +1050,18 @@ const ActivityProgress: React.FC = () => {
       width: 100,
       align: 'right',
       render: (value: number) => value.toLocaleString('zh-CN')
+    },
+    subsidyAmount: {
+      title: '补贴金额',
+      dataIndex: 'subsidyAmount',
+      key: 'subsidyAmount',
+      width: 120,
+      align: 'right',
+      render: (value: number) => value ? (
+        <Text>
+          ¥{value.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+        </Text>
+      ) : '-'
     },
     wallsContribution: {
       title: '出资',
@@ -1111,6 +1335,40 @@ const ActivityProgress: React.FC = () => {
     });
   };
 
+  // 按方案汇总
+  const planSummary = useMemo(() => {
+    const planMap = new Map<string, {
+      planName: string;
+      budget: number;
+      budgetConsumption: number;
+      salesAmount: number;
+      subsidyAmount: number;
+      activityCount: number;
+    }>();
+    
+    filteredActivities.forEach(activity => {
+      const existing = planMap.get(activity.planName);
+      if (existing) {
+        existing.budget += activity.budget;
+        existing.budgetConsumption += activity.budgetConsumption;
+        existing.salesAmount += (activity.salesAmount || (activity.budgetConsumption / (1 - activity.discountRate / 100)));
+        existing.subsidyAmount += (activity.subsidyAmount || 0);
+        existing.activityCount += 1;
+      } else {
+        planMap.set(activity.planName, {
+          planName: activity.planName,
+          budget: activity.budget,
+          budgetConsumption: activity.budgetConsumption,
+          salesAmount: (activity.salesAmount || (activity.budgetConsumption / (1 - activity.discountRate / 100))),
+          subsidyAmount: (activity.subsidyAmount || 0),
+          activityCount: 1
+        });
+      }
+    });
+    
+    return Array.from(planMap.values());
+  }, [filteredActivities]);
+
   return (
     <div className="activity-progress-container">
       {/* 页面标题 */}
@@ -1149,6 +1407,37 @@ const ActivityProgress: React.FC = () => {
         </div>
       </Card>
 
+      {/* 区域筛选 */}
+      <Card style={{ marginBottom: 16 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
+          <Text strong style={{ fontSize: '14px' }}>区域筛选：</Text>
+          <Checkbox.Group
+            value={selectedRegions}
+            onChange={(checkedValues) => setSelectedRegions(checkedValues as string[])}
+            style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}
+          >
+            <Button
+              type={selectedRegions.length === 7 ? 'primary' : 'default'}
+              size="small"
+              onClick={() => {
+                const allRegions = ['华东', '华南', '华北', '华中', '西南', '西北', '东北'];
+                setSelectedRegions(selectedRegions.length === 7 ? [] : allRegions);
+              }}
+              style={{ marginRight: 8 }}
+            >
+              全部
+            </Button>
+            <Checkbox value="华东">华东</Checkbox>
+            <Checkbox value="华南">华南</Checkbox>
+            <Checkbox value="华北">华北</Checkbox>
+            <Checkbox value="华中">华中</Checkbox>
+            <Checkbox value="西南">西南</Checkbox>
+            <Checkbox value="西北">西北</Checkbox>
+            <Checkbox value="东北">东北</Checkbox>
+          </Checkbox.Group>
+        </div>
+      </Card>
+
       {/* 汇总信息 - 表单形式 */}
       <Card style={{ marginBottom: 16 }}>
         <Row gutter={24}>
@@ -1157,7 +1446,7 @@ const ActivityProgress: React.FC = () => {
             <Row gutter={[16, 16]}>
               <Col span={8}>
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  <Text strong style={{ fontSize: '13px', color: '#8c8c8c', marginBottom: 4 }}>项目报价预算(未稅)</Text>
+                  <Text strong style={{ fontSize: '13px', color: '#8c8c8c', marginBottom: 4 }}>活动预算(未稅)</Text>
                   <Text style={{ fontSize: '16px', color: '#262626', fontWeight: 600 }}>
                     ¥{summaryData.totalBudget.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </Text>
@@ -1235,19 +1524,35 @@ const ActivityProgress: React.FC = () => {
           {/* 右侧：销售和ROI */}
           <Col span={9}>
             <Row gutter={[16, 16]}>
-              <Col span={24}>
+              <Col span={12}>
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  <Text strong style={{ fontSize: '13px', color: '#8c8c8c', marginBottom: 4 }}>活动总销售金额</Text>
+                  <Text strong style={{ fontSize: '13px', color: '#8c8c8c', marginBottom: 4 }}>活动GMV</Text>
                   <Text strong style={{ fontSize: '18px', color: '#262626', fontWeight: 600 }}>
                     ¥{summaryData.totalSalesAmount.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </Text>
                 </div>
               </Col>
-              <Col span={24}>
+              <Col span={12}>
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  <Text strong style={{ fontSize: '13px', color: '#8c8c8c', marginBottom: 4 }}>ROI</Text>
+                  <Text strong style={{ fontSize: '13px', color: '#8c8c8c', marginBottom: 4 }}>全平台GMV</Text>
+                  <Text strong style={{ fontSize: '18px', color: '#262626', fontWeight: 600 }}>
+                    ¥{summaryData.allPlatformGMV.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </Text>
+                </div>
+              </Col>
+              <Col span={12}>
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <Text strong style={{ fontSize: '13px', color: '#8c8c8c', marginBottom: 4 }}>活动ROI</Text>
                   <Text strong style={{ fontSize: '24px', color: '#262626', fontWeight: 600 }}>
                     {summaryData.roi.toFixed(1)}
+                  </Text>
+                </div>
+              </Col>
+              <Col span={12}>
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <Text strong style={{ fontSize: '13px', color: '#8c8c8c', marginBottom: 4 }}>全平台ROI</Text>
+                  <Text strong style={{ fontSize: '24px', color: '#262626', fontWeight: 600 }}>
+                    {summaryData.allPlatformROI.toFixed(1)}
                   </Text>
                 </div>
               </Col>
@@ -1255,6 +1560,108 @@ const ActivityProgress: React.FC = () => {
           </Col>
         </Row>
       </Card>
+
+      {/* 方案汇总 */}
+      {planSummary.length > 0 && (
+        <Card
+          title="方案汇总"
+          style={{ marginBottom: 16 }}
+        >
+          <Table
+            columns={[
+              {
+                title: '方案名称',
+                dataIndex: 'planName',
+                key: 'planName',
+                width: 300,
+                fixed: 'left' as const
+              },
+              {
+                title: '活动数',
+                dataIndex: 'activityCount',
+                key: 'activityCount',
+                width: 100,
+                align: 'right'
+              },
+              {
+                title: '预算',
+                dataIndex: 'budget',
+                key: 'budget',
+                width: 120,
+                align: 'right',
+                render: (value: number) => value.toLocaleString('zh-CN')
+              },
+              {
+                title: '预算消耗',
+                dataIndex: 'budgetConsumption',
+                key: 'budgetConsumption',
+                width: 120,
+                align: 'right',
+                render: (value: number) => value.toLocaleString('zh-CN')
+              },
+              {
+                title: '销售金额',
+                dataIndex: 'salesAmount',
+                key: 'salesAmount',
+                width: 150,
+                align: 'right',
+                render: (value: number) => (
+                  <Text style={{ fontSize: '13px', fontWeight: 500 }}>
+                    ¥{value.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </Text>
+                )
+              },
+              {
+                title: '补贴金额',
+                dataIndex: 'subsidyAmount',
+                key: 'subsidyAmount',
+                width: 150,
+                align: 'right',
+                render: (value: number) => (
+                  <Text style={{ fontSize: '13px', fontWeight: 500 }}>
+                    ¥{value.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </Text>
+                )
+              },
+              {
+                title: '消耗进度',
+                key: 'consumptionProgress',
+                width: 120,
+                align: 'right',
+                render: (_: any, record: any) => {
+                  const progress = record.budget > 0 ? (record.budgetConsumption / record.budget) * 100 : 0;
+                  const color = progress >= 100 ? '#ff4d4f' : progress >= 90 ? '#faad14' : '#262626';
+                  return (
+                    <Text style={{ color, fontSize: '13px', fontWeight: progress >= 100 ? 600 : 400 }}>
+                      {progress.toFixed(1)}%
+                    </Text>
+                  );
+                }
+              },
+              {
+                title: 'ROI',
+                key: 'roi',
+                width: 100,
+                align: 'right',
+                render: (_: any, record: any) => {
+                  const roi = record.budgetConsumption > 0 ? Math.min(record.salesAmount / record.budgetConsumption, 10) : 0;
+                  return (
+                    <Text style={{ fontSize: '13px', fontWeight: 500 }}>
+                      {roi.toFixed(1)}
+                    </Text>
+                  );
+                }
+              }
+            ]}
+            dataSource={planSummary}
+            rowKey="planName"
+            pagination={false}
+            bordered
+            size="small"
+            scroll={{ x: 'max-content' }}
+          />
+        </Card>
+      )}
 
       {/* 活动表格 */}
       <Card
