@@ -23,6 +23,7 @@ import MarketingCalendar from './pages/client/instant-retail/MarketingCalendar';
 import MarketingCalendarV2 from './pages/client/instant-retail/MarketingCalendarV2';
 import ActivityProgress from './pages/client/instant-retail/ActivityProgress';
 import ActivityAnalysisInstant from './pages/client/instant-retail/ActivityAnalysis';
+import AllAnalysis from './pages/client/instant-retail/AllAnalysis';
 // 物码营销
 import QrMarketing from './pages/client/qr-marketing/QrMarketing';
 import QrAllActivities from './pages/client/qr-marketing/AllActivities';
@@ -56,6 +57,7 @@ function App() {
           <Route path="marketing-calendar" element={<MarketingCalendarV2 />} />
           <Route path="activity-progress" element={<ActivityProgress />} />
           <Route path="activity-analysis-instant" element={<ActivityAnalysisInstant />} />
+          <Route path="all-analysis" element={<AllAnalysis />} />
           <Route path="qr-marketing" element={<QrMarketing />} />
           <Route path="qr-all-activities" element={<QrAllActivities />} />
           <Route path="qr-user-analysis" element={<QrUserAnalysis />} />

@@ -104,6 +104,11 @@ const ClientLayout: React.FC = () => {
       icon: <LineChartOutlined />,
     },
     {
+      key: 'all-analysis',
+      label: '全量分析',
+      icon: <LineChartOutlined />,
+    },
+    {
       key: 'price-monitoring',
       label: '破价监测',
       icon: <MonitorOutlined />,

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Card, Row, Col, Statistic, Table, Select, DatePicker, Button, Typography, Tooltip as AntTooltip, Switch, Empty, message, Radio } from 'antd';
+import { Card, Row, Col, Statistic, Table, Select, DatePicker, Button, Typography, Tooltip as AntTooltip, Switch, Empty, message, Radio, Checkbox } from 'antd';
 import { QuestionCircleOutlined, ArrowUpOutlined, ArrowDownOutlined } from '@ant-design/icons';
 import ReactECharts from 'echarts-for-react';
 import * as echarts from 'echarts';
@@ -8,6 +8,7 @@ import dayjs from 'dayjs';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
+const { RangePicker } = DatePicker;
 
 // 核心指标数据接口
 interface CoreMetrics {
@@ -54,9 +55,23 @@ interface TrendData {
   roi: number;
 }
 
+// 零售商数据接口
+interface RetailerData {
+  id: string;
+  retailerName: string; // 零售商名称
+  region: string; // 区域
+  gmv: number; // GMV
+  gmvPercentage: number; // GMV占比
+  orderCount: number; // 订单数
+  salesVolume: number; // 销量
+  avgPrice: number; // 客单价
+  roi: number; // ROI
+}
+
 const ActivityAnalysis: React.FC = () => {
-  const [selectedMonth, setSelectedMonth] = useState<dayjs.Dayjs>(dayjs());
+  const [dateRange, setDateRange] = useState<[dayjs.Dayjs | null, dayjs.Dayjs | null] | null>(null);
   const [selectedPlatform, setSelectedPlatform] = useState<string>('美团闪购');
+  const [selectedRegions, setSelectedRegions] = useState<string[]>([]);
   const [mapReady, setMapReady] = useState(false);
   const [selectedMetric, setSelectedMetric] = useState<string>('gmv'); // 选中的趋势指标
   const [showSecondaryMetric, setShowSecondaryMetric] = useState<boolean>(false); // 是否显示副指标
@@ -78,7 +93,7 @@ const ActivityAnalysis: React.FC = () => {
     }
   }, [selectedMetric, showSecondaryMetric, secondaryMetric]);
 
-  // 模拟核心指标数据
+  // 模拟核心指标数据（活动）
   const [coreMetrics] = useState<CoreMetrics>({
     gmv: 2580000,
       orderCount: 15420,
@@ -96,6 +111,7 @@ const ActivityAnalysis: React.FC = () => {
     roiMonthOnMonth: 10.5,
     roiYearOnYear: 18.9
   });
+
 
   // 模拟区域分布数据
   const [regionData] = useState<RegionData[]>([
@@ -146,6 +162,20 @@ const ActivityAnalysis: React.FC = () => {
     { id: '10', city: '重庆', province: '重庆', gmv: 125000, gmvPercentage: 4.8, gmvMonthOnMonth: 10.5, gmvYearOnYear: 25.1, orderCount: 740, salesVolume: 2220, avgPrice: 56.2, originalPrice: 62.9, roi: 3.5 },
     { id: '29', city: '万州区', province: '重庆', gmv: 55000, gmvPercentage: 2.1, gmvMonthOnMonth: 9.8, gmvYearOnYear: 22.5, orderCount: 320, salesVolume: 960, avgPrice: 56.1, originalPrice: 62.8, roi: 3.5 },
     { id: '30', city: '涪陵区', province: '重庆', gmv: 45000, gmvPercentage: 1.7, gmvMonthOnMonth: 8.9, gmvYearOnYear: 21.2, orderCount: 260, salesVolume: 780, avgPrice: 56.0, originalPrice: 62.7, roi: 3.4 }
+  ]);
+
+  // 模拟零售商Top10数据
+  const [retailerData] = useState<RetailerData[]>([
+    { id: '1', retailerName: '永辉超市', region: '华东', gmv: 485000, gmvPercentage: 18.8, orderCount: 2850, salesVolume: 8560, avgPrice: 58.2, roi: 4.5 },
+    { id: '2', retailerName: '盒马鲜生', region: '华东', gmv: 420000, gmvPercentage: 16.3, orderCount: 2450, salesVolume: 7350, avgPrice: 57.1, roi: 4.3 },
+    { id: '3', retailerName: '沃尔玛', region: '华南', gmv: 380000, gmvPercentage: 14.7, orderCount: 2250, salesVolume: 6750, avgPrice: 56.3, roi: 4.1 },
+    { id: '4', retailerName: '大润发', region: '华南', gmv: 350000, gmvPercentage: 13.6, orderCount: 2050, salesVolume: 6150, avgPrice: 56.9, roi: 4.2 },
+    { id: '5', retailerName: '家乐福', region: '华东', gmv: 285000, gmvPercentage: 11.0, orderCount: 1680, salesVolume: 5040, avgPrice: 55.8, roi: 4.0 },
+    { id: '6', retailerName: '华润万家', region: '西南', gmv: 240000, gmvPercentage: 9.3, orderCount: 1420, salesVolume: 4260, avgPrice: 56.3, roi: 3.9 },
+    { id: '7', retailerName: '物美超市', region: '华北', gmv: 195000, gmvPercentage: 7.6, orderCount: 1150, salesVolume: 3450, avgPrice: 56.5, roi: 3.8 },
+    { id: '8', retailerName: '人人乐', region: '华中', gmv: 165000, gmvPercentage: 6.4, orderCount: 980, salesVolume: 2940, avgPrice: 56.1, roi: 3.7 },
+    { id: '9', retailerName: '世纪联华', region: '华东', gmv: 145000, gmvPercentage: 5.6, orderCount: 860, salesVolume: 2580, avgPrice: 56.4, roi: 3.6 },
+    { id: '10', retailerName: '麦德龙', region: '华东', gmv: 125000, gmvPercentage: 4.8, orderCount: 740, salesVolume: 2220, avgPrice: 56.2, roi: 3.5 }
   ]);
 
   // 模拟趋势数据
@@ -1058,13 +1088,35 @@ const ActivityAnalysis: React.FC = () => {
 
   // 获取当前视图的区域数据（省份或城市）
   const getCurrentViewData = () => {
+    let filteredData = regionData;
+    
+    // 区域筛选
+    if (selectedRegions && selectedRegions.length > 0) {
+      // 需要根据省份映射到区域
+      const provinceToRegion: { [key: string]: string } = {
+        '北京': '华北',
+        '上海': '华东',
+        '广东': '华南',
+        '浙江': '华东',
+        '四川': '西南',
+        '湖北': '华中',
+        '陕西': '西北',
+        '江苏': '华东',
+        '重庆': '西南'
+      };
+      filteredData = filteredData.filter(item => {
+        const region = provinceToRegion[item.province] || '';
+        return selectedRegions.includes(region);
+      });
+    }
+    
     if (mapView === 'city' && selectedProvince) {
       // 城市视图：只显示选中省份的城市
-      return regionData.filter(item => item.province === selectedProvince);
+      return filteredData.filter(item => item.province === selectedProvince);
     } else {
       // 省份视图：按省份聚合数据
       const provinceMap = new Map<string, RegionData>();
-      regionData.forEach(item => {
+      filteredData.forEach(item => {
         const existing = provinceMap.get(item.province);
         if (!existing || getSortValue(item, regionSortMetric) > getSortValue(existing, regionSortMetric)) {
           provinceMap.set(item.province, item);
@@ -1072,6 +1124,19 @@ const ActivityAnalysis: React.FC = () => {
       });
       return Array.from(provinceMap.values());
     }
+  };
+
+  // 获取筛选后的零售商数据
+  const getFilteredRetailerData = () => {
+    let filtered = retailerData;
+    
+    // 区域筛选
+    if (selectedRegions && selectedRegions.length > 0) {
+      filtered = filtered.filter(item => selectedRegions.includes(item.region));
+    }
+    
+    // 按GMV排序，取Top10
+    return [...filtered].sort((a, b) => b.gmv - a.gmv).slice(0, 10);
   };
 
   // 获取排序值（用于排序函数）
@@ -1111,13 +1176,13 @@ const ActivityAnalysis: React.FC = () => {
       <Card style={{ marginBottom: 16 }}>
         <div style={{ display: 'flex', gap: 16, alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Text strong style={{ width: '60px' }}>月份：</Text>
-            <DatePicker
-              picker="month"
-              value={selectedMonth}
-              onChange={(date) => date && setSelectedMonth(date)}
-              style={{ width: 160 }}
-              format="YYYY年MM月"
+            <Text strong style={{ width: '60px' }}>时间：</Text>
+            <RangePicker
+              placeholder={['开始时间', '结束时间']}
+              style={{ width: 320 }}
+              value={dateRange}
+              onChange={(dates) => setDateRange(dates)}
+              format="YYYY-MM-DD"
             />
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -1127,6 +1192,37 @@ const ActivityAnalysis: React.FC = () => {
               <Radio.Button value="京东到家">京东到家</Radio.Button>
             </Radio.Group>
           </div>
+        </div>
+      </Card>
+
+      {/* 区域筛选 */}
+      <Card style={{ marginBottom: 16 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
+          <Text strong style={{ fontSize: '14px' }}>区域筛选：</Text>
+          <Checkbox.Group
+            value={selectedRegions}
+            onChange={(checkedValues) => setSelectedRegions(checkedValues as string[])}
+            style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}
+          >
+            <Button
+              type={selectedRegions.length === 7 ? 'primary' : 'default'}
+              size="small"
+              onClick={() => {
+                const allRegions = ['华东', '华南', '华北', '华中', '西南', '西北', '东北'];
+                setSelectedRegions(selectedRegions.length === 7 ? [] : allRegions);
+              }}
+              style={{ marginRight: 8 }}
+            >
+              全部
+            </Button>
+            <Checkbox value="华东">华东</Checkbox>
+            <Checkbox value="华南">华南</Checkbox>
+            <Checkbox value="华北">华北</Checkbox>
+            <Checkbox value="华中">华中</Checkbox>
+            <Checkbox value="西南">西南</Checkbox>
+            <Checkbox value="西北">西北</Checkbox>
+            <Checkbox value="东北">东北</Checkbox>
+          </Checkbox.Group>
         </div>
       </Card>
 
@@ -1411,6 +1507,92 @@ const ActivityAnalysis: React.FC = () => {
           </Col>
         </Row>
           </Card>
+
+      {/* 零售商Top10 */}
+      <Card 
+        title="零售商Top10"
+        style={{ marginBottom: 16 }}
+      >
+        <Table
+          columns={[
+            {
+              title: '排名',
+              key: 'rank',
+              width: 60,
+              render: (_: any, __: any, index: number) => index + 1
+            },
+            {
+              title: '零售商名称',
+              dataIndex: 'retailerName',
+              key: 'retailerName',
+              width: 150
+            },
+            {
+              title: '区域',
+              dataIndex: 'region',
+              key: 'region',
+              width: 100
+            },
+            {
+              title: 'GMV（元）',
+              dataIndex: 'gmv',
+              key: 'gmv',
+              width: 120,
+              align: 'right',
+              render: (value: number) => value.toLocaleString()
+            },
+            {
+              title: 'GMV占比（%）',
+              dataIndex: 'gmvPercentage',
+              key: 'gmvPercentage',
+              width: 100,
+              render: (value: number) => `${value}%`
+            },
+            {
+              title: '订单数（张）',
+              dataIndex: 'orderCount',
+              key: 'orderCount',
+              width: 100,
+              align: 'right',
+              render: (value: number) => value.toLocaleString()
+            },
+            {
+              title: '销量（件）',
+              dataIndex: 'salesVolume',
+              key: 'salesVolume',
+              width: 100,
+              align: 'right',
+              render: (value: number) => value.toLocaleString()
+            },
+            {
+              title: '客单价（元）',
+              dataIndex: 'avgPrice',
+              key: 'avgPrice',
+              width: 100,
+              align: 'right',
+              render: (value: number) => value.toFixed(2)
+            },
+            {
+              title: 'ROI（x）',
+              dataIndex: 'roi',
+              key: 'roi',
+              width: 100,
+              align: 'right',
+              render: (value: number) => (
+                <span style={{ color: value >= 3 ? '#52c41a' : value >= 2 ? '#faad14' : '#ff4d4f' }}>
+                  {value.toFixed(1)}
+                </span>
+              )
+            }
+          ]}
+          dataSource={getFilteredRetailerData()}
+          rowKey="id"
+          pagination={false}
+          size="small"
+          bordered
+          scroll={{ x: 'max-content' }}
+        />
+      </Card>
     </div>
   );
 };
