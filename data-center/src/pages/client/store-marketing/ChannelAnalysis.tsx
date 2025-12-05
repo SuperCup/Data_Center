@@ -1,55 +1,11 @@
 import React from 'react';
 import { Card, Row, Col, Table, Statistic, Divider } from 'antd';
 import { ArrowUpOutlined, ArrowDownOutlined } from '@ant-design/icons';
+import { unifiedChannels, type ChannelData } from '../../../data/storeMarketingData';
 
 const ChannelAnalysis: React.FC = () => {
-  // 模拟数据
-  const channelData = [
-    {
-      id: 1,
-      name: '微信',
-      exposure: 1500000,
-      click: 450000,
-      conversion: 180000,
-      ctr: 30,
-      cvr: 40,
-      cost: 300000,
-      roi: 4.2,
-    },
-    {
-      id: 2,
-      name: '支付宝',
-      exposure: 1200000,
-      click: 300000,
-      conversion: 105000,
-      ctr: 25,
-      cvr: 35,
-      cost: 250000,
-      roi: 3.5,
-    },
-    {
-      id: 3,
-      name: '抖音',
-      exposure: 2000000,
-      click: 700000,
-      conversion: 210000,
-      ctr: 35,
-      cvr: 30,
-      cost: 400000,
-      roi: 3.8,
-    },
-    {
-      id: 4,
-      name: '美团',
-      exposure: 800000,
-      click: 200000,
-      conversion: 80000,
-      ctr: 25,
-      cvr: 40,
-      cost: 150000,
-      roi: 4.5,
-    },
-  ];
+  // 使用统一的渠道数据
+  const channelData = unifiedChannels;
 
   const columns = [
     {
@@ -196,14 +152,14 @@ const ChannelAnalysis: React.FC = () => {
           <Col span={6}>
             <Statistic
               title="总曝光量"
-              value={channelData.reduce((sum, item) => sum + item.exposure, 0)}
+              value={channelData.reduce((sum: number, item: ChannelData) => sum + item.exposure, 0)}
               formatter={(value) => `${(value as number).toLocaleString()}`}
             />
           </Col>
           <Col span={6}>
             <Statistic
               title="总点击量"
-              value={channelData.reduce((sum, item) => sum + item.click, 0)}
+              value={channelData.reduce((sum: number, item: ChannelData) => sum + item.click, 0)}
               formatter={(value) => `${(value as number).toLocaleString()}`}
               valueStyle={{ color: '#000000' }}
             />
@@ -211,7 +167,7 @@ const ChannelAnalysis: React.FC = () => {
           <Col span={6}>
             <Statistic
               title="总转化量"
-              value={channelData.reduce((sum, item) => sum + item.conversion, 0)}
+              value={channelData.reduce((sum: number, item: ChannelData) => sum + item.conversion, 0)}
               formatter={(value) => `${(value as number).toLocaleString()}`}
               valueStyle={{ color: '#000000' }}
             />
@@ -219,7 +175,7 @@ const ChannelAnalysis: React.FC = () => {
           <Col span={6}>
             <Statistic
               title="平均ROI"
-              value={channelData.reduce((sum, item) => sum + item.roi, 0) / channelData.length}
+              value={channelData.reduce((sum: number, item: ChannelData) => sum + item.roi, 0) / channelData.length}
               precision={2}
               valueStyle={{ color: '#000000' }}
               prefix={<ArrowUpOutlined />}

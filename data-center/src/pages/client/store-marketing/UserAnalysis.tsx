@@ -4,100 +4,14 @@ import { QuestionCircleOutlined } from '@ant-design/icons';
 import ReactECharts from 'echarts-for-react';
 import * as echarts from 'echarts';
 import dayjs from 'dayjs';
+import { unifiedUserAnalysis, type UserAnalysisData } from '../../../data/storeMarketingData';
 
 const { Option } = Select;
 const { RangePicker } = DatePicker;
 const { Title, Text } = Typography;
 
-// 用户分析数据接口
-interface UserAnalysisData {
-  key: string;
-  channel: string;      // 渠道
-  region: string;       // 区域
-  activity: string;     // 活动名称
-  visitUsers: number;   // 访问用户数
-  receiveUsers: number; // 领券用户数
-  usageUsers: number;   // 核销用户数
-  conversionRate: number; // 转化率
-  usageRate: number;    // 使用率
-  mechanisms?: string[]; // 活动机制
-}
-
-// 模拟用户分析数据
-const mockUserAnalysisData: UserAnalysisData[] = [
-  {
-    key: '1',
-    channel: '品牌小程序',
-    region: '华东',
-    activity: '2025年9月秋季促销活动',
-    visitUsers: 7708,
-    receiveUsers: 7252,
-    usageUsers: 7167,
-    conversionRate: 94.09,
-    usageRate: 92.99,
-    mechanisms: ['满5减0.5', '满8减0.8', '满10减1', '满12减1.2', '满15减1.5', '满18减1.8', '满20减2', '满22减2.2', '满25减2.5', '满28减2.8', '满30减3', '满32减3.2', '满35减3.5', '满38减3.8', '满40减4']
-  },
-  {
-    key: '2',
-    channel: '品牌小程序',
-    region: '华南',
-    activity: '2025年9月秋季促销活动',
-    visitUsers: 6500,
-    receiveUsers: 6100,
-    usageUsers: 5980,
-    conversionRate: 93.85,
-    usageRate: 92.03,
-    mechanisms: ['满5减0.5', '满8减0.8', '满10减1', '满12减1.2', '满15减1.5', '满18减1.8', '满20减2', '满22减2.2', '满25减2.5', '满28减2.8', '满30减3', '满32减3.2', '满35减3.5', '满38减3.8', '满40减4']
-  },
-  {
-    key: '3',
-    channel: '品牌小程序',
-    region: '华北',
-    activity: '2025年10月国庆特惠活动',
-    visitUsers: 5800,
-    receiveUsers: 5400,
-    usageUsers: 5250,
-    conversionRate: 93.10,
-    usageRate: 90.52,
-    mechanisms: ['满6减0.6', '满9减0.9', '满12减1.2', '满15减1.5', '满18减1.8', '满21减2.1', '满24减2.4', '满27减2.7', '满30减3', '满33减3.3', '满36减3.6', '满39减3.9', '满42减4.2', '满45减4.5', '满48减4.8', '满50减5']
-  },
-  {
-    key: '4',
-    channel: 'H5',
-    region: '华东',
-    activity: '2025年8月夏日清凉活动',
-    visitUsers: 4200,
-    receiveUsers: 3800,
-    usageUsers: 3650,
-    conversionRate: 90.48,
-    usageRate: 86.90,
-    mechanisms: ['满4减0.4', '满6减0.6', '满8减0.8', '满10减1', '满12减1.2', '满14减1.4', '满16减1.6', '满18减1.8', '满20减2', '满22减2.2', '满24减2.4', '满26减2.6', '满28减2.8', '满30减3', '满32减3.2', '满35减3.5']
-  },
-  {
-    key: '5',
-    channel: 'H5',
-    region: '华南',
-    activity: '2025年9月中秋节活动',
-    visitUsers: 3900,
-    receiveUsers: 3500,
-    usageUsers: 3300,
-    conversionRate: 89.74,
-    usageRate: 84.62,
-    mechanisms: ['满3减0.3', '满5减0.5', '满8减0.8', '满10减1', '满12减1.2', '满15减1.5', '满18减1.8', '满20减2', '满22减2.2', '满24减2.4', '满26减2.6', '满28减2.8', '满30减3', '满32减3.2', '满35减3.5', '满38减3.8']
-  },
-  {
-    key: '6',
-    channel: 'H5',
-    region: '华东',
-    activity: '康师傅品牌专场活动',
-    visitUsers: 2800,
-    receiveUsers: 2400,
-    usageUsers: 2200,
-    conversionRate: 85.71,
-    usageRate: 78.57,
-    mechanisms: ['满3减0.3', '满5减0.5', '满6减0.6', '满8减0.8', '满9减0.9', '满10减1', '满12减1.2', '满14减1.4', '满15减1.5', '满16减1.6', '满18减1.8', '满20减2', '满21减2.1', '满24减2.4', '满25减2.5', '满27减2.7']
-  },
-];
+// 使用统一的用户分析数据
+const mockUserAnalysisData: UserAnalysisData[] = unifiedUserAnalysis;
 
 const UserAnalysis: React.FC = () => {
   const [userAnalysisData, setUserAnalysisData] = useState<UserAnalysisData[]>(mockUserAnalysisData);

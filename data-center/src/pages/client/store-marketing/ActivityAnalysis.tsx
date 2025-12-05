@@ -4,135 +4,20 @@ import { ShoppingOutlined, DollarOutlined, TagOutlined, AppstoreOutlined, Questi
 import { ScatterChart, Scatter, LineChart, Line as RechartsLine, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import dayjs from 'dayjs';
 import { useLocation, useParams, useNavigate } from 'react-router-dom';
+import { unifiedActivities, unifiedRetailers, unifiedProducts, type ActivityData, type RetailerData, type ProductData } from '../../../data/storeMarketingData';
 
 const { Option } = Select;
 const { Title, Text } = Typography;
 const { RangePicker } = DatePicker;
 
-// 模拟活动数据
-const mockActivities = [
-  {
-    id: '1',
-    name: '2025年9-10月康师傅红烧牛肉面全国促销活动',
-    startDate: '2025-09-01',
-    endDate: '2025-10-31',
-    mechanisms: {
-      '微信优惠券': ['满5减0.5', '满8减0.8', '满10减1', '满12减1.2'],
-      '支付宝优惠券/碰一下': ['满15减1.5', '满18减1.8', '满20减2', '满22减2.2'],
-      '微信小店': ['2元乐享', '新品立减2元']
-    },
-    budget: 50000,
-    consumed: 32500,
-    gmv: 142500,
-    usedCount: Math.round(12500 * 1.5),
-    batchCount: 8 * 15,
-    discount: 32500,
-    usageRate: 78.5,
-    batches: [
-      { id: 'b1', name: '指定品满5元减0.5元', gmv: 22500, discount: 1750 },
-      { id: 'b2', name: '指定品满8元减0.8元', gmv: 19000, discount: 1400 },
-      { id: 'b3', name: '指定品满10元减1元', gmv: 26000, discount: 2100 },
-      { id: 'b4', name: '指定品满12元减1.2元', gmv: 16000, discount: 1250 },
-      { id: 'b5', name: '指定品满15元减1.5元', gmv: 24000, discount: 1900 },
-      { id: 'b6', name: '指定品满18元减1.8元', gmv: 14500, discount: 1100 },
-      { id: 'b7', name: '指定品满20元减2元', gmv: 10500, discount: 800 },
-      { id: 'b8', name: '指定品满22元减2.2元', gmv: 10000, discount: 750 }
-    ]
-  },
-  {
-    id: '2',
-    name: '2025年8月康师傅冰红茶夏季促销活动',
-    startDate: '2025-08-01',
-    endDate: '2025-08-31',
-    mechanisms: {
-      '微信优惠券': ['满4减0.4', '满6减0.6', '满8减0.8', '满10减1'],
-      '支付宝优惠券/碰一下': ['满12减1.2', '满14减1.4', '满16减1.6', '满18减1.8'],
-      '抖音到店': ['满20减2', '满22减2.2', '满24减2.4', '满26减2.6'],
-      '美团到店': ['满28减2.8', '满30减3', '满32减3.2', '满34减3.4'],
-      '天猫校园': ['满36减3.6', '满38减3.8', '满40减4', '满50减5'],
-      '微信小店': ['2元乐享', '新品立减2元']
-    },
-    budget: 40000,
-    consumed: 26000,
-    gmv: 97500,
-    usedCount: Math.round(8500 * 1.5),
-    batchCount: 5 * 15,
-    discount: 26000,
-    usageRate: 82.3,
-    batches: [
-      { id: 'b1', name: '指定品满4元减0.4元', gmv: 21000, discount: 1600 },
-      { id: 'b2', name: '指定品满6元减0.6元', gmv: 19000, discount: 1400 },
-      { id: 'b3', name: '指定品满8元减0.8元', gmv: 22500, discount: 1750 },
-      { id: 'b4', name: '指定品满10元减1元', gmv: 17500, discount: 1300 },
-      { id: 'b5', name: '指定品满12元减1.2元', gmv: 17500, discount: 1250 }
-    ]
-  },
-  {
-    id: '3',
-    name: '2025年7月康师傅方便面全国促销活动',
-    startDate: '2025-07-01',
-    endDate: '2025-07-31',
-    mechanisms: {
-      '微信优惠券': ['满3减0.3', '满5减0.5', '满6减0.6', '满8减0.8'],
-      '支付宝优惠券/碰一下': ['满9减0.9', '满10减1', '满12减1.2', '满14减1.4'],
-      '抖音到店': ['满15减1.5', '满16减1.6', '满18减1.8', '满20减2'],
-      '美团到店': ['满21减2.1', '满24减2.4', '满25减2.5', '满27减2.7'],
-      '天猫校园': ['满30减3', '满32减3.2', '满35减3.5', '满40减4'],
-      '微信小店': ['2元乐享', '新品立减2元']
-    },
-    budget: 30000,
-    consumed: 24000,
-    gmv: 82500,
-    usedCount: Math.round(9200 * 1.5),
-    batchCount: 6 * 15,
-    discount: 24000,
-    usageRate: 85.1,
-    batches: [
-      { id: 'b1', name: '指定品满3元减0.3元', gmv: 16000, discount: 1200 },
-      { id: 'b2', name: '指定品满5元减0.5元', gmv: 14000, discount: 1050 },
-      { id: 'b3', name: '指定品满6元减0.6元', gmv: 14500, discount: 1100 },
-      { id: 'b4', name: '指定品满8元减0.8元', gmv: 12500, discount: 950 },
-      { id: 'b5', name: '指定品满9元减0.9元', gmv: 13000, discount: 1000 },
-      { id: 'b6', name: '指定品满10元减1元', gmv: 12500, discount: 900 }
-    ]
-  }
-];
+// 使用统一的活动数据
+const mockActivities = unifiedActivities;
 
-// 模拟零售商数据
-const mockRetailers = [
-  { id: '1', name: '华润万家', type: 'KA', gmv: 285000, discount: 12000, usedCount: 1250, avgPrice: 22.8, activeSku: 45, trend: { sales: [12, 15, 18, 22, 28], discount: [0.8, 1.0, 1.2, 1.5, 1.8] } },
-  { id: '2', name: '永辉超市', type: 'KA', gmv: 268000, discount: 11000, usedCount: 1180, avgPrice: 22.7, activeSku: 42, trend: { sales: [10, 13, 16, 20, 26], discount: [0.7, 0.9, 1.1, 1.4, 1.7] } },
-  { id: '3', name: '家乐福', type: 'KA', gmv: 245000, discount: 10000, usedCount: 1080, avgPrice: 22.7, activeSku: 38, trend: { sales: [9, 12, 15, 18, 24], discount: [0.6, 0.8, 1.0, 1.3, 1.6] } },
-  { id: '4', name: '沃尔玛', type: 'KA', gmv: 232000, discount: 9500, usedCount: 1020, avgPrice: 22.7, activeSku: 36, trend: { sales: [8, 11, 14, 17, 23], discount: [0.5, 0.7, 0.9, 1.2, 1.5] } },
-  { id: '5', name: '大润发', type: 'KA', gmv: 218000, discount: 8500, usedCount: 960, avgPrice: 22.7, activeSku: 34, trend: { sales: [7, 10, 13, 16, 21], discount: [0.4, 0.6, 0.8, 1.1, 1.4] } },
-  { id: '6', name: '芙蓉兴盛', type: '小店', gmv: 125000, discount: 4500, usedCount: 580, avgPrice: 21.6, activeSku: 28, trend: { sales: [5, 7, 9, 11, 12], discount: [0.3, 0.4, 0.5, 0.6, 0.7] } },
-  { id: '7', name: '怡福百货', type: '小店', gmv: 118000, discount: 4200, usedCount: 550, avgPrice: 21.5, activeSku: 26, trend: { sales: [4, 6, 8, 10, 11], discount: [0.2, 0.3, 0.4, 0.5, 0.6] } },
-  { id: '8', name: '众和食杂', type: '小店', gmv: 112000, discount: 4000, usedCount: 520, avgPrice: 21.5, activeSku: 24, trend: { sales: [3, 5, 7, 9, 11], discount: [0.2, 0.3, 0.4, 0.5, 0.6] } },
-  { id: '9', name: '浩林便利店', type: '小店', gmv: 108000, discount: 3800, usedCount: 500, avgPrice: 21.6, activeSku: 22, trend: { sales: [3, 4, 6, 8, 10], discount: [0.1, 0.2, 0.3, 0.4, 0.5] } },
-  { id: '10', name: '一号门士多', type: '小店', gmv: 95000, discount: 3500, usedCount: 450, avgPrice: 21.1, activeSku: 20, trend: { sales: [2, 3, 5, 7, 9], discount: [0.1, 0.2, 0.3, 0.4, 0.5] } },
-  { id: '11', name: '天虹超市', type: 'KA', gmv: 185000, discount: 7500, usedCount: 820, avgPrice: 22.6, activeSku: 32, trend: { sales: [6, 9, 12, 15, 18], discount: [0.4, 0.6, 0.8, 1.0, 1.2] } },
-  { id: '12', name: '物美超市', type: 'KA', gmv: 175000, discount: 7000, usedCount: 780, avgPrice: 22.4, activeSku: 30, trend: { sales: [5, 8, 11, 14, 17], discount: [0.3, 0.5, 0.7, 0.9, 1.1] } },
-  { id: '13', name: '文发士多', type: '小店', gmv: 88000, discount: 3200, usedCount: 420, avgPrice: 21.0, activeSku: 18, trend: { sales: [2, 3, 4, 6, 8], discount: [0.1, 0.2, 0.3, 0.4, 0.5] } },
-  { id: '14', name: '嘉利烟酒店', type: '小店', gmv: 82000, discount: 3000, usedCount: 390, avgPrice: 21.0, activeSku: 16, trend: { sales: [1, 2, 3, 5, 7], discount: [0.1, 0.2, 0.3, 0.4, 0.5] } },
-  { id: '15', name: '美惠佳', type: '小店', gmv: 78000, discount: 2800, usedCount: 370, avgPrice: 21.1, activeSku: 15, trend: { sales: [1, 2, 3, 4, 6], discount: [0.1, 0.2, 0.3, 0.4, 0.5] } },
-  { id: '16', name: '好运来超市', type: '小店', gmv: 72000, discount: 2600, usedCount: 340, avgPrice: 21.2, activeSku: 14, trend: { sales: [1, 2, 3, 4, 5], discount: [0.1, 0.2, 0.3, 0.4, 0.5] } }
-];
+// 使用统一的零售商数据
+const mockRetailers = unifiedRetailers;
 
-// 模拟商品数据
-const mockProducts = [
-  { id: '1', name: '康师傅红烧牛肉面', code: '6923333422', gmv: 185000, discount: 7500, usedCount: 820, salesCount: 8200, trend: { sales: [15, 18, 22, 25, 30], discount: [0.6, 0.7, 0.8, 0.9, 1.0] } },
-  { id: '2', name: '康师傅香辣牛肉面', code: '6923333423', gmv: 175000, discount: 7200, usedCount: 780, salesCount: 7800, trend: { sales: [14, 17, 20, 23, 28], discount: [0.5, 0.6, 0.7, 0.8, 0.9] } },
-  { id: '3', name: '康师傅老坛酸菜面', code: '6923333424', gmv: 165000, discount: 6800, usedCount: 720, salesCount: 7200, trend: { sales: [13, 16, 19, 22, 26], discount: [0.4, 0.5, 0.6, 0.7, 0.8] } },
-  { id: '4', name: '康师傅鲜虾鱼板面', code: '6923333425', gmv: 155000, discount: 6500, usedCount: 680, salesCount: 6800, trend: { sales: [12, 15, 18, 21, 24], discount: [0.4, 0.5, 0.6, 0.7, 0.8] } },
-  { id: '5', name: '康师傅西红柿鸡蛋面', code: '6923333426', gmv: 145000, discount: 6200, usedCount: 640, salesCount: 6400, trend: { sales: [11, 14, 17, 20, 23], discount: [0.3, 0.4, 0.5, 0.6, 0.7] } },
-  { id: '6', name: '康师傅麻辣牛肉面', code: '6923333427', gmv: 135000, discount: 5800, usedCount: 600, salesCount: 6000, trend: { sales: [10, 13, 16, 19, 22], discount: [0.3, 0.4, 0.5, 0.6, 0.7] } },
-  { id: '7', name: '康师傅香菇炖鸡面', code: '6923333428', gmv: 125000, discount: 5500, usedCount: 560, salesCount: 5600, trend: { sales: [9, 12, 15, 18, 20], discount: [0.2, 0.3, 0.4, 0.5, 0.6] } },
-  { id: '8', name: '康师傅酸辣牛肉面', code: '6923333429', gmv: 115000, discount: 5200, usedCount: 520, salesCount: 5200, trend: { sales: [8, 11, 14, 17, 19], discount: [0.2, 0.3, 0.4, 0.5, 0.6] } },
-  { id: '9', name: '康师傅鲜虾面', code: '6923333430', gmv: 105000, discount: 4800, usedCount: 480, salesCount: 4800, trend: { sales: [7, 10, 13, 16, 18], discount: [0.2, 0.3, 0.4, 0.5, 0.6] } },
-  { id: '10', name: '康师傅排骨面', code: '6923333431', gmv: 95000, discount: 4500, usedCount: 440, salesCount: 4400, trend: { sales: [6, 9, 12, 15, 17], discount: [0.1, 0.2, 0.3, 0.4, 0.5] } },
-  { id: '11', name: '康师傅海鲜面', code: '6923333432', gmv: 85000, discount: 4200, usedCount: 400, salesCount: 4000, trend: { sales: [5, 8, 11, 14, 16], discount: [0.1, 0.2, 0.3, 0.4, 0.5] } },
-  { id: '12', name: '康师傅蘑菇面', code: '6923333433', gmv: 75000, discount: 3800, usedCount: 360, salesCount: 3600, trend: { sales: [4, 7, 10, 13, 15], discount: [0.1, 0.2, 0.3, 0.4, 0.5] } }
-];
+// 使用统一的商品数据
+const mockProducts = unifiedProducts;
 
 const ActivityAnalysis: React.FC = () => {
   const navigate = useNavigate();
@@ -200,7 +85,7 @@ const ActivityAnalysis: React.FC = () => {
   });
 
   // 获取当前选中的活动数据
-  const currentActivity = mockActivities.find(activity => activity.id === selectedActivity) || mockActivities[0];
+  const currentActivity = mockActivities.find((activity: ActivityData) => activity.id === selectedActivity) || mockActivities[0];
   
   // 模拟趋势数据
   const mockTrends = [
@@ -214,25 +99,25 @@ const ActivityAnalysis: React.FC = () => {
   ];
 
   // 零售商分页数据（只显示KA类型）
-  const filteredRetailers = mockRetailers.filter(retailer => retailer.type === 'KA');
+  const filteredRetailers = mockRetailers.filter((retailer: RetailerData) => retailer.type === 'KA');
   const retailerPageSize = 10;
   const retailerStartIndex = (retailerPage - 1) * retailerPageSize;
   const currentRetailers = filteredRetailers.slice(retailerStartIndex, retailerStartIndex + retailerPageSize);
 
   // 小店分页数据
-  const smallStores = mockRetailers.filter(retailer => retailer.type === '小店');
+  const smallStores = mockRetailers.filter((retailer: RetailerData) => retailer.type === '小店');
   const smallStorePageSize = 10;
   const smallStoreStartIndex = (smallStorePage - 1) * smallStorePageSize;
   const currentSmallStores = smallStores.slice(smallStoreStartIndex, smallStoreStartIndex + smallStorePageSize);
 
   // 获取排序后的商品数据（置顶商品在前）
   const getSortedProducts = () => {
-    const pinnedProductsList = mockProducts.filter(product => pinnedProducts.has(product.id));
-    const unpinnedProductsList = mockProducts.filter(product => !pinnedProducts.has(product.id));
+    const pinnedProductsList = mockProducts.filter((product: ProductData) => pinnedProducts.has(product.id));
+    const unpinnedProductsList = mockProducts.filter((product: ProductData) => !pinnedProducts.has(product.id));
     
     // 按销售额排序（降序）
-    const sortedPinned = pinnedProductsList.sort((a, b) => b.gmv - a.gmv);
-    const sortedUnpinned = unpinnedProductsList.sort((a, b) => b.gmv - a.gmv);
+    const sortedPinned = pinnedProductsList.sort((a: ProductData, b: ProductData) => b.gmv - a.gmv);
+    const sortedUnpinned = unpinnedProductsList.sort((a: ProductData, b: ProductData) => b.gmv - a.gmv);
     
     return [...sortedPinned, ...sortedUnpinned];
   };
@@ -269,7 +154,7 @@ const ActivityAnalysis: React.FC = () => {
       key: 'contributionRate',
       width: 100,
       render: (record: any) => {
-        const totalGmv = mockRetailers.reduce((sum, retailer) => sum + retailer.gmv, 0);
+        const totalGmv = mockRetailers.reduce((sum: number, retailer: RetailerData) => sum + retailer.gmv, 0);
         const contributionRate = ((record.gmv / totalGmv) * 100).toFixed(1);
         return contributionRate;
       },
@@ -340,7 +225,7 @@ const ActivityAnalysis: React.FC = () => {
       key: 'contributionRate',
       width: 100,
       render: (record: any) => {
-        const totalGmv = mockRetailers.reduce((sum, retailer) => sum + retailer.gmv, 0);
+        const totalGmv = mockRetailers.reduce((sum: number, retailer: RetailerData) => sum + retailer.gmv, 0);
         const contributionRate = ((record.gmv / totalGmv) * 100).toFixed(1);
         return contributionRate;
       },
@@ -411,7 +296,7 @@ const ActivityAnalysis: React.FC = () => {
       key: 'contributionRate',
       width: 100,
       render: (record: any) => {
-        const totalGmv = mockProducts.reduce((sum, product) => sum + product.gmv, 0);
+        const totalGmv = mockProducts.reduce((sum: number, product: ProductData) => sum + product.gmv, 0);
         const contributionRate = ((record.gmv / totalGmv) * 100).toFixed(1);
         return contributionRate;
       },
@@ -543,7 +428,7 @@ const ActivityAnalysis: React.FC = () => {
                 onChange={setSelectedActivity}
                 showSearch
               >
-                {mockActivities.map(activity => (
+                {mockActivities.map((activity: ActivityData) => (
                   <Option key={activity.id} value={activity.id}>
                     {activity.name}
                   </Option>
@@ -576,7 +461,7 @@ const ActivityAnalysis: React.FC = () => {
                     <Text strong>活动机制：</Text>
                     <div style={{ marginTop: 8 }}>
                       {typeof currentActivity.mechanisms === 'object' && !Array.isArray(currentActivity.mechanisms) ? (
-                        Object.entries(currentActivity.mechanisms).map(([platform, mechanisms]) => (
+                        Object.entries(currentActivity.mechanisms).map(([platform, mechanisms]: [string, string[]]) => (
                           <div key={platform} style={{ marginBottom: 16 }}>
                             <div style={{ 
                               fontSize: '14px', 
@@ -735,7 +620,7 @@ const ActivityAnalysis: React.FC = () => {
               </div>
               <Statistic
                 title=""
-                value={currentActivity.gmv / currentActivity.discount}
+                value={currentActivity.gmv && currentActivity.discount ? currentActivity.gmv / currentActivity.discount : 0}
                 precision={1}
                 valueStyle={{ color: '#262626', fontSize: '24px', fontWeight: 'bold' }}
               />
@@ -921,9 +806,9 @@ const ActivityAnalysis: React.FC = () => {
         <div style={{ height: 400 }}>
           <ResponsiveContainer width="100%" height="100%">
             <ScatterChart
-              data={currentActivity?.batches?.map(batch => ({
+              data={currentActivity?.batches?.map((batch: { id: string; name: string; gmv: number; discount: number }) => ({
                 ...batch,
-                contributionRate: ((batch.gmv / currentActivity.gmv) * 100).toFixed(1),
+                contributionRate: currentActivity.gmv ? ((batch.gmv / currentActivity.gmv) * 100).toFixed(1) : '0',
                 roi: (batch.gmv / batch.discount).toFixed(2)
               })) || []}
               margin={{ top: 20, right: 20, bottom: 60, left: 60 }}
@@ -1013,7 +898,7 @@ const ActivityAnalysis: React.FC = () => {
                 const dayIdx = Math.floor(index / 24);
                 const hourIdx = index % 24;
                 // 基于活动数据生成模拟的时段销售额
-                const baseGmv = currentActivity.gmv / (7 * 24);
+                const baseGmv = (currentActivity.gmv || 0) / (7 * 24);
                 const hourMultiplier = hourIdx >= 9 && hourIdx <= 21 ? 1.5 : 0.5; // 白天销售更好
                 const dayMultiplier = dayIdx === 5 || dayIdx === 6 ? 1.2 : 1.0; // 周末销售更好
                 const randomFactor = 0.5 + Math.random() * 1.5; // 随机因子
@@ -1189,13 +1074,14 @@ const ActivityAnalysis: React.FC = () => {
               <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {['周一', '周二', '周三', '周四', '周五', '周六', '周日'].map((day, dayIndex) => {
                   // 模拟每天的销售额数据
-                  const baseDayGmv = currentActivity.gmv / 7;
+                  const activityGmv = currentActivity.gmv || 0;
+                  const baseDayGmv = activityGmv / 7;
                   const dayMultiplier = dayIndex === 5 || dayIndex === 6 ? 1.2 : 1.0; // 周末销售更好
                   const randomFactor = 0.8 + Math.random() * 0.4; // 随机因子
                   const dayTotalGmv = baseDayGmv * dayMultiplier * randomFactor;
                   
                   // 计算一周的销售额总和，用于占比计算
-                  const weekTotalGmv = currentActivity.gmv;
+                  const weekTotalGmv = activityGmv;
                   
                   const percentage = weekTotalGmv > 0 ? (dayTotalGmv / weekTotalGmv) * 100 : 0;
                   const barWidth = Math.max(percentage, 5); // 最小宽度5%
@@ -1410,7 +1296,7 @@ const ActivityAnalysis: React.FC = () => {
                   const currentDate = startDate.add(index * intervalDays, 'day');
                   
                   // 计算销售额占比（当前零售商销售额占总销售额的百分比）
-                  const totalGmv = mockRetailers.reduce((sum, retailer) => sum + retailer.gmv, 0);
+                  const totalGmv = mockRetailers.reduce((sum: number, retailer: RetailerData) => sum + retailer.gmv, 0);
                   const contributionRate = ((sales * 10000) / totalGmv) * 100;
                   
                   return {
@@ -1480,7 +1366,7 @@ const ActivityAnalysis: React.FC = () => {
                   const currentDate = startDate.add(index * intervalDays, 'day');
                   
                   // 计算销售额占比（当前商品销售额占总销售额的百分比）
-                  const totalGmv = mockProducts.reduce((sum, product) => sum + product.gmv, 0);
+                  const totalGmv = mockProducts.reduce((sum: number, product: ProductData) => sum + product.gmv, 0);
                   const contributionRate = ((sales * 10000) / totalGmv) * 100;
                   
                   return {

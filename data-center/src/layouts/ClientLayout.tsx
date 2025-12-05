@@ -94,6 +94,11 @@ const ClientLayout: React.FC = () => {
       icon: <CalendarOutlined />,
     },
     {
+      key: 'marketing-calendar-v1',
+      label: '营销日历V1',
+      icon: <CalendarOutlined />,
+    },
+    {
       key: 'activity-progress',
       label: '活动进度',
       icon: <ProjectOutlined />,

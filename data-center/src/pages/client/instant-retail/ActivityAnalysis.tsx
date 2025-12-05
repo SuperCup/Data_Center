@@ -15,7 +15,7 @@ interface CoreMetrics {
   gmv: number; // GMV
   orderCount: number; // 订单数（张）
   salesVolume: number; // 销量（件）
-  avgPrice: number; // 客单价（元）
+  avgPrice: number; // 笔单价（元）
   roi: number; // ROI
   gmvMonthOnMonth: number; // GMV月环比
   gmvYearOnYear: number; // GMV年同比
@@ -23,8 +23,8 @@ interface CoreMetrics {
   orderCountYearOnYear: number; // 订单数年同比
   salesVolumeMonthOnMonth: number; // 销量月环比
   salesVolumeYearOnYear: number; // 销量年同比
-  avgPriceMonthOnMonth: number; // 客单价月环比
-  avgPriceYearOnYear: number; // 客单价年同比
+  avgPriceMonthOnMonth: number; // 笔单价月环比
+  avgPriceYearOnYear: number; // 笔单价年同比
   roiMonthOnMonth: number; // ROI月环比
   roiYearOnYear: number; // ROI年同比
 }
@@ -40,7 +40,7 @@ interface RegionData {
   gmvYearOnYear: number; // GMV年同比
   orderCount: number; // 订单数
   salesVolume: number; // 销量
-  avgPrice: number; // 客单价
+  avgPrice: number; // 笔单价
   originalPrice: number; // 商品原价
   roi: number; // 活动ROI
 }
@@ -64,7 +64,7 @@ interface RetailerData {
   gmvPercentage: number; // GMV占比
   orderCount: number; // 订单数
   salesVolume: number; // 销量
-  avgPrice: number; // 客单价
+  avgPrice: number; // 笔单价
   roi: number; // ROI
 }
 
@@ -450,7 +450,7 @@ const ActivityAnalysis: React.FC = () => {
       render: (value: number) => value.toLocaleString()
     },
     {
-      title: '客单价（元）',
+      title: '笔单价（元）',
       dataIndex: 'avgPrice',
       key: 'avgPrice',
       width: 100,
@@ -596,7 +596,7 @@ const ActivityAnalysis: React.FC = () => {
       gmv: 'GMV',
       orderCount: '订单数',
       salesVolume: '销量',
-      avgPrice: '客单价',
+      avgPrice: '笔单价',
       roi: 'ROI'
     };
 
@@ -896,7 +896,7 @@ const ActivityAnalysis: React.FC = () => {
       gmv: 'GMV',
       orderCount: '订单数',
       salesVolume: '销量',
-      avgPrice: '客单价',
+      avgPrice: '笔单价',
       roi: 'ROI'
     };
 
@@ -1295,11 +1295,11 @@ const ActivityAnalysis: React.FC = () => {
           </Card>
         </Col>
 
-          {/* 客单价 */}
+          {/* 笔单价 */}
           <Col style={{ width: 'calc(20% - 8px)' }}>
           <Card>
               <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
-                <span style={{ fontSize: '14px', color: '#000000' }}>客单价（元）</span>
+                <span style={{ fontSize: '14px', color: '#000000' }}>笔单价（元）</span>
                 <AntTooltip 
                   title="该数据仅供参考，不作为最终结算依据"
                   placement="topLeft"
@@ -1350,7 +1350,7 @@ const ActivityAnalysis: React.FC = () => {
               { key: 'gmv', label: 'GMV', color: '#1890ff' },
               { key: 'orderCount', label: '订单数', color: '#52c41a' },
               { key: 'salesVolume', label: '销量', color: '#722ed1' },
-              { key: 'avgPrice', label: '客单价', color: '#faad14' },
+              { key: 'avgPrice', label: '笔单价', color: '#faad14' },
               { key: 'roi', label: 'ROI', color: '#f5222d' }
             ].map(metric => (
               <div 
@@ -1408,7 +1408,7 @@ const ActivityAnalysis: React.FC = () => {
                 <Option value="gmv" disabled={selectedMetric === 'gmv'}>GMV</Option>
                 <Option value="orderCount" disabled={selectedMetric === 'orderCount'}>订单数</Option>
                 <Option value="salesVolume" disabled={selectedMetric === 'salesVolume'}>销量</Option>
-                <Option value="avgPrice" disabled={selectedMetric === 'avgPrice'}>客单价</Option>
+                <Option value="avgPrice" disabled={selectedMetric === 'avgPrice'}>笔单价</Option>
                 <Option value="roi" disabled={selectedMetric === 'roi'}>ROI</Option>
               </Select>
             )}
@@ -1438,7 +1438,7 @@ const ActivityAnalysis: React.FC = () => {
                 <Option value="gmv">GMV</Option>
                 <Option value="orderCount">订单数</Option>
                 <Option value="salesVolume">销量</Option>
-                <Option value="avgPrice">客单价</Option>
+                <Option value="avgPrice">笔单价</Option>
                 <Option value="roi">ROI</Option>
               </Select>
                           </div>
@@ -1565,7 +1565,7 @@ const ActivityAnalysis: React.FC = () => {
               render: (value: number) => value.toLocaleString()
             },
             {
-              title: '客单价（元）',
+              title: '笔单价（元）',
               dataIndex: 'avgPrice',
               key: 'avgPrice',
               width: 100,

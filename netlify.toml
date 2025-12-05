@@ -3,6 +3,36 @@
   publish = "data-center/build"
   command = "npm ci && npm run build"
 
+# 生产分支（main/master）的配置
+[context.production]
+  command = "npm ci && npm run build"
+  [context.production.environment]
+    NODE_ENV = "production"
+    GENERATE_SOURCEMAP = "false"
+
+# 特定分支的配置（例如 tongyi 分支）
+[context.tongyi]
+  command = "npm ci && npm run build"
+  [context.tongyi.environment]
+    NODE_ENV = "production"
+    GENERATE_SOURCEMAP = "true"
+    # 可以添加分支特定的环境变量
+    # BRANCH_NAME = "tongyi"
+
+# 所有分支部署的通用配置
+[context.branch-deploy]
+  command = "npm ci && npm run build"
+  [context.branch-deploy.environment]
+    NODE_ENV = "production"
+    GENERATE_SOURCEMAP = "true"
+
+# 拉取请求部署的配置
+[context.deploy-preview]
+  command = "npm ci && npm run build"
+  [context.deploy-preview.environment]
+    NODE_ENV = "production"
+    GENERATE_SOURCEMAP = "true"
+
 [[redirects]]
   from = "/*"
   to = "/index.html"

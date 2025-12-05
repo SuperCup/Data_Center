@@ -4,6 +4,7 @@ import { Row, Col, Card, Statistic, Progress, Divider, DatePicker, Select, Tabs,
 import { ArrowUpOutlined, ArrowDownOutlined, ShoppingOutlined, DollarOutlined, TagOutlined, AppstoreOutlined, InfoCircleOutlined, QuestionCircleOutlined, DownloadOutlined } from '@ant-design/icons';
 import { PieChart, Pie as RechartsPie, Cell, LineChart, Line as RechartsLine, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import moment from 'moment';
+import { dashboardStats, type ChannelData } from '../../../data/storeMarketingData';
 const { RangePicker } = DatePicker;
 const { Option } = Select;
 const { TabPane } = Tabs;
@@ -71,67 +72,16 @@ const Dashboard: React.FC = () => {
   // SKU排序状态
   const [skuSortBy, setSkuSortBy] = useState<string>('gmv');
   
-  // 平台发券数据 - 各平台发券占比
-  const platformIssuanceData = [
-    { 
-      name: '微信', 
-      issuedCount: 280000, 
-      usedCount: 224000, 
-      gmv: 3276000, 
-      discount: 1310400,
-      usageRate: 80.0
-    },
-    { 
-      name: '支付宝', 
-      issuedCount: 200000, 
-      usedCount: 160000, 
-      gmv: 2340000, 
-      discount: 936000,
-      usageRate: 80.0
-    },
-    { 
-      name: '抖音到店', 
-      issuedCount: 15000, 
-      usedCount: 12000, 
-      gmv: 175500, 
-      discount: 70200,
-      usageRate: 80.0
-    },
-  ];
-
-  // 各平台下的渠道数据
-  const platformChannelData = {
-    '微信': [
-      { name: '品牌小程序', issuedCount: 80000, usedCount: 72000, gmv: 1800000, discount: 720000, usageRate: 90.0 },
-      { name: '支付有礼', issuedCount: 70000, usedCount: 60000, gmv: 1500000, discount: 600000, usageRate: 85.7 },
-      { name: '立减与折扣', issuedCount: '--', usedCount: 12000, gmv: 306000, discount: 121500, usageRate: '--' },
-      { name: '零售商小程序', issuedCount: 25000, usedCount: 20000, gmv: 500000, discount: 200000, usageRate: 80.0 },
-      { name: '扫码领券', issuedCount: 20000, usedCount: 16000, gmv: 400000, discount: 160000, usageRate: 80.0 },
-      { name: '社群', issuedCount: 15000, usedCount: 12000, gmv: 300000, discount: 120000, usageRate: 80.0 },
-      { name: '智能促销员', issuedCount: 12000, usedCount: 10000, gmv: 250000, discount: 100000, usageRate: 83.3 },
-      { name: '扫码购', issuedCount: 10000, usedCount: 8000, gmv: 200000, discount: 80000, usageRate: 80.0 },
-      { name: 'H5', issuedCount: 5000, usedCount: 4000, gmv: 100000, discount: 40000, usageRate: 80.0 },
-    ],
-    '支付宝': [
-      { name: '支付有礼', issuedCount: 50000, usedCount: 40000, gmv: 800000, discount: 320000, usageRate: 80.0 },
-      { name: '扫码领券', issuedCount: 30000, usedCount: 25000, gmv: 500000, discount: 200000, usageRate: 83.3 },
-      { name: '零售商小程序', issuedCount: 20000, usedCount: 15000, gmv: 370000, discount: 147500, usageRate: 75.0 },
-      { name: '品牌小程序', issuedCount: 18000, usedCount: 15000, gmv: 350000, discount: 140000, usageRate: 83.3 },
-      { name: '立减与折扣', issuedCount: '--', usedCount: 12000, gmv: 300000, discount: 120000, usageRate: '--' },
-      { name: '社群', issuedCount: 12000, usedCount: 10000, gmv: 250000, discount: 100000, usageRate: 83.3 },
-      { name: '智能促销员', issuedCount: 10000, usedCount: 8000, gmv: 200000, discount: 80000, usageRate: 80.0 },
-      { name: '扫码购', issuedCount: 8000, usedCount: 6000, gmv: 150000, discount: 60000, usageRate: 75.0 },
-      { name: '碰一下', issuedCount: 6000, usedCount: 5000, gmv: 120000, discount: 48000, usageRate: 83.3 },
-      { name: 'H5', issuedCount: 3000, usedCount: 2500, gmv: 80000, discount: 32000, usageRate: 83.3 },
-    ],
-    '抖音到店': [
-      { name: '社群', issuedCount: 80000, usedCount: 64000, gmv: 936000, discount: 374000, usageRate: 80.0 },
-    ],
-  };
+  // 使用统一的数据
+  const platformIssuanceData = dashboardStats.platformIssuanceData;
+  const platformChannelData = dashboardStats.platformChannelData;
+  const issuedChannelRanking = dashboardStats.issuedChannelRanking;
+  const usedChannelRanking = dashboardStats.usedChannelRanking;
+  const stats = dashboardStats;
 
   // 获取平台饼图数据
   const getPlatformPieData = () => {
-    return platformIssuanceData.map(item => ({
+    return platformIssuanceData.map((item: { name: string; issuedCount: number }) => ({
       name: item.name,
       value: item.issuedCount
     }));
@@ -141,207 +91,6 @@ const Dashboard: React.FC = () => {
   const getSelectedPlatformChannels = () => {
     if (!selectedPlatform) return [];
     return platformChannelData[selectedPlatform as keyof typeof platformChannelData] || [];
-  };
-  const issuedChannelRanking = [
-    { name: '品牌小程序', issued: 180000 },
-    { name: '支付有礼', issued: 150000 },
-    { name: '零售商小程序', issued: 120000 },
-    { name: '扫码领券', issued: 100000 },
-    { name: '立减与折扣', issued: 80000 },
-    { name: '社群', issued: 70000 },
-    { name: '智能促销员', issued: 60000 },
-    { name: '扫码购', issued: 50000 },
-    { name: '碰一下', issued: 30000 },
-    { name: 'H5', issued: 10000 },
-  ];
-
-  const usedChannelRanking = [
-    { name: '品牌小程序', used: 72000 },
-    { name: '支付有礼', used: 60000 },
-    { name: '零售商小程序', used: 48000 },
-    { name: '扫码领券', used: 40000 },
-    { name: '立减与折扣', used: 32000 },
-    { name: '社群', used: 28000 },
-    { name: '智能促销员', used: 24000 },
-    { name: '扫码购', used: 20000 },
-    { name: '碰一下', used: 12000 },
-    { name: 'H5', used: 4000 },
-  ];
-
-  // 分发渠道数据
-  const distributionChannels = [
-    { name: '品牌小程序', wechat: 80000, alipay: 50000, douyin_visitor: 30000, meituan_local: 20000 },
-    { name: '支付有礼', wechat: 70000, alipay: 40000, douyin_visitor: 25000, meituan_local: 15000 },
-    { name: '零售商小程序', wechat: 60000, alipay: 30000, douyin_visitor: 20000, meituan_local: 10000 },
-    { name: '扫码领券', wechat: 50000, alipay: 25000, douyin_visitor: 15000, meituan_local: 10000 },
-    { name: '立减与折扣', wechat: 40000, alipay: 20000, douyin_visitor: 10000, meituan_local: 10000 },
-  ];
-
-  // 模拟数据
-  const stats = {
-    // 分发渠道数据
-    distributionChannels,
-    // 核心指标数据
-    overview: {
-      gmv: 4680000,
-      gmvYoY: 15.2, // 同比增长
-      gmvMoM: 5.8,  // 环比增长
-      usedCount: 320000,
-      usedCountYoY: 12.5,
-      usedCountMoM: 4.2,
-      batchCount: 12,
-      batchCountYoY: 20.0,
-      batchCountMoM: 9.1,
-      discount: 1870000,
-      discountYoY: 18.3,
-      discountMoM: 7.5,
-      roi: 2.5, // ROI投资回报率
-      roiYoY: 8.5,
-      roiMoM: 3.2,
-      orderCount: 42120, // 订单数
-      orderCountYoY: 14.8,
-      orderCountMoM: 6.3,
-      usageRate: 37.6, // 核销率
-      usageRateYoY: 2.5,
-      usageRateMoM: 1.2
-    },
-    // 预算数据
-    budget: {
-      total: 2800000,
-      used: 1870000,
-      usageRate: 66.8,
-      updateTime: '2025-10-31 23:59:59'
-    },
-    // 平台数据
-    platformData: [
-      { name: '微信', value: 45, gmv: 2106000, discount: 841500, budget: 80, clientBudget: { total: 1000000, used: 800000 }, orders: 21060, usedCount: 144000 },
-      { name: '支付宝', value: 25, gmv: 1170000, discount: 467500, budget: 70, clientBudget: { total: 800000, used: 560000 }, orders: 11700, usedCount: 80000 },
-      { name: '抖音到店', value: 20, gmv: 936000, discount: 374000, budget: 65, clientBudget: { total: 600000, used: 390000 }, orders: 9360, usedCount: 64000 },
-    ],
-    // 趋势数据
-    trends: [
-      { date: '10-01', gmv: 156000, usedCount: 10667, batchCount: 12, discount: 62333, roi: 2.5, orderCount: 1560, usageRate: 35.6 },
-      { date: '10-02', gmv: 168000, usedCount: 11500, batchCount: 12, discount: 67200, roi: 2.5, orderCount: 1680, usageRate: 36.2 },
-      { date: '10-03', gmv: 180000, usedCount: 12333, batchCount: 12, discount: 72000, roi: 2.5, orderCount: 1800, usageRate: 36.8 },
-      { date: '10-04', gmv: 162000, usedCount: 11100, batchCount: 12, discount: 64800, roi: 2.5, orderCount: 1620, usageRate: 37.0 },
-      { date: '10-05', gmv: 150000, usedCount: 10267, batchCount: 12, discount: 60000, roi: 2.5, orderCount: 1500, usageRate: 37.2 },
-      { date: '10-06', gmv: 165000, usedCount: 11300, batchCount: 12, discount: 66000, roi: 2.5, orderCount: 1650, usageRate: 37.4 },
-      { date: '10-07', gmv: 175000, usedCount: 12000, batchCount: 12, discount: 70000, roi: 2.5, orderCount: 1750, usageRate: 37.6 },
-      { date: '10-08', gmv: 185000, usedCount: 12667, batchCount: 12, discount: 74000, roi: 2.5, orderCount: 1850, usageRate: 37.8 },
-      { date: '10-09', gmv: 190000, usedCount: 13000, batchCount: 12, discount: 76000, roi: 2.5, orderCount: 1900, usageRate: 38.0 },
-      { date: '10-10', gmv: 195000, usedCount: 13333, batchCount: 12, discount: 78000, roi: 2.5, orderCount: 1950, usageRate: 38.2 },
-    ],
-    // 渠道数据
-    channels: [
-      { name: '品牌小程序', usedCount: 72000 },
-      { name: '支付有礼', usedCount: 60000 },
-      { name: '零售商小程序', usedCount: 48000 },
-      { name: '扫码领券', usedCount: 40000 },
-      { name: '立减与折扣', usedCount: 32000 },
-      { name: '社群', usedCount: 28000 },
-      { name: '智能促销员', usedCount: 24000 },
-      { name: '扫码购', usedCount: 20000 },
-      { name: '碰一下', usedCount: 12000 },
-      { name: 'H5', usedCount: 4000 },
-    ],
-    // 零售商数据 - 支持5个指标
-    retailers: [
-      { name: '华润万家大卖场', usedCount: 65000, gmv: 1300000, batchCount: 5, discount: 130000, roi: 10.0, orderCount: 13000, usageRate: 45.2 },
-      { name: '沃尔玛', usedCount: 58000, gmv: 1160000, batchCount: 4, discount: 116000, roi: 10.0, orderCount: 11600, usageRate: 42.8 },
-      { name: '山姆', usedCount: 52000, gmv: 1040000, batchCount: 4, discount: 104000, roi: 10.0, orderCount: 10400, usageRate: 41.5 },
-      { name: '大润发', usedCount: 45000, gmv: 900000, batchCount: 3, discount: 90000, roi: 10.0, orderCount: 9000, usageRate: 38.9 },
-      { name: '永辉', usedCount: 38000, gmv: 760000, batchCount: 3, discount: 76000, roi: 10.0, orderCount: 7600, usageRate: 36.2 },
-      { name: '物美超市', usedCount: 32000, gmv: 640000, batchCount: 2, discount: 64000, roi: 10.0, orderCount: 6400, usageRate: 34.8 },
-      { name: '麦德龙', usedCount: 28000, gmv: 560000, batchCount: 2, discount: 56000, roi: 10.0, orderCount: 5600, usageRate: 33.1 },
-      { name: '大张盛德美', usedCount: 24000, gmv: 480000, batchCount: 2, discount: 48000, roi: 10.0, orderCount: 4800, usageRate: 31.5 },
-      { name: '永旺', usedCount: 20000, gmv: 400000, batchCount: 1, discount: 40000, roi: 10.0, orderCount: 4000, usageRate: 29.8 },
-      { name: '华润苏果便利店', usedCount: 18000, gmv: 360000, batchCount: 1, discount: 36000, roi: 10.0, orderCount: 3600, usageRate: 28.2 },
-    ],
-    // 机制数据 - 支持5个指标
-    mechanisms: [
-      { name: '满200减30', usedCount: 85000, gmv: 1700000, batchCount: 6, discount: 170000, roi: 10.0, orderCount: 17000, usageRate: 48.5 },
-      { name: '满100减15', usedCount: 72000, gmv: 1440000, batchCount: 5, discount: 144000, roi: 10.0, orderCount: 14400, usageRate: 45.8 },
-      { name: '满50减8', usedCount: 58000, gmv: 1160000, batchCount: 4, discount: 116000, roi: 10.0, orderCount: 11600, usageRate: 42.1 },
-      { name: '满300减50', usedCount: 45000, gmv: 900000, batchCount: 3, discount: 90000, roi: 10.0, orderCount: 9000, usageRate: 38.9 },
-      { name: '满150减25', usedCount: 38000, gmv: 760000, batchCount: 3, discount: 76000, roi: 10.0, orderCount: 7600, usageRate: 36.2 },
-      { name: '满80减12', usedCount: 32000, gmv: 640000, batchCount: 2, discount: 64000, roi: 10.0, orderCount: 6400, usageRate: 34.8 },
-      { name: '满60减10', usedCount: 28000, gmv: 560000, batchCount: 2, discount: 56000, roi: 10.0, orderCount: 5600, usageRate: 33.1 },
-      { name: '满120减20', usedCount: 24000, gmv: 480000, batchCount: 2, discount: 48000, roi: 10.0, orderCount: 4800, usageRate: 31.5 },
-      { name: '满88减15', usedCount: 18000, gmv: 360000, batchCount: 1, discount: 36000, roi: 10.0, orderCount: 3600, usageRate: 28.2 },
-      { name: '满168减28', usedCount: 15000, gmv: 300000, batchCount: 1, discount: 30000, roi: 10.0, orderCount: 3000, usageRate: 25.8 },
-    ],
-    // SKU数据
-    skus: [
-      { name: '康师傅红烧牛肉面', code69: '6901028089296', gmv: 240000, orderCount: 2400, discount: 24000, usedCount: 24000, salesVolume: 4800 },
-      { name: '康师傅香辣牛肉面', code69: '6901028089302', gmv: 210000, orderCount: 2100, discount: 21000, usedCount: 21000, salesVolume: 4200 },
-      { name: '康师傅老坛酸菜面', code69: '6901028089319', gmv: 190000, orderCount: 1900, discount: 19000, usedCount: 19000, salesVolume: 3800 },
-      { name: '康师傅鲜虾鱼板面', code69: '6901028089326', gmv: 170000, orderCount: 1700, discount: 17000, usedCount: 17000, salesVolume: 3400 },
-      { name: '康师傅西红柿鸡蛋面', code69: '6901028089333', gmv: 150000, orderCount: 1500, discount: 15000, usedCount: 15000, salesVolume: 3000 },
-      { name: '康师傅麻辣牛肉面', code69: '6901028089340', gmv: 130000, orderCount: 1300, discount: 13000, usedCount: 13000, salesVolume: 2600 },
-      { name: '康师傅香菇炖鸡面', code69: '6901028089357', gmv: 110000, orderCount: 1100, discount: 11000, usedCount: 11000, salesVolume: 2200 },
-      { name: '康师傅酸辣牛肉面', code69: '6901028089364', gmv: 90000, orderCount: 900, discount: 9000, usedCount: 9000, salesVolume: 1800 },
-      { name: '康师傅绿茶 500ml', code69: '6901028089371', gmv: 75000, orderCount: 750, discount: 7500, usedCount: 7500, salesVolume: 1500 },
-      { name: '康师傅冰红茶 500ml', code69: '6901028089388', gmv: 60000, orderCount: 600, discount: 6000, usedCount: 6000, salesVolume: 1200 },
-    ],
-    // 时段分析热力图数据 - 周一到周日，每天24小时
-    timeAnalysisData: (() => {
-      const weekdays = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
-      const hours = Array.from({ length: 24 }, (_, i) => i);
-      const data: Array<{ day: string; hour: number; gmv: number; dayIndex: number; hourIndex: number }> = [];
-      
-      // 生成模拟数据，工作日和周末有不同的销售模式
-      weekdays.forEach((day, dayIndex) => {
-        const isWeekend = dayIndex >= 5; // 周六周日
-        hours.forEach((hour) => {
-          let baseGmv = 50000; // 基础销售额
-          
-          // 根据时段调整销售额
-          if (hour >= 9 && hour <= 12) {
-            baseGmv *= isWeekend ? 2.4 : 2.2; // 上午高峰，周末更高
-          } else if (hour >= 14 && hour <= 17) {
-            baseGmv *= isWeekend ? 2.2 : 1.9; // 下午高峰，周末更高
-          } else if (hour >= 19 && hour <= 22) {
-            baseGmv *= isWeekend ? 2.8 : 2.5; // 晚上高峰，周末更高
-          } else if (hour >= 0 && hour <= 6) {
-            baseGmv *= 0.2; // 凌晨低谷
-          } else {
-            baseGmv *= isWeekend ? 1.6 : 1.0; // 其他时段，周末显著提高
-          }
-          
-          // 周末整体销售额大幅提高
-          if (isWeekend) {
-            baseGmv *= 1.5; // 从1.1提高到1.5，增加50%的销售额
-          }
-          
-          // 添加随机波动
-          const randomFactor = 0.7 + Math.random() * 0.6; // 0.7-1.3的随机因子
-          const gmv = Math.round(baseGmv * randomFactor);
-          
-          data.push({
-            day,
-            hour,
-            gmv,
-            dayIndex,
-            hourIndex: hour
-          });
-        });
-      });
-      
-      return data;
-    })(),
-    // 档期数据
-    periods: [
-      { name: '双11预售', usedCount: 64000, batchCount: 3, budgetUsed: 256000 },
-      { name: '国庆黄金周', usedCount: 57600, batchCount: 4, budgetUsed: 230400 },
-      { name: '开学季', usedCount: 51200, batchCount: 2, budgetUsed: 204800 },
-      { name: '夏季促销', usedCount: 44800, batchCount: 3, budgetUsed: 179200 },
-      { name: '618大促', usedCount: 38400, batchCount: 5, budgetUsed: 153600 },
-      { name: '五一小长假', usedCount: 32000, batchCount: 2, budgetUsed: 128000 },
-      { name: '春节特惠', usedCount: 25600, batchCount: 4, budgetUsed: 102400 },
-      { name: '情人节专题', usedCount: 19200, batchCount: 1, budgetUsed: 76800 },
-      { name: '会员日', usedCount: 12800, batchCount: 2, budgetUsed: 51200 },
-      { name: '周年庆', usedCount: 6400, batchCount: 1, budgetUsed: 25600 },
-    ]
   };
 
   // 处理日期类型变更
@@ -871,7 +620,7 @@ const Dashboard: React.FC = () => {
                     dataKey="value"
                     onClick={(data) => setSelectedPlatform(data.name)}
                   >
-                    {getPlatformPieData().map((entry, index) => {
+                    {getPlatformPieData().map((entry: { name: string; value: number }, index: number) => {
                       const baseColor = PLATFORM_COLORS[entry.name as keyof typeof PLATFORM_COLORS] || COLORS[index % COLORS.length];
                       const isSelected = selectedPlatform === entry.name;
                       
@@ -1005,7 +754,7 @@ const Dashboard: React.FC = () => {
                           key: 'contributionRate',
                           width: 80,
                           align: 'center',
-                          render: (value, record) => {
+                          render: (value: any, record: { name: string; gmv: number; [key: string]: any }) => {
                             // 计算销售额占比：当前渠道销售额 / 所有渠道销售额总和 * 100
                             const totalGmv = getSelectedPlatformChannels().reduce((sum: number, item: any) => sum + item.gmv, 0);
                             const contributionRate = totalGmv > 0 ? (record.gmv / totalGmv * 100) : 0;
@@ -1260,14 +1009,14 @@ const Dashboard: React.FC = () => {
                   {/* 24小时数据点 */}
                   {Array.from({ length: 24 }, (_, hour) => {
                     const dataPoint = stats.timeAnalysisData.find(
-                      item => item.dayIndex === dayIndex && item.hourIndex === hour
+                      (item: { dayIndex: number; hourIndex: number }) => item.dayIndex === dayIndex && item.hourIndex === hour
                     );
                     
                     if (!dataPoint) return <div key={`${day}-${hour}`}></div>;
                     
                     // 计算圆圈大小和颜色深度
-                    const maxGmv = Math.max(...stats.timeAnalysisData.map(item => item.gmv));
-                    const minGmv = Math.min(...stats.timeAnalysisData.map(item => item.gmv));
+                    const maxGmv = Math.max(...stats.timeAnalysisData.map((item: { gmv: number }) => item.gmv));
+                    const minGmv = Math.min(...stats.timeAnalysisData.map((item: { gmv: number }) => item.gmv));
                     const normalizedValue = (dataPoint.gmv - minGmv) / (maxGmv - minGmv);
                     
                     // 圆圈大小：最小8px，最大28px
@@ -1404,14 +1153,14 @@ const Dashboard: React.FC = () => {
                 {['周一', '周二', '周三', '周四', '周五', '周六', '周日'].map((day, dayIndex) => {
                   // 计算当天所有时段的销售额总和
                   const dayTotalGmv = stats.timeAnalysisData
-                    .filter(item => item.dayIndex === dayIndex)
-                    .reduce((sum, item) => sum + item.gmv, 0);
+                    .filter((item: { dayIndex: number; gmv: number }) => item.dayIndex === dayIndex)
+                    .reduce((sum: number, item: { dayIndex: number; gmv: number }) => sum + item.gmv, 0);
                   
                   // 计算一周的销售额总和，用于占比计算
                   const weekTotalGmv = Array.from({ length: 7 }, (_, i) => 
                     stats.timeAnalysisData
-                      .filter(item => item.dayIndex === i)
-                      .reduce((sum, item) => sum + item.gmv, 0)
+                      .filter((item: { dayIndex: number; gmv: number }) => item.dayIndex === i)
+                      .reduce((sum: number, item: { dayIndex: number; gmv: number }) => sum + item.gmv, 0)
                   ).reduce((sum, dayGmv) => sum + dayGmv, 0);
                   
                   const percentage = weekTotalGmv > 0 ? (dayTotalGmv / weekTotalGmv) * 100 : 0;

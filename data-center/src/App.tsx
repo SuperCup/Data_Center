@@ -55,6 +55,7 @@ function App() {
           <Route path="price-monitoring-dashboard" element={<PriceMonitoringDashboard />} />
           <Route path="price-monitoring-dashboard/:taskId" element={<PriceMonitoringDashboard />} />
           <Route path="marketing-calendar" element={<MarketingCalendarV2 />} />
+          <Route path="marketing-calendar-v1" element={<MarketingCalendar />} />
           <Route path="activity-progress" element={<ActivityProgress />} />
           <Route path="activity-analysis-instant" element={<ActivityAnalysisInstant />} />
           <Route path="all-analysis" element={<AllAnalysis />} />
