@@ -1,114 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { Row, Col, Card, Statistic, Progress, Select, Typography, Button, Table, Pagination, Radio, Tag, Tooltip as AntTooltip, DatePicker, Modal } from 'antd';
-import { ShoppingOutlined, DollarOutlined, TagOutlined, AppstoreOutlined, QuestionCircleOutlined, SearchOutlined, PushpinOutlined, PushpinFilled } from '@ant-design/icons';
-import { ScatterChart, Scatter, LineChart, Line as RechartsLine, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { Row, Col, Card, Statistic, Progress, Select, Typography, Button, Table, Pagination, Radio, Tag, Tooltip as AntTooltip, DatePicker, Modal, Drawer } from 'antd';
+import { ShoppingOutlined, DollarOutlined, TagOutlined, AppstoreOutlined, QuestionCircleOutlined, SearchOutlined, PushpinOutlined, PushpinFilled, DownloadOutlined, ArrowUpOutlined, ArrowDownOutlined } from '@ant-design/icons';
+import { ScatterChart, Scatter, LineChart, Line as RechartsLine, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import dayjs from 'dayjs';
 import { useLocation, useParams } from 'react-router-dom';
+import { unifiedActivities, type ActivityData } from '../../../data/storeMarketingData';
 
 const { Option } = Select;
 const { Title, Text } = Typography;
 const { RangePicker } = DatePicker;
 
-// 模拟活动数据
-const mockActivities = [
-  {
-    id: '1',
-    name: '2025年9-10月康师傅红烧牛肉面全国促销活动',
-    activityType: 'KA',
-    startDate: '2025-09-01',
-    endDate: '2025-10-31',
-    mechanisms: {
-      '微信小店': ['2元乐享', '1元享购']
-    },
-    budget: 50000,
-    consumed: 32500,
-    gmv: 142500,
-    usedCount: Math.round(12500 * 1.5),
-    batchCount: 8 * 15,
-    discount: 32500,
-    usageRate: 78.5,
-    // 新增核心指标数据
-    registeredStores: 229,  // 报名门店数
-    activeStores: 192,       // 动销门店数
-    targetStores: 250,       // 计划门店数
-    redeemAmount: 6400,     // 核销金额
-    redeemCount: 3200,      // 核销份数
-    avgDailyOutput: 2.08,    // 店均日产出
-    batches: [
-      { id: 'b1', name: '指定品满5元减0.5元', gmv: 22500, discount: 1750 },
-      { id: 'b2', name: '指定品满8元减0.8元', gmv: 19000, discount: 1400 },
-      { id: 'b3', name: '指定品满10元减1元', gmv: 26000, discount: 2100 },
-      { id: 'b4', name: '指定品满12元减1.2元', gmv: 16000, discount: 1250 },
-      { id: 'b5', name: '指定品满15元减1.5元', gmv: 24000, discount: 1900 },
-      { id: 'b6', name: '指定品满18元减1.8元', gmv: 14500, discount: 1100 },
-      { id: 'b7', name: '指定品满20元减2元', gmv: 10500, discount: 800 },
-      { id: 'b8', name: '指定品满22元减2.2元', gmv: 10000, discount: 750 }
-    ]
-  },
-  {
-    id: '2',
-    name: '2025年8月康师傅老坛酸菜面夏日特惠活动',
-    activityType: '小店',
-    startDate: '2025-08-01',
-    endDate: '2025-08-31',
-    mechanisms: {
-      '微信小店': ['2元乐享', '1元享购']
-    },
-    budget: 40000,
-    consumed: 26000,
-    gmv: 97500,
-    usedCount: Math.round(8500 * 1.5),
-    batchCount: 5 * 15,
-    discount: 26000,
-    usageRate: 82.3,
-    // 新增核心指标数据
-    registeredStores: 229,   // 报名门店数
-    activeStores: 192,       // 动销门店数
-    targetStores: 220,       // 计划门店数
-    redeemAmount: 6400,     // 核销金额
-    redeemCount: 3200,      // 核销份数
-    avgDailyOutput: 2.08,    // 店均日产出
-    batches: [
-      { id: 'b1', name: '指定品满4元减0.4元', gmv: 21000, discount: 1600 },
-      { id: 'b2', name: '指定品满6元减0.6元', gmv: 19000, discount: 1400 },
-      { id: 'b3', name: '指定品满8元减0.8元', gmv: 22500, discount: 1750 },
-      { id: 'b4', name: '指定品满10元减1元', gmv: 17500, discount: 1300 },
-      { id: 'b5', name: '指定品满12元减1.2元', gmv: 17500, discount: 1250 }
-    ]
-  },
-  {
-    id: '3',
-    name: '2025年7月康师傅香辣牛肉面品牌推广活动',
-    activityType: 'KA',
-    startDate: '2025-07-01',
-    endDate: '2025-07-31',
-    mechanisms: {
-      '微信小店': ['2元乐享', '1元享购']
-    },
-    budget: 30000,
-    consumed: 24000,
-    gmv: 82500,
-    usedCount: Math.round(9200 * 1.5),
-    batchCount: 6 * 15,
-    discount: 24000,
-    usageRate: 85.1,
-    // 新增核心指标数据
-    registeredStores: 229,   // 报名门店数
-    activeStores: 192,       // 动销门店数
-    targetStores: 200,       // 计划门店数
-    redeemAmount: 6400,     // 核销金额
-    redeemCount: 3200,      // 核销份数
-    avgDailyOutput: 2.08,    // 店均日产出
-    batches: [
-      { id: 'b1', name: '指定品满3元减0.3元', gmv: 16000, discount: 1200 },
-      { id: 'b2', name: '指定品满5元减0.5元', gmv: 14000, discount: 1050 },
-      { id: 'b3', name: '指定品满6元减0.6元', gmv: 14500, discount: 1100 },
-      { id: 'b4', name: '指定品满8元减0.8元', gmv: 12500, discount: 950 },
-      { id: 'b5', name: '指定品满9元减0.9元', gmv: 13000, discount: 1000 },
-      { id: 'b6', name: '指定品满10元减1元', gmv: 12500, discount: 900 }
-    ]
-  }
-];
+// 使用统一的活动数据
+const mockActivities = unifiedActivities;
 
 // 模拟零售商数据
 const mockRetailers = [
@@ -146,10 +49,27 @@ const mockProducts = [
   { id: '12', name: '康师傅蘑菇面', code: '6923333433', gmv: 75000, discount: 3800, usedCount: 360, salesCount: 3600, trend: { sales: [4, 7, 10, 13, 15], discount: [0.1, 0.2, 0.3, 0.4, 0.5] } }
 ];
 
+// 部/课/所三级联动数据
+const departmentData = {
+  '广州乳饮': {
+    courses: {
+      '天河': ['天河', '越秀', '荔湾'],
+      '海珠': ['海珠', '番禺', '白云'],
+      '黄埔': ['黄埔', '花都']
+    }
+  },
+  '深圳乳饮': {
+    courses: {
+      '南山': ['南山', '福田'],
+      '宝安': ['宝安', '龙岗']
+    }
+  }
+};
+
 const SmallStoreActivityAnalysis: React.FC = () => {
   const location = useLocation();
   const { activityId } = useParams<{ activityId?: string }>();
-  const [selectedActivity, setSelectedActivity] = useState<string>('1');
+  const [selectedActivityId, setSelectedActivityId] = useState<string>('');
   const [retailerType, setRetailerType] = useState<string>('all');
   const [retailerPage, setRetailerPage] = useState<number>(1);
   const [smallStorePage, setSmallStorePage] = useState<number>(1);
@@ -166,38 +86,39 @@ const SmallStoreActivityAnalysis: React.FC = () => {
   const [selectedProductTrend, setSelectedProductTrend] = useState<any>(null);
   const [pinnedProducts, setPinnedProducts] = useState<Set<string>>(new Set());
   
+  // 部/课/所筛选状态
+  const [selectedDepartment, setSelectedDepartment] = useState<string>('广州乳饮');
+  const [selectedCourse, setSelectedCourse] = useState<string>('');
+  const [selectedOffice, setSelectedOffice] = useState<string>('');
+  
+  // 未报名门店清单侧边栏状态
+  const [unregisteredStoresDrawerVisible, setUnregisteredStoresDrawerVisible] = useState<boolean>(false);
+  
+  // 消费者触达数量饼图选中的项
+  const [selectedPieSegment, setSelectedPieSegment] = useState<string>('');
+  
   // 处理URL参数，设置默认选中的活动
   useEffect(() => {
     // 优先使用路由参数中的activityId
-    if (activityId) {
-      // 根据activityId映射到对应的活动ID
-      const activityMapping: { [key: string]: string } = {
-        'ACT001': '1',
-        'ACT002': '2', 
-        'ACT003': '3',
-        'ACT004': '1', // 待开始活动映射到第一个活动
-        'ACT005': '1', // 待开始活动映射到第一个活动
-        'ACT006': '3'  // 已结束活动映射到第三个活动
-      };
-      const mappedId = activityMapping[activityId] || '1';
-      setSelectedActivity(mappedId);
-    } else {
+    let targetActivityId = activityId;
+    if (!targetActivityId) {
       // 如果没有路由参数，则检查查询参数
       const searchParams = new URLSearchParams(location.search);
-      const queryActivityId = searchParams.get('activityId');
-      if (queryActivityId) {
-        // 根据activityId映射到对应的活动ID
-        const activityMapping: { [key: string]: string } = {
-          'ACT001': '1',
-          'ACT002': '2', 
-          'ACT003': '3',
-          'ACT004': '1', // 待开始活动映射到第一个活动
-          'ACT005': '1', // 待开始活动映射到第一个活动
-          'ACT006': '3'  // 已结束活动映射到第三个活动
-        };
-        const mappedId = activityMapping[queryActivityId] || '1';
-        setSelectedActivity(mappedId);
+      targetActivityId = searchParams.get('activityId') || '';
+    }
+    
+    if (targetActivityId) {
+      // 从统一数据源中查找对应的活动
+      const activity = unifiedActivities.find(a => a.activityId === targetActivityId);
+      if (activity) {
+        setSelectedActivityId(activity.activityId);
+      } else {
+        // 如果找不到，使用第一个活动
+        setSelectedActivityId(unifiedActivities[0]?.activityId || '');
       }
+    } else {
+      // 如果没有参数，使用第一个活动
+      setSelectedActivityId(unifiedActivities[0]?.activityId || '');
     }
   }, [location.search, activityId]);
   
@@ -205,24 +126,181 @@ const SmallStoreActivityAnalysis: React.FC = () => {
   const [visibleLines, setVisibleLines] = useState({
     registeredStores: true,
     activeStores: false,
-    gmv: false,
-    redeemAmount: false,
+    activeStoreRatio: false,
     redeemCount: false,
+    avgOutput: false,
     avgDailyOutput: false
   });
 
   // 获取当前选中的活动数据
-  const currentActivity = mockActivities.find(activity => activity.id === selectedActivity) || mockActivities[0];
+  const currentActivity = unifiedActivities.find(activity => activity.activityId === selectedActivityId) || unifiedActivities[0];
+  
+  // 获取可选的课程（根据选中的部）
+  const availableCourses = selectedDepartment && departmentData[selectedDepartment as keyof typeof departmentData]
+    ? Object.keys(departmentData[selectedDepartment as keyof typeof departmentData].courses)
+    : [];
+  
+  // 获取可选的所（根据选中的课）
+  const availableOffices = (() => {
+    if (!selectedDepartment || !selectedCourse) return [];
+    const dept = departmentData[selectedDepartment as keyof typeof departmentData];
+    if (!dept) return [];
+    const courseKey = selectedCourse as keyof typeof dept.courses;
+    const course = dept.courses[courseKey];
+    return Array.isArray(course) ? course : [];
+  })();
+  
+  // 获取当前选择级别的下一级数据（用于饼图）
+  const getNextLevelData = () => {
+    if (selectedOffice) {
+      // 如果选择了所，显示该所下的营销所数据（这里用门店数据模拟）
+      return [];
+    } else if (selectedCourse) {
+      // 如果选择了课，显示该课下所有所的触达消费者数
+      const offices = availableOffices;
+      return offices.map((office: string, index: number) => {
+        const baseReach = 5000 + index * 1000;
+        return {
+          name: office,
+          value: baseReach,
+          reachCount: baseReach,
+          reach1: Math.floor(baseReach * 0.5),
+          reach2: Math.floor(baseReach * 0.3),
+          reach3Plus: Math.floor(baseReach * 0.2),
+          repCount: 3 + index,
+        };
+      });
+    } else if (selectedDepartment) {
+      // 如果选择了部，显示该部下所有课的触达消费者数
+      const courses = availableCourses;
+      return courses.map((course: string, index: number) => {
+        const baseReach = 10000 + index * 2000;
+        return {
+          name: course,
+          value: baseReach,
+          reachCount: baseReach,
+          reach1: Math.floor(baseReach * 0.5),
+          reach2: Math.floor(baseReach * 0.3),
+          reach3Plus: Math.floor(baseReach * 0.2),
+          repCount: 5 + index * 2,
+        };
+      });
+    } else {
+      // 如果什么都没选，显示所有部的触达消费者数
+      return Object.keys(departmentData).map((dept: string, index: number) => {
+        const baseReach = 20000 + index * 5000;
+        return {
+          name: dept,
+          value: baseReach,
+          reachCount: baseReach,
+          reach1: Math.floor(baseReach * 0.5),
+          reach2: Math.floor(baseReach * 0.3),
+          reach3Plus: Math.floor(baseReach * 0.2),
+          repCount: 10 + index * 5,
+        };
+      });
+    }
+  };
+  
+  // 饼图数据
+  const pieData = getNextLevelData();
+  const totalReachCount = pieData.reduce((sum, item) => sum + item.value, 0);
+  
+  // 饼图颜色（全部使用蓝色系，以颜色深浅区分）
+  const COLORS = ['#1890ff', '#40a9ff', '#69c0ff', '#91d5ff', '#bae7ff', '#e6f7ff', '#002c8c'];
+  
+  // 根据选中的饼图段获取明细数据
+  const getDetailData = () => {
+    if (!selectedPieSegment) {
+      // 如果没有选中，返回所有数据
+      return pieData.map((item, index) => ({
+        key: `detail-${index}`,
+        marketingOffice: item.name,
+        repCount: item.repCount,
+        reachCount: item.reachCount,
+        reach1: item.reach1,
+        reach2: item.reach2,
+        reach3Plus: item.reach3Plus,
+      }));
+    } else {
+      // 如果选中了某个段，只返回该段的数据
+      const selectedItem = pieData.find(item => item.name === selectedPieSegment);
+      return selectedItem ? [{
+        key: 'detail-selected',
+        marketingOffice: selectedItem.name,
+        repCount: selectedItem.repCount,
+        reachCount: selectedItem.reachCount,
+        reach1: selectedItem.reach1,
+        reach2: selectedItem.reach2,
+        reach3Plus: selectedItem.reach3Plus,
+      }] : [];
+    }
+  };
+  
+  // 处理部选择变化
+  const handleDepartmentChange = (value: string) => {
+    setSelectedDepartment(value);
+    setSelectedCourse(''); // 重置课
+    setSelectedOffice(''); // 重置所
+    setSelectedPieSegment(''); // 重置饼图选中项
+  };
+  
+  // 处理课选择变化
+  const handleCourseChange = (value: string) => {
+    setSelectedCourse(value);
+    setSelectedOffice(''); // 重置所
+    setSelectedPieSegment(''); // 重置饼图选中项
+  };
+  
+  // 处理所选择变化
+  const handleOfficeChange = (value: string) => {
+    setSelectedOffice(value);
+    setSelectedPieSegment(''); // 重置饼图选中项
+  };
+  
+  // 获取数据更新日期（当日早上10点）
+  const getUpdateTime = () => {
+    const today = dayjs();
+    return today.hour(10).minute(0).second(0).format('YYYY-MM-DD HH:mm:ss');
+  };
+
+  // 门店编码和业代名称映射数据（根据图片数据）
+  const storeCodeAndRepMap: { [key: string]: { code: string; repName: string } } = {
+    // 图片中的门店数据
+    '总站平价': { code: 'B043076765', repName: '熊丹丹' },
+    '便民超市': { code: 'B043101465', repName: '王猛' },
+    '利一分': { code: 'B043176069', repName: '王猛' },
+    '红豆超市': { code: 'B043176069', repName: '杨文章' },
+    '伯惠超市': { code: 'B043177790', repName: '肖兆强' },
+    '新一村超市': { code: 'B043179337', repName: '吴芬芬' },
+    '王先枝商店': { code: 'B043200172', repName: '熊丹丹' },
+    '旺明超市': { code: 'B043563902', repName: '王猛' },
+    '芙蓉兴盛添添福商行': { code: 'B043675271', repName: '杨文章' },
+    '运前批发部': { code: 'B043694823', repName: '肖兆强' },
+    '惠民超市': { code: 'B170019701', repName: '吴芬芬' },
+    '蔚然锦和依依': { code: 'B643807957', repName: '熊丹丹' },
+    '明禧': { code: 'B643808368', repName: '王猛' },
+    // 为现有门店数据分配真实的业代名称
+    '芙蓉兴盛': { code: 'B043675270', repName: '杨文章' },
+    '怡福百货': { code: 'B043101466', repName: '王猛' },
+    '众和食杂': { code: 'B043177791', repName: '肖兆强' },
+    '浩林便利店': { code: 'B043179338', repName: '吴芬芬' },
+    '一号门士多': { code: 'B043200173', repName: '熊丹丹' },
+    '文发士多': { code: 'B043563903', repName: '王猛' },
+    '嘉利烟酒店': { code: 'B043675272', repName: '杨文章' },
+    '美惠佳': { code: 'B043694824', repName: '肖兆强' },
+    '好运来超市': { code: 'B170019702', repName: '吴芬芬' }
+  };
   
   // 模拟趋势数据
   const mockTrends = [
-    { date: '2025-01-01', registeredStores: 220, activeStores: 185, gmv: 120000, redeemAmount: 5800, redeemCount: 2900, avgDailyOutput: 1.95 },
-    { date: '2025-01-02', registeredStores: 225, activeStores: 188, gmv: 135000, redeemAmount: 6100, redeemCount: 3050, avgDailyOutput: 2.02 },
-    { date: '2025-01-03', registeredStores: 229, activeStores: 192, gmv: 142500, redeemAmount: 6400, redeemCount: 3200, avgDailyOutput: 2.08 },
-    { date: '2025-01-04', registeredStores: 228, activeStores: 190, gmv: 138000, redeemAmount: 6200, redeemCount: 3100, avgDailyOutput: 2.05 },
-    { date: '2025-01-05', registeredStores: 230, activeStores: 194, gmv: 145000, redeemAmount: 6500, redeemCount: 3250, avgDailyOutput: 2.10 },
-    { date: '2025-01-06', registeredStores: 232, activeStores: 196, gmv: 152000, redeemAmount: 6800, redeemCount: 3400, avgDailyOutput: 2.15 },
-    { date: '2025-01-07', registeredStores: 231, activeStores: 195, gmv: 148000, redeemAmount: 6600, redeemCount: 3300, avgDailyOutput: 2.12 }
+    { date: '2025-01-01', registeredStores: 220, activeStores: 185, activeStoreRatio: 84.1, redeemCount: 2900, avgOutput: 15.7, avgDailyOutput: 1.95 },
+    { date: '2025-01-02', registeredStores: 225, activeStores: 188, activeStoreRatio: 83.6, redeemCount: 3050, avgOutput: 16.2, avgDailyOutput: 2.02 },
+    { date: '2025-01-03', registeredStores: 229, activeStores: 192, activeStoreRatio: 83.8, redeemCount: 3200, avgOutput: 16.7, avgDailyOutput: 2.08 },
+    { date: '2025-01-04', registeredStores: 228, activeStores: 190, activeStoreRatio: 83.3, redeemCount: 3100, avgOutput: 16.3, avgDailyOutput: 2.05 },
+    { date: '2025-01-05', registeredStores: 230, activeStores: 194, activeStoreRatio: 84.3, redeemCount: 3250, avgOutput: 16.8, avgDailyOutput: 2.10 },
+    { date: '2025-01-06', registeredStores: 232, activeStores: 196, activeStoreRatio: 84.5, redeemCount: 3400, avgOutput: 17.3, avgDailyOutput: 2.15 },
+    { date: '2025-01-07', registeredStores: 231, activeStores: 195, activeStoreRatio: 84.4, redeemCount: 3300, avgOutput: 16.9, avgDailyOutput: 2.12 }
   ];
 
   // 零售商分页数据（只显示KA类型）
@@ -255,7 +333,7 @@ const SmallStoreActivityAnalysis: React.FC = () => {
   const productStartIndex = (productPage - 1) * productPageSize;
   const currentProducts = sortedProducts.slice(productStartIndex, productStartIndex + productPageSize);
 
-  // 小店表格列定义（与零售商表格列定义相同，但序号需要重新计算）
+  // 小店表格列定义
   const smallStoreColumns = [
     {
       title: '序号',
@@ -264,34 +342,52 @@ const SmallStoreActivityAnalysis: React.FC = () => {
       render: (_: any, __: any, index: number) => smallStoreStartIndex + index + 1,
     },
     {
+      title: '门店编码',
+      key: 'storeCode',
+      width: 120,
+      render: (record: any) => {
+        const storeInfo = storeCodeAndRepMap[record.name] || { code: '未分配', repName: '未分配' };
+        return storeInfo.code;
+      },
+    },
+    {
       title: '门店名称',
       dataIndex: 'name',
       key: 'name',
       width: 140,
     },
     {
-      title: '销售额(元)',
-      dataIndex: 'gmv',
-      key: 'gmv',
-      width: 110,
-      render: (value: number) => value.toLocaleString(),
-    },
-    {
-      title: '销售额占比(%)',
-      key: 'contributionRate',
+      title: '业代名称',
+      key: 'repName',
       width: 100,
       render: (record: any) => {
-        const totalGmv = mockRetailers.reduce((sum, retailer) => sum + retailer.gmv, 0);
-        const contributionRate = ((record.gmv / totalGmv) * 100).toFixed(1);
-        return contributionRate;
+        const storeInfo = storeCodeAndRepMap[record.name] || { code: '未分配', repName: '未分配' };
+        return storeInfo.repName;
       },
     },
     {
-      title: '优惠金额(元)',
-      dataIndex: 'discount',
-      key: 'discount',
+      title: '总库存数',
+      key: 'totalStock',
       width: 110,
-      render: (value: number) => value.toLocaleString(),
+      render: (record: any) => {
+        // 模拟总库存数，基于销售额和门店名称hash值计算，确保一致性
+        const nameHash = record.name ? record.name.split('').reduce((acc: number, char: string) => acc + char.charCodeAt(0), 0) : 0;
+        const baseStock = Math.round((record.gmv || 0) / 50) + (nameHash % 200) + 100;
+        return baseStock.toLocaleString();
+      },
+    },
+    {
+      title: '库存使用进度',
+      key: 'stockUsage',
+      width: 120,
+      render: (record: any) => {
+        // 模拟库存使用进度，基于订单数计算，使用与总库存数相同的计算方式
+        const nameHash = record.name ? record.name.split('').reduce((acc: number, char: string) => acc + char.charCodeAt(0), 0) : 0;
+        const totalStock = Math.round((record.gmv || 0) / 50) + (nameHash % 200) + 100;
+        const usedStock = Math.min(record.usedCount || 0, totalStock);
+        const usagePercent = totalStock > 0 ? ((usedStock / totalStock) * 100).toFixed(1) : '0.0';
+        return `${usagePercent}%`;
+      },
     },
     {
       title: '订单数',
@@ -522,7 +618,7 @@ const SmallStoreActivityAnalysis: React.FC = () => {
         <div style={{ display: 'flex', alignItems: 'center', marginBottom: 16 }}>
           <Title level={2} style={{ margin: 0, marginRight: 8 }}>微信小店活动分析</Title>
           <div style={{ marginLeft: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
-            <Text type="secondary">数据更新时间：2025-01-27 14:30:00</Text>
+            <Text type="secondary">数据更新时间：{getUpdateTime()}</Text>
             <Text type="secondary" style={{ fontSize: '12px', color: '#999' }}>
               该数据仅作业务分析参考，不作为最终结算依据。
             </Text>
@@ -532,33 +628,119 @@ const SmallStoreActivityAnalysis: React.FC = () => {
         {/* 筛选条件 */}
         <Card style={{ marginBottom: 16 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <Text>时间筛选：</Text>
-                <Radio.Group value={dateType} onChange={handleDateTypeChange} size="small">
-                  <Radio.Button value="day">日</Radio.Button>
-                  <Radio.Button value="week">周</Radio.Button>
-                  <Radio.Button value="month">月</Radio.Button>
-                </Radio.Group>
-                <RangePicker
-                  value={dateRange}
-                  onChange={handleDateRangeChange}
-                  picker={dateType as any}
-                  style={{ width: 240 }}
-                  size="small"
-                />
-              </div>
-              <Select
-                style={{ width: 400 }}
-                placeholder="选择活动"
-                value={selectedActivity}
-                onChange={setSelectedActivity}
-                showSearch
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Text>时间筛选：</Text>
+              <Radio.Group value={dateType} onChange={handleDateTypeChange} size="small">
+                <Radio.Button value="day">日</Radio.Button>
+                <Radio.Button value="week">周</Radio.Button>
+                <Radio.Button value="month">月</Radio.Button>
+              </Radio.Group>
+              <RangePicker
+                value={dateRange}
+                onChange={handleDateRangeChange}
+                picker={dateType as any}
+                style={{ width: 240 }}
+                size="small"
+              />
+            </div>
+            <div>
+              <Button 
+                type="primary" 
+                icon={<DownloadOutlined />}
+                onClick={() => {
+                  // 导出明细数据
+                  const exportData = smallStores.map((store: any, index: number) => {
+                    const storeInfo = storeCodeAndRepMap[store.name] || { code: '未分配', repName: '未分配' };
+                    // 使用固定的计算方式，基于门店名称的hash值来确保一致性
+                    const nameHash = store.name.split('').reduce((acc: number, char: string) => acc + char.charCodeAt(0), 0);
+                    const totalStock = Math.round((store.gmv || 0) / 50) + (nameHash % 200) + 100;
+                    const usedStock = Math.min(store.usedCount || 0, totalStock);
+                    const usagePercent = totalStock > 0 ? ((usedStock / totalStock) * 100).toFixed(1) : '0.0';
+                    return {
+                      序号: index + 1,
+                      门店编码: storeInfo.code,
+                      门店名称: store.name,
+                      业代名称: storeInfo.repName,
+                      总库存数: totalStock,
+                      库存使用进度: `${usagePercent}%`,
+                      订单数: store.usedCount,
+                      日均订单数: Math.round((store.avgPrice || 0) * 10)
+                    };
+                  });
+                  
+                  // 转换为CSV格式
+                  const headers = Object.keys(exportData[0] || {});
+                  const csvContent = [
+                    headers.join(','),
+                    ...exportData.map((row: any) => headers.map((header: string) => `"${row[header]}"`).join(','))
+                  ].join('\n');
+                  
+                  // 添加BOM以支持中文
+                  const BOM = '\uFEFF';
+                  const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
+                  const link = document.createElement('a');
+                  const url = URL.createObjectURL(blob);
+                  link.setAttribute('href', url);
+                  link.setAttribute('download', `门店明细数据_${dayjs().format('YYYY-MM-DD_HH-mm-ss')}.csv`);
+                  link.style.visibility = 'hidden';
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
+                }}
               >
-                {mockActivities.map(activity => (
-                  <Option key={activity.id} value={activity.id}>
-                    {activity.name}
-                  </Option>
+                下载明细数据
+              </Button>
+            </div>
+          </div>
+        </Card>
+
+        {/* 部课所筛选模块 */}
+        <Card style={{ marginBottom: 16 }}>
+          <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Text>部：</Text>
+              <Select
+                style={{ width: 150 }}
+                placeholder="选择部"
+                value={selectedDepartment}
+                onChange={handleDepartmentChange}
+                allowClear
+                size="small"
+              >
+                {Object.keys(departmentData).map(dept => (
+                  <Option key={dept} value={dept}>{dept}</Option>
+                ))}
+              </Select>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Text>课：</Text>
+              <Select
+                style={{ width: 150 }}
+                placeholder="选择课"
+                value={selectedCourse}
+                onChange={handleCourseChange}
+                disabled={!selectedDepartment}
+                allowClear
+                size="small"
+              >
+                {availableCourses.map(course => (
+                  <Option key={course} value={course}>{course}</Option>
+                ))}
+              </Select>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Text>所：</Text>
+                  <Select
+                    style={{ width: 150 }}
+                    placeholder="选择所"
+                    value={selectedOffice}
+                    onChange={handleOfficeChange}
+                    disabled={!selectedCourse}
+                    allowClear
+                    size="small"
+                  >
+                {availableOffices.map((office: string) => (
+                  <Option key={office} value={office}>{office}</Option>
                 ))}
               </Select>
             </div>
@@ -569,21 +751,21 @@ const SmallStoreActivityAnalysis: React.FC = () => {
       {currentActivity && (
         <Card title="活动详情" style={{ marginBottom: 16 }}>
           <Row gutter={24}>
-            <Col span={16}>
+            {/* 活动基本信息 */}
+            <Col span={8}>
               <Row gutter={[16, 16]}>
                 <Col span={24}>
                   <div>
                     <Text strong>活动名称：</Text>
-                    <Text>{currentActivity.name}</Text>
+                    <Text>{currentActivity?.name || ''}</Text>
                   </div>
                 </Col>
                 <Col span={24}>
                   <div>
                     <Text strong>活动周期：</Text>
-                    <Text>{currentActivity.startDate} 至 {currentActivity.endDate}</Text>
+                    <Text>{currentActivity?.startDate ? dayjs(currentActivity.startDate).format('YYYY年MM月DD日') : ''} 至 {currentActivity?.endDate ? dayjs(currentActivity.endDate).format('YYYY年MM月DD日') : ''}</Text>
                   </div>
                 </Col>
-
                 <Col span={24}>
                   <div>
                     <Text strong>活动机制：</Text>
@@ -611,6 +793,7 @@ const SmallStoreActivityAnalysis: React.FC = () => {
                 </Col>
               </Row>
             </Col>
+            {/* 活动预算与消耗 */}
             <Col span={8}>
               <div>
                 <Text strong>活动预算与消耗：</Text>
@@ -633,25 +816,41 @@ const SmallStoreActivityAnalysis: React.FC = () => {
                       size="small"
                     />
                   </div>
-                  
+                </div>
+              </div>
+            </Col>
+            {/* 门店报名进度 */}
+            <Col span={8}>
+              <div>
+                <Text strong>门店报名进度：</Text>
+                <div style={{ marginTop: 8 }}>
                   {/* 计划门店数 */}
-                  <div style={{ marginTop: 16 }}>
+                  <div style={{ marginBottom: 8 }}>
                     <Text>计划门店数：</Text>
                     <Text strong style={{ color: '#3f8600' }}>
-                      {currentActivity.targetStores}家
+                      {(currentActivity as any).targetStores || 300}家
                     </Text>
                   </div>
                   
                   {/* 完成进度条 */}
                   <div style={{ marginTop: 8 }}>
-                    <div style={{ marginBottom: 4 }}>
-                      <Text>完成进度：</Text>
-                      <Text strong style={{ color: '#52c41a' }}>
-                        {currentActivity.registeredStores}/{currentActivity.targetStores}
-                      </Text>
+                    <div style={{ marginBottom: 4, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <div>
+                        <Text>完成进度：</Text>
+                        <Text strong style={{ color: '#52c41a' }}>
+                          {(currentActivity as any).registeredStores || 229}/{(currentActivity as any).targetStores || 300}
+                        </Text>
+                      </div>
+                      <Button 
+                        type="link" 
+                        size="small"
+                        onClick={() => setUnregisteredStoresDrawerVisible(true)}
+                      >
+                        查看未报名门店清单
+                      </Button>
                     </div>
                     <Progress 
-                      percent={Math.round((currentActivity.activeStores / currentActivity.targetStores) * 100)}
+                      percent={Math.round((((currentActivity as any).registeredStores || 229) / ((currentActivity as any).targetStores || 300)) * 100)}
                       size="small"
                       strokeColor="#52c41a"
                     />
@@ -685,10 +884,31 @@ const SmallStoreActivityAnalysis: React.FC = () => {
               </div>
               <Statistic
                 title=""
-                value={currentActivity.registeredStores}
+                value={(currentActivity as any).registeredStores || 229}
                 precision={0}
                 valueStyle={{ color: '#262626', fontSize: '24px', fontWeight: 'bold' }}
               />
+              <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 4 }}>
+                <span style={{ fontSize: '12px', color: '#8c8c8c' }}>环比：</span>
+                {(() => {
+                  const current = (currentActivity as any).registeredStores || 229;
+                  const previous = 210; // 模拟上期数据
+                  const change = ((current - previous) / previous * 100).toFixed(1);
+                  const isPositive = parseFloat(change) >= 0;
+                  return (
+                    <span style={{ 
+                      fontSize: '12px', 
+                      color: isPositive ? '#f5222d' : '#52c41a',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 2
+                    }}>
+                      {isPositive ? <ArrowUpOutlined /> : <ArrowDownOutlined />}
+                      {Math.abs(parseFloat(change))}%
+                    </span>
+                  );
+                })()}
+              </div>
             </Card>
           </Col>
           
@@ -711,23 +931,44 @@ const SmallStoreActivityAnalysis: React.FC = () => {
               </div>
               <Statistic
                 title=""
-                value={currentActivity.activeStores}
+                value={(currentActivity as any).activeStores || 192}
                 precision={0}
                 valueStyle={{ color: '#262626', fontSize: '24px', fontWeight: 'bold' }}
               />
+              <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 4 }}>
+                <span style={{ fontSize: '12px', color: '#8c8c8c' }}>环比：</span>
+                {(() => {
+                  const current = (currentActivity as any).activeStores || 192;
+                  const previous = 180; // 模拟上期数据
+                  const change = ((current - previous) / previous * 100).toFixed(1);
+                  const isPositive = parseFloat(change) >= 0;
+                  return (
+                    <span style={{ 
+                      fontSize: '12px', 
+                      color: isPositive ? '#f5222d' : '#52c41a',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 2
+                    }}>
+                      {isPositive ? <ArrowUpOutlined /> : <ArrowDownOutlined />}
+                      {Math.abs(parseFloat(change))}%
+                    </span>
+                  );
+                })()}
+              </div>
             </Card>
           </Col>
           
-          {/* 销售额 */}
+          {/* 动销门店占比 */}
           <Col flex="1">
             <Card>
               <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
-                <span style={{ fontSize: '14px', color: '#000000' }}>销售额（元）</span>
+                <span style={{ fontSize: '14px', color: '#000000' }}>动销门店占比</span>
                 <AntTooltip 
                   title={
                     <div style={{ maxWidth: 300 }}>
                       <div style={{ marginBottom: 8, fontWeight: 'bold' }}>该数据仅供参考，不作为最终结算依据</div>
-                      <div>活动期间产生的总销售额</div>
+                      <div>动销门店数占报名门店数的比例</div>
                     </div>
                   }
                   placement="topLeft"
@@ -737,36 +978,38 @@ const SmallStoreActivityAnalysis: React.FC = () => {
               </div>
               <Statistic
                 title=""
-                value={currentActivity.gmv}
-                precision={0}
+                value={(() => {
+                  const registered = (currentActivity as any).registeredStores || 229;
+                  const active = (currentActivity as any).activeStores || 192;
+                  return registered > 0 ? ((active / registered) * 100).toFixed(1) : '0.0';
+                })()}
+                suffix="%"
+                precision={1}
                 valueStyle={{ color: '#262626', fontSize: '24px', fontWeight: 'bold' }}
               />
-            </Card>
-          </Col>
-          
-          {/* 核销金额 */}
-          <Col flex="1">
-            <Card>
-              <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
-                <span style={{ fontSize: '14px', color: '#000000' }}>核销金额（元）</span>
-                <AntTooltip 
-                  title={
-                    <div style={{ maxWidth: 300 }}>
-                      <div style={{ marginBottom: 8, fontWeight: 'bold' }}>该数据仅供参考，不作为最终结算依据</div>
-                      <div>活动期间实际核销的优惠金额总和</div>
-                    </div>
-                  }
-                  placement="topLeft"
-                >
-                  <QuestionCircleOutlined style={{ marginLeft: 4, color: '#000000', cursor: 'help' }} />
-                </AntTooltip>
+              <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 4 }}>
+                <span style={{ fontSize: '12px', color: '#8c8c8c' }}>环比：</span>
+                {(() => {
+                  const registered = (currentActivity as any).registeredStores || 229;
+                  const active = (currentActivity as any).activeStores || 192;
+                  const current = registered > 0 ? ((active / registered) * 100) : 0;
+                  const previous = 85.7; // 模拟上期数据
+                  const change = ((current - previous) / previous * 100).toFixed(1);
+                  const isPositive = parseFloat(change) >= 0;
+                  return (
+                    <span style={{ 
+                      fontSize: '12px', 
+                      color: isPositive ? '#f5222d' : '#52c41a',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 2
+                    }}>
+                      {isPositive ? <ArrowUpOutlined /> : <ArrowDownOutlined />}
+                      {Math.abs(parseFloat(change))}%
+                    </span>
+                  );
+                })()}
               </div>
-              <Statistic
-                title=""
-                value={currentActivity.redeemAmount}
-                precision={0}
-                valueStyle={{ color: '#262626', fontSize: '24px', fontWeight: 'bold' }}
-              />
             </Card>
           </Col>
           
@@ -789,23 +1032,44 @@ const SmallStoreActivityAnalysis: React.FC = () => {
               </div>
               <Statistic
                 title=""
-                value={currentActivity.redeemCount}
+                value={(currentActivity as any).redeemCount || 3200}
                 precision={0}
                 valueStyle={{ color: '#262626', fontSize: '24px', fontWeight: 'bold' }}
               />
+              <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 4 }}>
+                <span style={{ fontSize: '12px', color: '#8c8c8c' }}>环比：</span>
+                {(() => {
+                  const current = (currentActivity as any).redeemCount || 3200;
+                  const previous = 2900; // 模拟上期数据
+                  const change = ((current - previous) / previous * 100).toFixed(1);
+                  const isPositive = parseFloat(change) >= 0;
+                  return (
+                    <span style={{ 
+                      fontSize: '12px', 
+                      color: isPositive ? '#f5222d' : '#52c41a',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 2
+                    }}>
+                      {isPositive ? <ArrowUpOutlined /> : <ArrowDownOutlined />}
+                      {Math.abs(parseFloat(change))}%
+                    </span>
+                  );
+                })()}
+              </div>
             </Card>
           </Col>
 
-          {/* 店均日产出 */}
+          {/* 店均产出 */}
           <Col flex="1">
             <Card>
               <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
-                <span style={{ fontSize: '14px', color: '#000000' }}>店均日产出（元）</span>
+                <span style={{ fontSize: '14px', color: '#000000' }}>店均产出（份）</span>
                 <AntTooltip 
                   title={
                     <div style={{ maxWidth: 300 }}>
                       <div style={{ marginBottom: 8, fontWeight: 'bold' }}>该数据仅供参考，不作为最终结算依据</div>
-                      <div>平均每个门店每日的销售产出</div>
+                      <div>平均每个动销门店的核销份数</div>
                     </div>
                   }
                   placement="topLeft"
@@ -815,10 +1079,84 @@ const SmallStoreActivityAnalysis: React.FC = () => {
               </div>
               <Statistic
                 title=""
-                value={currentActivity.avgDailyOutput}
+                value={(() => {
+                  const active = (currentActivity as any).activeStores || 192;
+                  const redeemCount = (currentActivity as any).redeemCount || 3200;
+                  return active > 0 ? (redeemCount / active).toFixed(1) : '0.0';
+                })()}
                 precision={1}
                 valueStyle={{ color: '#262626', fontSize: '24px', fontWeight: 'bold' }}
               />
+              <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 4 }}>
+                <span style={{ fontSize: '12px', color: '#8c8c8c' }}>环比：</span>
+                {(() => {
+                  const active = (currentActivity as any).activeStores || 192;
+                  const redeemCount = (currentActivity as any).redeemCount || 3200;
+                  const current = active > 0 ? (redeemCount / active) : 0;
+                  const previous = 15.5; // 模拟上期数据
+                  const change = ((current - previous) / previous * 100).toFixed(1);
+                  const isPositive = parseFloat(change) >= 0;
+                  return (
+                    <span style={{ 
+                      fontSize: '12px', 
+                      color: isPositive ? '#f5222d' : '#52c41a',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 2
+                    }}>
+                      {isPositive ? <ArrowUpOutlined /> : <ArrowDownOutlined />}
+                      {Math.abs(parseFloat(change))}%
+                    </span>
+                  );
+                })()}
+              </div>
+            </Card>
+          </Col>
+
+          {/* 店均日产出 */}
+          <Col flex="1">
+            <Card>
+              <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
+                <span style={{ fontSize: '14px', color: '#000000' }}>店均日产出（份）</span>
+                <AntTooltip 
+                  title={
+                    <div style={{ maxWidth: 300 }}>
+                      <div style={{ marginBottom: 8, fontWeight: 'bold' }}>该数据仅供参考，不作为最终结算依据</div>
+                      <div>平均每个门店每日的核销份数</div>
+                    </div>
+                  }
+                  placement="topLeft"
+                >
+                  <QuestionCircleOutlined style={{ marginLeft: 4, color: '#000000', cursor: 'help' }} />
+                </AntTooltip>
+              </div>
+              <Statistic
+                title=""
+                value={(currentActivity as any).avgDailyOutput || 2.08}
+                precision={1}
+                valueStyle={{ color: '#262626', fontSize: '24px', fontWeight: 'bold' }}
+              />
+              <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 4 }}>
+                <span style={{ fontSize: '12px', color: '#8c8c8c' }}>环比：</span>
+                {(() => {
+                  const current = (currentActivity as any).avgDailyOutput || 2.08;
+                  const previous = 1.95; // 模拟上期数据
+                  const change = ((current - previous) / previous * 100).toFixed(1);
+                  const isPositive = parseFloat(change) >= 0;
+                  return (
+                    <span style={{ 
+                      fontSize: '12px', 
+                      color: isPositive ? '#f5222d' : '#52c41a',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 2
+                    }}>
+                      {isPositive ? <ArrowUpOutlined /> : <ArrowDownOutlined />}
+                      {Math.abs(parseFloat(change))}%
+                    </span>
+                  );
+                })()}
+              </div>
             </Card>
           </Col>
         </Row>
@@ -831,9 +1169,9 @@ const SmallStoreActivityAnalysis: React.FC = () => {
           {[
             { key: 'registeredStores', label: '报名门店数', color: '#1890ff' },
             { key: 'activeStores', label: '动销门店数', color: '#40a9ff' },
-            { key: 'gmv', label: '销售额', color: '#096dd9' },
-            { key: 'redeemAmount', label: '核销金额', color: '#91d5ff' },
+            { key: 'activeStoreRatio', label: '动销门店占比', color: '#096dd9' },
             { key: 'redeemCount', label: '核销份数', color: '#69c0ff' },
+            { key: 'avgOutput', label: '店均产出', color: '#91d5ff' },
             { key: 'avgDailyOutput', label: '店均日产出', color: '#bae7ff' }
           ].map(metric => (
             <div 
@@ -851,9 +1189,9 @@ const SmallStoreActivityAnalysis: React.FC = () => {
               onClick={() => setVisibleLines({
                 registeredStores: false,
                 activeStores: false,
-                gmv: false,
-                redeemAmount: false,
+                activeStoreRatio: false,
                 redeemCount: false,
+                avgOutput: false,
                 avgDailyOutput: false,
                 [metric.key]: true
               })}
@@ -901,19 +1239,17 @@ const SmallStoreActivityAnalysis: React.FC = () => {
                 const metricLabels: {[key: string]: string} = {
                   'registeredStores': '报名门店数',
                   'activeStores': '动销门店数',
-                  'gmv': '销售额',
-                  'redeemAmount': '核销金额',
+                  'activeStoreRatio': '动销门店占比',
                   'redeemCount': '核销份数',
+                  'avgOutput': '店均产出',
                   'avgDailyOutput': '店均日产出'
                 };
                 
-                if (name === 'avgDailyOutput') {
-                  return [`${value} 元`, metricLabels[name as string]];
-                } else if (name === 'gmv' || name === 'redeemAmount') {
-                  return [`${(value as number).toLocaleString()} 元`, metricLabels[name as string]];
+                if (name === 'activeStoreRatio') {
+                  return [`${(value as number).toFixed(1)}%`, metricLabels[name as string]];
                 } else if (name === 'registeredStores' || name === 'activeStores') {
                   return [`${(value as number).toLocaleString()} 个`, metricLabels[name as string]];
-                } else if (name === 'redeemCount') {
+                } else if (name === 'redeemCount' || name === 'avgOutput' || name === 'avgDailyOutput') {
                   return [`${(value as number).toLocaleString()} 份`, metricLabels[name as string]];
                 } else {
                   return [(value as number).toLocaleString(), metricLabels[name as string]];
@@ -946,27 +1282,15 @@ const SmallStoreActivityAnalysis: React.FC = () => {
                 />
               )}
               
-              {visibleLines.gmv && (
+              {visibleLines.activeStoreRatio && (
                 <RechartsLine
-                  yAxisId="left"
+                  yAxisId="right"
                   type="monotone"
-                  dataKey="gmv"
+                  dataKey="activeStoreRatio"
                   stroke="#096dd9"
                   strokeWidth={2}
                   activeDot={{ r: 6 }}
-                  name="销售额"
-                />
-              )}
-              
-              {visibleLines.redeemAmount && (
-                <RechartsLine
-                  yAxisId="left"
-                  type="monotone"
-                  dataKey="redeemAmount"
-                  stroke="#91d5ff"
-                  strokeWidth={2}
-                  activeDot={{ r: 6 }}
-                  name="核销金额"
+                  name="动销门店占比"
                 />
               )}
               
@@ -982,9 +1306,21 @@ const SmallStoreActivityAnalysis: React.FC = () => {
                 />
               )}
               
+              {visibleLines.avgOutput && (
+                <RechartsLine
+                  yAxisId="left"
+                  type="monotone"
+                  dataKey="avgOutput"
+                  stroke="#91d5ff"
+                  strokeWidth={2}
+                  activeDot={{ r: 6 }}
+                  name="店均产出"
+                />
+              )}
+              
               {visibleLines.avgDailyOutput && (
                 <RechartsLine
-                  yAxisId="right"
+                  yAxisId="left"
                   type="monotone"
                   dataKey="avgDailyOutput"
                   stroke="#bae7ff"
@@ -996,6 +1332,134 @@ const SmallStoreActivityAnalysis: React.FC = () => {
             </LineChart>
           </ResponsiveContainer>
         </div>
+      </Card>
+
+      {/* 3.6. 消费者触达数量 */}
+      <Card title="消费者触达数量" style={{ marginBottom: 16 }}>
+        <Row gutter={24}>
+          {/* 左侧：饼图 */}
+          <Col span={12}>
+            <div style={{ height: 400, position: 'relative' }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={pieData}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={(entry: any) => {
+                      const name = entry.name || '';
+                      const percent = (entry as any).percent || 0;
+                      return `${name} ${(percent * 100).toFixed(1)}%`;
+                    }}
+                    outerRadius={120}
+                    fill="#8884d8"
+                    dataKey="value"
+                    onClick={(data: any) => {
+                      // 点击饼图段，更新选中的段和明细数据
+                      setSelectedPieSegment(data.name === selectedPieSegment ? '' : data.name);
+                    }}
+                  >
+                    {pieData.map((entry, index) => (
+                      <Cell 
+                        key={`cell-${index}`} 
+                        fill={COLORS[index % COLORS.length]}
+                        style={{ 
+                          cursor: 'pointer',
+                          opacity: selectedPieSegment && selectedPieSegment !== entry.name ? 0.5 : 1
+                        }}
+                      />
+                    ))}
+                  </Pie>
+                  <Tooltip 
+                    formatter={(value: number) => [`触达消费者数: ${value.toLocaleString()}`, '']}
+                    contentStyle={{ backgroundColor: '#fff', border: '1px solid #ccc' }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+              <div style={{ 
+                position: 'absolute', 
+                bottom: '20px', 
+                left: '20px',
+                pointerEvents: 'none'
+              }}>
+                <div style={{ fontSize: '16px', color: '#666', marginBottom: 4 }}>
+                  触达总数：
+                </div>
+                <div style={{ fontSize: '20px', color: '#1890ff', fontWeight: 'bold' }}>
+                  {totalReachCount.toLocaleString()}
+                </div>
+              </div>
+            </div>
+          </Col>
+          {/* 右侧：明细表格 */}
+          <Col span={12}>
+            <Table
+              columns={[
+                {
+                  title: '营销所',
+                  dataIndex: 'marketingOffice',
+                  key: 'marketingOffice',
+                  width: 150,
+                  ellipsis: true,
+                },
+                {
+                  title: '已报名业代人员',
+                  dataIndex: 'repCount',
+                  key: 'repCount',
+                  width: 120,
+                  render: (value: number) => value.toLocaleString(),
+                  ellipsis: true,
+                },
+                {
+                  title: '触达消费者数量',
+                  dataIndex: 'reachCount',
+                  key: 'reachCount',
+                  width: 130,
+                  render: (value: number) => value.toLocaleString(),
+                  sorter: (a: any, b: any) => a.reachCount - b.reachCount,
+                  ellipsis: true,
+                },
+                {
+                  title: '1次触达数量',
+                  dataIndex: 'reach1',
+                  key: 'reach1',
+                  width: 120,
+                  render: (value: number) => value.toLocaleString(),
+                  sorter: (a: any, b: any) => a.reach1 - b.reach1,
+                  ellipsis: true,
+                },
+                {
+                  title: '2次触达数量',
+                  dataIndex: 'reach2',
+                  key: 'reach2',
+                  width: 120,
+                  render: (value: number) => value.toLocaleString(),
+                  sorter: (a: any, b: any) => a.reach2 - b.reach2,
+                  ellipsis: true,
+                },
+                {
+                  title: '3次及以上触达数量',
+                  dataIndex: 'reach3Plus',
+                  key: 'reach3Plus',
+                  width: 150,
+                  render: (value: number) => value.toLocaleString(),
+                  sorter: (a: any, b: any) => a.reach3Plus - b.reach3Plus,
+                  ellipsis: true,
+                },
+              ]}
+              dataSource={getDetailData()}
+              pagination={{
+                pageSize: 10,
+                showSizeChanger: true,
+                showQuickJumper: true,
+                showTotal: (total) => `共 ${total} 条记录`,
+              }}
+              size="small"
+              scroll={{ y: 320 }}
+            />
+          </Col>
+        </Row>
       </Card>
 
       {/* 4. 时段分析热力图 */}
@@ -1052,8 +1516,8 @@ const SmallStoreActivityAnalysis: React.FC = () => {
             {Array.from({ length: 7 }, (_, dayIndex) => 
               Array.from({ length: 24 }, (_, hourIndex) => {
                 // 模拟时段销售额数据
-                const mockSales = mockActivities.reduce((sum, activity) => {
-                  const baseValue = activity.gmv / 1000; // 基础值
+                const mockSales = mockActivities.reduce((sum: number, activity: ActivityData) => {
+                  const baseValue = (activity.gmv || 0) / 1000; // 基础值
                   const dayFactor = dayIndex < 5 ? 1.2 : 0.8; // 工作日vs周末
                   const hourFactor = hourIndex >= 9 && hourIndex <= 21 ? 1.5 : 0.3; // 营业时间
                   const randomFactor = 0.5 + Math.random() * 0.5; // 随机因子
@@ -1351,8 +1815,86 @@ const SmallStoreActivityAnalysis: React.FC = () => {
        )}
      </Modal>
 
-   </div>
- );
+     {/* 未报名门店清单侧边栏 */}
+     <Drawer
+       title="未报名门店清单"
+       placement="right"
+       width={600}
+       open={unregisteredStoresDrawerVisible}
+       onClose={() => setUnregisteredStoresDrawerVisible(false)}
+     >
+       <Table
+         columns={[
+           {
+             title: '门店编码',
+             key: 'storeCode',
+             width: 150,
+             render: (record: any) => {
+               const storeInfo = storeCodeAndRepMap[record.name] || { code: '未分配', repName: '未分配' };
+               return storeInfo.code;
+             },
+           },
+           {
+             title: '门店名称',
+             dataIndex: 'name',
+             key: 'name',
+             width: 200,
+           },
+         ]}
+         dataSource={(() => {
+           // 生成未报名门店数据（模拟数据，实际应该从API获取）
+           const targetStores = (currentActivity as any).targetStores || 300;
+           const registeredStores = (currentActivity as any).registeredStores || 229;
+           const unregisteredCount = targetStores - registeredStores;
+           
+           // 生成未报名门店列表（基于已有门店数据生成一些示例）
+           const unregisteredStores = [];
+           const allStoreNames = [
+             '总站平价', '便民超市', '利一分', '红豆超市', '伯惠超市', '新一村超市',
+             '王先枝商店', '旺明超市', '芙蓉兴盛添添福商行', '运前批发部', '惠民超市',
+             '蔚然锦和依依', '明禧', '芙蓉兴盛', '怡福百货', '众和食杂', '浩林便利店',
+             '一号门士多', '文发士多', '嘉利烟酒店', '美惠佳', '好运来超市'
+           ];
+           
+           // 获取已报名的门店名称（从smallStores中）
+           const registeredStoreNames = new Set(smallStores.map((store: any) => store.name));
+           
+           // 从未报名门店中随机选择
+           const unregisteredStoreNames = allStoreNames.filter(name => !registeredStoreNames.has(name));
+           
+           // 生成未报名门店数据
+           for (let i = 0; i < Math.min(unregisteredCount, unregisteredStoreNames.length); i++) {
+             const storeName = unregisteredStoreNames[i] || `未报名门店${i + 1}`;
+             unregisteredStores.push({
+               key: `unregistered-${i}`,
+               name: storeName,
+             });
+           }
+           
+           // 如果未报名门店数量超过已有门店名称，补充一些模拟门店
+           if (unregisteredStores.length < unregisteredCount) {
+             for (let i = unregisteredStores.length; i < unregisteredCount; i++) {
+               unregisteredStores.push({
+                 key: `unregistered-${i}`,
+                 name: `未报名门店${i + 1}`,
+               });
+             }
+           }
+           
+           return unregisteredStores;
+         })()}
+         pagination={{
+           pageSize: 20,
+           showSizeChanger: true,
+           showQuickJumper: true,
+           showTotal: (total) => `共 ${total} 条记录`,
+         }}
+         size="small"
+       />
+     </Drawer>
+
+  </div>
+);
 };
 
 export default SmallStoreActivityAnalysis;

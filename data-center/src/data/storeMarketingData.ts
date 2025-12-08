@@ -117,39 +117,31 @@ export interface ChannelData {
 // 统一的活动数据
 export const unifiedActivities: ActivityData[] = [
   {
-    key: '1',
-    id: '1',  // 添加 id 字段以兼容旧代码
-    activityId: 'ACT001',
-    name: '广州小茗同学2元乐享活动',
+    key: '2',
+    id: '2',
+    activityId: 'ACT002',
+    name: '广州小茗同学2源乐享活动-微信小店',
     startDate: '2025-10-15',
     endDate: '2025-12-15',
     status: '进行中',
-    budget: 50000,
-    consumed: 32000,
-    retailerCount: 125,
-    skuCount: 8,
-    usedCount: 8500,
-    batchCount: 8 * 15,
-    discount: 32000,
-    usageRate: 78.5,
+    budget: 25000, // 可根据实际情况修改
+    consumed: 16000, // 可根据实际情况修改
+    retailerCount: 60,
+    skuCount: 4,
+    usedCount: 4200,
+    batchCount: 4 * 8,
+    discount: 15500,
+    usageRate: 81.7,
     zeroUsageRetailers: [],
-    salesAmount: 120000,
-    platforms: ['微信', '支付宝', '微信小店'],
-    gmv: 142500,
+    salesAmount: 66000,
+    platforms: ['微信小店'],
+    gmv: 69000,
     mechanisms: {
-      '微信优惠券': ['满5减0.5', '满8减0.8', '满10减1', '满12减1.2'],
-      '支付宝优惠券/碰一下': ['满15减1.5', '满18减1.8', '满20减2', '满22减2.2'],
-      '微信小店': ['2元乐享', '新品立减2元']
+      '微信小店': ['2元乐享']
     },
     batches: [
-      { id: 'b1', name: '指定品满5元减0.5元', gmv: 22500, discount: 1750 },
-      { id: 'b2', name: '指定品满8元减0.8元', gmv: 19000, discount: 1400 },
-      { id: 'b3', name: '指定品满10元减1元', gmv: 26000, discount: 2100 },
-      { id: 'b4', name: '指定品满12元减1.2元', gmv: 16000, discount: 1250 },
-      { id: 'b5', name: '指定品满15元减1.5元', gmv: 24000, discount: 1900 },
-      { id: 'b6', name: '指定品满18元减1.8元', gmv: 14500, discount: 1100 },
-      { id: 'b7', name: '指定品满20元减2元', gmv: 10500, discount: 800 },
-      { id: 'b8', name: '指定品满22元减2.2元', gmv: 10000, discount: 750 }
+      { id: 'wx_b1', name: '2元乐享', gmv: 40000, discount: 9000 },
+      { id: 'wx_b2', name: '新品立减2元', gmv: 29000, discount: 6500 }
     ]
   }
 ];
@@ -349,17 +341,6 @@ export const unifiedUserAnalysis: UserAnalysisData[] = [
 export const unifiedChannels: ChannelData[] = [
   {
     id: 1,
-    name: '微信',
-    exposure: 1500000,
-    click: 450000,
-    conversion: 180000,
-    ctr: 30,
-    cvr: 40,
-    cost: 300000,
-    roi: 4.2,
-  },
-  {
-    id: 2,
     name: '支付宝',
     exposure: 1200000,
     click: 300000,
@@ -370,26 +351,15 @@ export const unifiedChannels: ChannelData[] = [
     roi: 3.5,
   },
   {
-    id: 3,
-    name: '抖音',
-    exposure: 2000000,
-    click: 700000,
-    conversion: 210000,
-    ctr: 35,
-    cvr: 30,
-    cost: 400000,
-    roi: 3.8,
-  },
-  {
-    id: 4,
-    name: '美团',
-    exposure: 800000,
-    click: 200000,
-    conversion: 80000,
-    ctr: 25,
+    id: 2,
+    name: '微信小店',
+    exposure: 1500000,
+    click: 450000,
+    conversion: 180000,
+    ctr: 30,
     cvr: 40,
-    cost: 150000,
-    roi: 4.5,
+    cost: 300000,
+    roi: 4.2,
   },
 ];
 
@@ -425,34 +395,21 @@ export const dashboardStats = {
     updateTime: '2025-10-31 23:59:59'
   },
   platformData: [
-    { name: '微信', value: 45, gmv: 2106000, discount: 841500, budget: 80, clientBudget: { total: 1000000, used: 800000 }, orders: 21060, usedCount: 144000 },
-    { name: '支付宝', value: 25, gmv: 1170000, discount: 467500, budget: 70, clientBudget: { total: 800000, used: 560000 }, orders: 11700, usedCount: 80000 },
-    { name: '抖音到店', value: 20, gmv: 936000, discount: 374000, budget: 65, clientBudget: { total: 600000, used: 390000 }, orders: 9360, usedCount: 64000 },
+    { name: '支付宝', value: 40, gmv: 1170000, discount: 467500, budget: 70, clientBudget: { total: 800000, used: 560000 }, orders: 11700, usedCount: 80000 },
+    { name: '微信小店', value: 60, gmv: 2106000, discount: 841500, budget: 80, clientBudget: { total: 1000000, used: 800000 }, orders: 21060, usedCount: 144000 },
   ],
   distributionChannels: [
-    { name: '品牌小程序', wechat: 80000, alipay: 50000, douyin_visitor: 30000, meituan_local: 20000 },
-    { name: '支付有礼', wechat: 70000, alipay: 40000, douyin_visitor: 25000, meituan_local: 15000 },
-    { name: '零售商小程序', wechat: 60000, alipay: 30000, douyin_visitor: 20000, meituan_local: 10000 },
-    { name: '扫码领券', wechat: 50000, alipay: 25000, douyin_visitor: 15000, meituan_local: 10000 },
-    { name: '立减与折扣', wechat: 40000, alipay: 20000, douyin_visitor: 10000, meituan_local: 10000 },
+    { name: '品牌小程序', wechat_store: 80000, alipay: 50000 },
+    { name: '支付有礼', wechat_store: 70000, alipay: 40000 },
+    { name: '零售商小程序', wechat_store: 60000, alipay: 30000 },
+    { name: '扫码领券', wechat_store: 50000, alipay: 25000 },
+    { name: '立减与折扣', wechat_store: 40000, alipay: 20000 },
   ],
   platformIssuanceData: [
-    { name: '微信', issuedCount: 280000, usedCount: 224000, gmv: 3276000, discount: 1310400, usageRate: 80.0 },
     { name: '支付宝', issuedCount: 200000, usedCount: 160000, gmv: 2340000, discount: 936000, usageRate: 80.0 },
-    { name: '抖音到店', issuedCount: 15000, usedCount: 12000, gmv: 175500, discount: 70200, usageRate: 80.0 },
+    { name: '微信小店', issuedCount: 280000, usedCount: 224000, gmv: 3276000, discount: 1310400, usageRate: 80.0 },
   ],
   platformChannelData: {
-    '微信': [
-      { name: '品牌小程序', issuedCount: 80000, usedCount: 72000, gmv: 1800000, discount: 720000, usageRate: 90.0 },
-      { name: '支付有礼', issuedCount: 70000, usedCount: 60000, gmv: 1500000, discount: 600000, usageRate: 85.7 },
-      { name: '立减与折扣', issuedCount: '--', usedCount: 12000, gmv: 306000, discount: 121500, usageRate: '--' },
-      { name: '零售商小程序', issuedCount: 25000, usedCount: 20000, gmv: 500000, discount: 200000, usageRate: 80.0 },
-      { name: '扫码领券', issuedCount: 20000, usedCount: 16000, gmv: 400000, discount: 160000, usageRate: 80.0 },
-      { name: '社群', issuedCount: 15000, usedCount: 12000, gmv: 300000, discount: 120000, usageRate: 80.0 },
-      { name: '智能促销员', issuedCount: 12000, usedCount: 10000, gmv: 250000, discount: 100000, usageRate: 83.3 },
-      { name: '扫码购', issuedCount: 10000, usedCount: 8000, gmv: 200000, discount: 80000, usageRate: 80.0 },
-      { name: 'H5', issuedCount: 5000, usedCount: 4000, gmv: 100000, discount: 40000, usageRate: 80.0 },
-    ],
     '支付宝': [
       { name: '支付有礼', issuedCount: 50000, usedCount: 40000, gmv: 800000, discount: 320000, usageRate: 80.0 },
       { name: '扫码领券', issuedCount: 30000, usedCount: 25000, gmv: 500000, discount: 200000, usageRate: 83.3 },
@@ -465,8 +422,16 @@ export const dashboardStats = {
       { name: '碰一下', issuedCount: 6000, usedCount: 5000, gmv: 120000, discount: 48000, usageRate: 83.3 },
       { name: 'H5', issuedCount: 3000, usedCount: 2500, gmv: 80000, discount: 32000, usageRate: 83.3 },
     ],
-    '抖音到店': [
-      { name: '社群', issuedCount: 80000, usedCount: 64000, gmv: 936000, discount: 374000, usageRate: 80.0 },
+    '微信小店': [
+      { name: '品牌小程序', issuedCount: 80000, usedCount: 72000, gmv: 1800000, discount: 720000, usageRate: 90.0 },
+      { name: '支付有礼', issuedCount: 70000, usedCount: 60000, gmv: 1500000, discount: 600000, usageRate: 85.7 },
+      { name: '立减与折扣', issuedCount: '--', usedCount: 12000, gmv: 306000, discount: 121500, usageRate: '--' },
+      { name: '零售商小程序', issuedCount: 25000, usedCount: 20000, gmv: 500000, discount: 200000, usageRate: 80.0 },
+      { name: '扫码领券', issuedCount: 20000, usedCount: 16000, gmv: 400000, discount: 160000, usageRate: 80.0 },
+      { name: '社群', issuedCount: 15000, usedCount: 12000, gmv: 300000, discount: 120000, usageRate: 80.0 },
+      { name: '智能促销员', issuedCount: 12000, usedCount: 10000, gmv: 250000, discount: 100000, usageRate: 83.3 },
+      { name: '扫码购', issuedCount: 10000, usedCount: 8000, gmv: 200000, discount: 80000, usageRate: 80.0 },
+      { name: 'H5', issuedCount: 5000, usedCount: 4000, gmv: 100000, discount: 40000, usageRate: 80.0 },
     ],
   },
   issuedChannelRanking: [
@@ -530,16 +495,16 @@ export const dashboardStats = {
     { name: '满168减28', usedCount: 15000, gmv: 300000, batchCount: 1, discount: 30000, roi: 10.0, orderCount: 3000, usageRate: 25.8 },
   ],
   skus: [
-    { name: '康师傅红烧牛肉面', code69: '6901028089296', gmv: 240000, orderCount: 2400, discount: 24000, usedCount: 24000, salesVolume: 4800 },
-    { name: '康师傅香辣牛肉面', code69: '6901028089302', gmv: 210000, orderCount: 2100, discount: 21000, usedCount: 21000, salesVolume: 4200 },
-    { name: '康师傅老坛酸菜面', code69: '6901028089319', gmv: 190000, orderCount: 1900, discount: 19000, usedCount: 19000, salesVolume: 3800 },
-    { name: '康师傅鲜虾鱼板面', code69: '6901028089326', gmv: 170000, orderCount: 1700, discount: 17000, usedCount: 17000, salesVolume: 3400 },
-    { name: '康师傅西红柿鸡蛋面', code69: '6901028089333', gmv: 150000, orderCount: 1500, discount: 15000, usedCount: 15000, salesVolume: 3000 },
-    { name: '康师傅麻辣牛肉面', code69: '6901028089340', gmv: 130000, orderCount: 1300, discount: 13000, usedCount: 13000, salesVolume: 2600 },
-    { name: '康师傅香菇炖鸡面', code69: '6901028089357', gmv: 110000, orderCount: 1100, discount: 11000, usedCount: 11000, salesVolume: 2200 },
-    { name: '康师傅酸辣牛肉面', code69: '6901028089364', gmv: 90000, orderCount: 900, discount: 9000, usedCount: 9000, salesVolume: 1800 },
-    { name: '康师傅绿茶 500ml', code69: '6901028089371', gmv: 75000, orderCount: 750, discount: 7500, usedCount: 7500, salesVolume: 1500 },
-    { name: '康师傅冰红茶 500ml', code69: '6901028089388', gmv: 60000, orderCount: 600, discount: 6000, usedCount: 6000, salesVolume: 1200 },
+    { name: '统一小茗同学青柠红茶 480ml', code69: '6901028089296', gmv: 240000, orderCount: 2400, discount: 24000, usedCount: 24000, salesVolume: 4800 },
+    { name: '统一小茗同学冷泡绿茶 480ml', code69: '6901028089302', gmv: 210000, orderCount: 2100, discount: 21000, usedCount: 21000, salesVolume: 4200 },
+    { name: '统一小茗同学冰橘绿茶 480ml', code69: '6901028089319', gmv: 190000, orderCount: 1900, discount: 19000, usedCount: 19000, salesVolume: 3800 },
+    { name: '统一小茗同学溜溜哒茶 480ml', code69: '6901028089326', gmv: 170000, orderCount: 1700, discount: 17000, usedCount: 17000, salesVolume: 3400 },
+    { name: '统一小茗同学青柠红茶 1L', code69: '6901028089333', gmv: 150000, orderCount: 1500, discount: 15000, usedCount: 15000, salesVolume: 3000 },
+    { name: '统一小茗同学冷泡绿茶 1L', code69: '6901028089340', gmv: 130000, orderCount: 1300, discount: 13000, usedCount: 13000, salesVolume: 2600 },
+    { name: '统一小茗同学冰橘绿茶 1L', code69: '6901028089357', gmv: 110000, orderCount: 1100, discount: 11000, usedCount: 11000, salesVolume: 2200 },
+    { name: '统一小茗同学溜溜哒茶 1L', code69: '6901028089364', gmv: 90000, orderCount: 900, discount: 9000, usedCount: 9000, salesVolume: 1800 },
+    { name: '统一小茗同学青柠红茶 250ml', code69: '6901028089371', gmv: 75000, orderCount: 750, discount: 7500, usedCount: 7500, salesVolume: 1500 },
+    { name: '统一小茗同学冷泡绿茶 250ml', code69: '6901028089388', gmv: 60000, orderCount: 600, discount: 6000, usedCount: 6000, salesVolume: 1200 },
   ],
   trends: [
     { date: '10-01', gmv: 156000, usedCount: 10667, batchCount: 12, discount: 62333, roi: 2.5, orderCount: 1560, usageRate: 35.6 },

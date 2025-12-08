@@ -94,11 +94,6 @@ const ClientLayout: React.FC = () => {
       icon: <CalendarOutlined />,
     },
     {
-      key: 'marketing-calendar-v1',
-      label: '营销日历V1',
-      icon: <CalendarOutlined />,
-    },
-    {
       key: 'activity-progress',
       label: '活动进度',
       icon: <ProjectOutlined />,
@@ -240,7 +235,7 @@ const ClientLayout: React.FC = () => {
               borderRight: '1px solid #d9d9d9',
               paddingRight: '16px'
             }}>
-              康师傅
+              统一
             </span>
             <Dropdown
               menu={{

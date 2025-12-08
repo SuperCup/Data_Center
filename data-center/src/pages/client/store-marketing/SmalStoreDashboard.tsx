@@ -3,6 +3,7 @@ import { Row, Col, Card, Statistic, Progress, Divider, DatePicker, Select, Tabs,
 import { ArrowUpOutlined, ArrowDownOutlined, ShoppingOutlined, DollarOutlined, TagOutlined, AppstoreOutlined, InfoCircleOutlined, QuestionCircleOutlined, DownloadOutlined } from '@ant-design/icons';
 import { PieChart, Pie as RechartsPie, Cell, LineChart, Line as RechartsLine, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import moment from 'moment';
+import dayjs from 'dayjs';
 const { RangePicker } = DatePicker;
 const { Option } = Select;
 const { TabPane } = Tabs;
@@ -54,9 +55,9 @@ const SmalStoreDashboard: React.FC = () => {
   const [visibleLines, setVisibleLines] = useState<{[key: string]: boolean}>({
     registeredStores: true,  // 默认显示报名门店数
     activeStores: false,
-    gmv: false,
-    writeOffAmount: false,
-    writeOffCount: false,
+    activeStoreRatio: false,
+    redeemCount: false,
+    avgOutput: false,
     avgDailyOutput: false
   });
   
@@ -68,6 +69,67 @@ const SmalStoreDashboard: React.FC = () => {
   
   // SKU排序状态
   const [skuSortBy, setSkuSortBy] = useState<string>('gmv');
+  
+  // 部/课/所筛选状态
+  const [selectedDepartment, setSelectedDepartment] = useState<string>('广州乳饮');
+  const [selectedCourse, setSelectedCourse] = useState<string>('');
+  const [selectedOffice, setSelectedOffice] = useState<string>('');
+  
+  // 部/课/所三级联动数据
+  const departmentData = {
+    '广州乳饮': {
+      courses: {
+        '天河': ['天河', '越秀', '荔湾'],
+        '海珠': ['海珠', '番禺', '白云'],
+        '黄埔': ['黄埔', '花都']
+      }
+    },
+    '深圳乳饮': {
+      courses: {
+        '南山': ['南山', '福田'],
+        '宝安': ['宝安', '龙岗']
+      }
+    }
+  };
+  
+  // 获取可选的课程（根据选中的部）
+  const availableCourses = selectedDepartment && departmentData[selectedDepartment as keyof typeof departmentData]
+    ? Object.keys(departmentData[selectedDepartment as keyof typeof departmentData].courses)
+    : [];
+  
+  // 获取可选的所（根据选中的课）
+  const availableOffices = (() => {
+    if (!selectedDepartment || !selectedCourse) return [];
+    const dept = departmentData[selectedDepartment as keyof typeof departmentData];
+    if (!dept) return [];
+    const courseKey = selectedCourse as keyof typeof dept.courses;
+    const course = dept.courses[courseKey];
+    return Array.isArray(course) ? course : [];
+  })();
+  
+  // 处理部选择变化
+  const handleDepartmentChange = (value: string) => {
+    setSelectedDepartment(value);
+    setSelectedCourse(''); // 重置课
+    setSelectedOffice(''); // 重置所
+  };
+  
+  // 处理课选择变化
+  const handleCourseChange = (value: string) => {
+    setSelectedCourse(value);
+    setSelectedOffice(''); // 重置所
+  };
+  
+  // 处理所选择变化
+  const handleOfficeChange = (value: string) => {
+    setSelectedOffice(value);
+  };
+  
+  // 获取数据更新日期（当日早上10点）
+  const getUpdateTime = () => {
+    const today = dayjs();
+    return today.hour(10).minute(0).second(0).format('YYYY-MM-DD HH:mm:ss');
+  };
   
   // 平台发券数据 - 各平台发券占比
   const platformIssuanceData = [
@@ -215,16 +277,16 @@ const SmalStoreDashboard: React.FC = () => {
     ],
     // 趋势数据
     trends: [
-      { date: '10-01', registeredStores: 150, activeStores: 85, gmv: 156000, writeOffAmount: 62333, writeOffCount: 10667, avgDailyOutput: 1837 },
-      { date: '10-02', registeredStores: 152, activeStores: 86, gmv: 168000, writeOffAmount: 67200, writeOffCount: 11500, avgDailyOutput: 1953 },
-      { date: '10-03', registeredStores: 154, activeStores: 87, gmv: 180000, writeOffAmount: 72000, writeOffCount: 12333, avgDailyOutput: 2069 },
-      { date: '10-04', registeredStores: 155, activeStores: 88, gmv: 162000, writeOffAmount: 64800, writeOffCount: 11100, avgDailyOutput: 1841 },
-      { date: '10-05', registeredStores: 155, activeStores: 87, gmv: 150000, writeOffAmount: 60000, writeOffCount: 10267, avgDailyOutput: 1724 },
-      { date: '10-06', registeredStores: 156, activeStores: 88, gmv: 165000, writeOffAmount: 66000, writeOffCount: 11300, avgDailyOutput: 1875 },
-      { date: '10-07', registeredStores: 156, activeStores: 89, gmv: 175000, writeOffAmount: 70000, writeOffCount: 12000, avgDailyOutput: 1966 },
-      { date: '10-08', registeredStores: 156, activeStores: 89, gmv: 185000, writeOffAmount: 74000, writeOffCount: 12667, avgDailyOutput: 2079 },
-      { date: '10-09', registeredStores: 156, activeStores: 89, gmv: 190000, writeOffAmount: 76000, writeOffCount: 13000, avgDailyOutput: 2135 },
-      { date: '10-10', registeredStores: 156, activeStores: 89, gmv: 195000, writeOffAmount: 78000, writeOffCount: 13333, avgDailyOutput: 2191 },
+      { date: '10-01', registeredStores: 150, activeStores: 85, activeStoreRatio: 56.7, redeemCount: 10667, avgOutput: 125.5, avgDailyOutput: 4.2 },
+      { date: '10-02', registeredStores: 152, activeStores: 86, activeStoreRatio: 56.6, redeemCount: 11500, avgOutput: 133.7, avgDailyOutput: 4.5 },
+      { date: '10-03', registeredStores: 154, activeStores: 87, activeStoreRatio: 56.5, redeemCount: 12333, avgOutput: 141.8, avgDailyOutput: 4.7 },
+      { date: '10-04', registeredStores: 155, activeStores: 88, activeStoreRatio: 56.8, redeemCount: 11100, avgOutput: 126.1, avgDailyOutput: 4.2 },
+      { date: '10-05', registeredStores: 155, activeStores: 87, activeStoreRatio: 56.1, redeemCount: 10267, avgOutput: 118.0, avgDailyOutput: 3.9 },
+      { date: '10-06', registeredStores: 156, activeStores: 88, activeStoreRatio: 56.4, redeemCount: 11300, avgOutput: 128.4, avgDailyOutput: 4.3 },
+      { date: '10-07', registeredStores: 156, activeStores: 89, activeStoreRatio: 57.1, redeemCount: 12000, avgOutput: 134.8, avgDailyOutput: 4.5 },
+      { date: '10-08', registeredStores: 156, activeStores: 89, activeStoreRatio: 57.1, redeemCount: 12667, avgOutput: 142.3, avgDailyOutput: 4.7 },
+      { date: '10-09', registeredStores: 156, activeStores: 89, activeStoreRatio: 57.1, redeemCount: 13000, avgOutput: 146.1, avgDailyOutput: 4.9 },
+      { date: '10-10', registeredStores: 156, activeStores: 89, activeStoreRatio: 57.1, redeemCount: 13333, avgOutput: 149.8, avgDailyOutput: 5.0 },
     ],
     // 渠道数据
     channels: [
@@ -407,27 +469,11 @@ const SmalStoreDashboard: React.FC = () => {
       <div style={{ display: 'flex', alignItems: 'center', marginBottom: 16 }}>
         <Title level={2} style={{ margin: 0, marginRight: 8 }}>销售分析</Title>
         <div style={{ marginLeft: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
-          <Text type="secondary">数据更新时间：{stats.budget.updateTime}</Text>
+          <Text type="secondary">数据更新时间：{getUpdateTime()}</Text>
           <Text type="secondary" style={{ fontSize: '12px', color: '#999' }}>
             该数据仅作业务分析参考，不作为最终结算依据。
           </Text>
         </div>
-      </div>
-      
-      {/* 演示说明 */}
-      <div style={{ 
-        backgroundColor: '#fff7e6', 
-        border: '1px solid #ffd591', 
-        borderRadius: '6px', 
-        padding: '12px 16px', 
-        marginBottom: 16,
-        display: 'flex',
-        alignItems: 'center'
-      }}>
-        <InfoCircleOutlined style={{ color: '#fa8c16', marginRight: 8, fontSize: '16px' }} />
-        <Text style={{ color: '#d46b08', fontSize: '14px' }}>
-          此页面为演示使用，正式发布不会有此过度，切换销售分析仅刷新页面内指标与图示。
-        </Text>
       </div>
       
       {/* 1. 筛选条件 */}
@@ -449,304 +495,405 @@ const SmalStoreDashboard: React.FC = () => {
             </div>
           </Col>
           <Col span={12} style={{ paddingLeft: '24px', display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
-            <div style={{ 
-              backgroundColor: '#f6ffed', 
-              border: '1px solid #b7eb8f', 
-              borderRadius: '6px', 
-              padding: '8px 12px',
-              display: 'flex',
-              alignItems: 'center'
-            }}>
-              <InfoCircleOutlined style={{ color: '#52c41a', marginRight: 6, fontSize: '14px' }} />
-              <Text style={{ color: '#389e0d', fontSize: '13px' }}>
-                演示环境，请点击浏览器返回，回到销售分析主页面
-              </Text>
-            </div>
+            <Button
+              type="primary"
+              icon={<DownloadOutlined />}
+              onClick={() => {
+                // 导出明细数据
+                const exportData = stats.retailers.map((retailer: any, index: number) => {
+                  return {
+                    序号: index + 1,
+                    门店名称: retailer.name,
+                    订单数: retailer.usedCount,
+                    销售额: retailer.gmv,
+                    优惠金额: retailer.discount,
+                    活动数: retailer.batchCount,
+                    ROI: retailer.roi,
+                    核销率: `${retailer.usageRate}%`
+                  };
+                });
+                
+                // 转换为CSV格式
+                const headers = Object.keys(exportData[0] || {});
+                const csvContent = [
+                  headers.join(','),
+                  ...exportData.map((row: any) => headers.map((header: string) => `"${row[header]}"`).join(','))
+                ].join('\n');
+                
+                // 添加BOM以支持中文
+                const BOM = '\uFEFF';
+                const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                const url = URL.createObjectURL(blob);
+                link.setAttribute('href', url);
+                link.setAttribute('download', `门店明细数据_${dayjs().format('YYYY-MM-DD_HH-mm-ss')}.csv`);
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+              }}
+            >
+              下载明细数据
+            </Button>
           </Col>
         </Row>
       </Card>
       
+      {/* 部课所筛选模块 */}
+      <Card style={{ marginBottom: 16 }}>
+        <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Text>部：</Text>
+            <Select
+              style={{ width: 150 }}
+              placeholder="选择部"
+              value={selectedDepartment}
+              onChange={handleDepartmentChange}
+              allowClear
+              size="small"
+            >
+              {Object.keys(departmentData).map(dept => (
+                <Option key={dept} value={dept}>{dept}</Option>
+              ))}
+            </Select>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Text>课：</Text>
+            <Select
+              style={{ width: 150 }}
+              placeholder="选择课"
+              value={selectedCourse}
+              onChange={handleCourseChange}
+              disabled={!selectedDepartment}
+              allowClear
+              size="small"
+            >
+              {availableCourses.map(course => (
+                <Option key={course} value={course}>{course}</Option>
+              ))}
+            </Select>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Text>所：</Text>
+            <Select
+              style={{ width: 150 }}
+              placeholder="选择所"
+              value={selectedOffice}
+              onChange={handleOfficeChange}
+              disabled={!selectedCourse}
+              allowClear
+              size="small"
+            >
+              {availableOffices.map((office: string) => (
+                <Option key={office} value={office}>{office}</Option>
+              ))}
+            </Select>
+          </div>
+        </div>
+      </Card>
+      
       {/* 2. 核心指标与活动效果趋势 */}
       <Card title="核心指标" style={{ marginBottom: 16 }}>
-        <Row gutter={0} style={{ display: 'flex', justifyContent: 'space-between' }}>
+        <Row gutter={16} style={{ display: 'flex', justifyContent: 'space-between' }}>
           {/* 报名门店数 */}
-          <Col style={{ width: 'calc(16.66% - 8px)' }}>
+          <Col flex="1">
             <Card>
               <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
-                <span style={{ fontSize: '14px', color: '#262626' }}>报名门店数（个）</span>
+                <span style={{ fontSize: '14px', color: '#000000' }}>报名门店数（个）</span>
                 <AntTooltip 
                   title={
                     <div style={{ maxWidth: 300 }}>
+                      <div style={{ marginBottom: 8, fontWeight: 'bold' }}>该数据仅供参考，不作为最终结算依据</div>
                       <div>参与活动报名的门店总数</div>
                     </div>
                   }
                   placement="topLeft"
                 >
-                  <QuestionCircleOutlined style={{ marginLeft: 4, color: '#8c8c8c', cursor: 'help' }} />
+                  <QuestionCircleOutlined style={{ marginLeft: 4, color: '#000000', cursor: 'help' }} />
                 </AntTooltip>
               </div>
               <Statistic
                 title=""
                 value={stats.overview.registeredStores}
                 precision={0}
-                valueStyle={{ color: '#000000', fontSize: '24px', fontWeight: 'bold' }}
+                valueStyle={{ color: '#262626', fontSize: '24px', fontWeight: 'bold' }}
               />
-              <div style={{ marginTop: 8 }}>
-                <span style={{ 
-                  color: stats.overview.registeredStoresYoY >= 0 ? 'red' : 'green', 
-                  marginRight: 8,
-                  ...(stats.overview.registeredStoresYoY < 0 && {
-                    position: 'relative'
-                  })
-                }}>
-                  同比 {stats.overview.registeredStoresYoY >= 0 ? '+' : ''}{stats.overview.registeredStoresYoY}%
-                  {stats.overview.registeredStoresYoY < 0 && ' 📉'}
-                </span>
-                <span style={{ 
-                  color: stats.overview.registeredStoresMoM >= 0 ? 'red' : 'green',
-                  ...(stats.overview.registeredStoresMoM < 0 && {
-                    borderLeft: '3px solid green',
-                    paddingLeft: '8px',
-                    fontFamily: 'monospace',
-                    fontSize: '13px'
-                  })
-                }}>
-                  环比 {stats.overview.registeredStoresMoM >= 0 ? '+' : ''}{stats.overview.registeredStoresMoM}%
-                </span>
+              <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 4 }}>
+                <span style={{ fontSize: '12px', color: '#8c8c8c' }}>环比：</span>
+                {(() => {
+                  const current = stats.overview.registeredStores;
+                  const previous = 210; // 模拟上期数据
+                  const change = ((current - previous) / previous * 100).toFixed(1);
+                  const isPositive = parseFloat(change) >= 0;
+                  return (
+                    <span style={{ 
+                      fontSize: '12px', 
+                      color: isPositive ? '#f5222d' : '#52c41a',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 2
+                    }}>
+                      {isPositive ? <ArrowUpOutlined /> : <ArrowDownOutlined />}
+                      {Math.abs(parseFloat(change))}%
+                    </span>
+                  );
+                })()}
               </div>
             </Card>
           </Col>
           
           {/* 动销门店数 */}
-          <Col style={{ width: 'calc(16.66% - 8px)' }}>
+          <Col flex="1">
             <Card>
               <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
-                <span style={{ fontSize: '14px', color: '#262626' }}>动销门店数（个）</span>
+                <span style={{ fontSize: '14px', color: '#000000' }}>动销门店数（个）</span>
                 <AntTooltip 
                   title={
                     <div style={{ maxWidth: 300 }}>
+                      <div style={{ marginBottom: 8, fontWeight: 'bold' }}>该数据仅供参考，不作为最终结算依据</div>
                       <div>实际产生销售的门店数量</div>
                     </div>
                   }
                   placement="topLeft"
                 >
-                  <QuestionCircleOutlined style={{ marginLeft: 4, color: '#8c8c8c', cursor: 'help' }} />
+                  <QuestionCircleOutlined style={{ marginLeft: 4, color: '#000000', cursor: 'help' }} />
                 </AntTooltip>
               </div>
               <Statistic
                 title=""
                 value={stats.overview.activeStores}
                 precision={0}
-                valueStyle={{ color: '#000000', fontSize: '24px', fontWeight: 'bold' }}
+                valueStyle={{ color: '#262626', fontSize: '24px', fontWeight: 'bold' }}
               />
-              <div style={{ marginTop: 8 }}>
-                <span style={{ 
-                  color: stats.overview.activeStoresYoY >= 0 ? 'red' : 'green', 
-                  marginRight: 8,
-                  ...(stats.overview.activeStoresYoY < 0 && {
-                    fontWeight: 'bold',
-                    textDecoration: 'underline',
-                    fontSize: '13px'
-                  })
-                }}>
-                  {stats.overview.activeStoresYoY < 0 && <ArrowDownOutlined style={{ marginRight: 4 }} />}
-                  同比 {stats.overview.activeStoresYoY >= 0 ? '+' : ''}{stats.overview.activeStoresYoY}%
-                </span>
-                <span style={{ 
-                  color: stats.overview.activeStoresMoM >= 0 ? 'red' : 'green',
-                  ...(stats.overview.activeStoresMoM < 0 && {
-                    fontStyle: 'italic',
-                    border: '1px solid green',
-                    padding: '2px 6px',
-                    borderRadius: '4px',
-                    fontSize: '12px'
-                  })
-                }}>
-                  {stats.overview.activeStoresMoM < 0 && '↓ '}
-                  环比 {stats.overview.activeStoresMoM >= 0 ? '+' : ''}{stats.overview.activeStoresMoM}%
-                </span>
+              <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 4 }}>
+                <span style={{ fontSize: '12px', color: '#8c8c8c' }}>环比：</span>
+                {(() => {
+                  const current = stats.overview.activeStores;
+                  const previous = 180; // 模拟上期数据
+                  const change = ((current - previous) / previous * 100).toFixed(1);
+                  const isPositive = parseFloat(change) >= 0;
+                  return (
+                    <span style={{ 
+                      fontSize: '12px', 
+                      color: isPositive ? '#f5222d' : '#52c41a',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 2
+                    }}>
+                      {isPositive ? <ArrowUpOutlined /> : <ArrowDownOutlined />}
+                      {Math.abs(parseFloat(change))}%
+                    </span>
+                  );
+                })()}
               </div>
             </Card>
           </Col>
           
-          {/* 销售额 */}
-          <Col style={{ width: 'calc(16.66% - 8px)' }}>
+          {/* 动销门店占比 */}
+          <Col flex="1">
             <Card>
               <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
-                <span style={{ fontSize: '14px', color: '#262626' }}>销售额（元）</span>
+                <span style={{ fontSize: '14px', color: '#000000' }}>动销门店占比</span>
                 <AntTooltip 
                   title={
                     <div style={{ maxWidth: 300 }}>
                       <div style={{ marginBottom: 8, fontWeight: 'bold' }}>该数据仅供参考，不作为最终结算依据</div>
-                      <div style={{ marginBottom: 4 }}><strong>微信/支付宝平台：</strong></div>
-                      <div style={{ marginBottom: 8 }}>所有订单的订单商品数量×商品价格之和（已扣除退款）</div>
-                      <div style={{ marginBottom: 4 }}><strong>抖音到店：</strong></div>
-                      <div>待补充</div>
+                      <div>动销门店数占报名门店数的比例</div>
                     </div>
                   }
                   placement="topLeft"
                 >
-                  <QuestionCircleOutlined style={{ marginLeft: 4, color: '#8c8c8c', cursor: 'help' }} />
+                  <QuestionCircleOutlined style={{ marginLeft: 4, color: '#000000', cursor: 'help' }} />
                 </AntTooltip>
               </div>
               <Statistic
                 title=""
-                value={stats.overview.gmv}
-                precision={2}
-                valueStyle={{ color: '#000000', fontSize: '24px', fontWeight: 'bold' }}
+                value={(() => {
+                  const registered = stats.overview.registeredStores;
+                  const active = stats.overview.activeStores;
+                  return registered > 0 ? ((active / registered) * 100).toFixed(1) : '0.0';
+                })()}
+                suffix="%"
+                precision={1}
+                valueStyle={{ color: '#262626', fontSize: '24px', fontWeight: 'bold' }}
               />
-              <div style={{ marginTop: 8 }}>
-                <span style={{ 
-                  color: stats.overview.gmvYoY >= 0 ? 'red' : 'green', 
-                  marginRight: 8,
-                  ...(stats.overview.gmvYoY < 0 && {
-                    fontWeight: 'bold',
-                    textDecoration: 'underline',
-                    fontSize: '13px'
-                  })
-                }}>
-                  {stats.overview.gmvYoY < 0 && <ArrowDownOutlined style={{ marginRight: 4 }} />}
-                  同比 {stats.overview.gmvYoY >= 0 ? '+' : ''}{stats.overview.gmvYoY}%
-                </span>
-                <span style={{ 
-                  color: stats.overview.gmvMoM >= 0 ? 'red' : 'green',
-                  ...(stats.overview.gmvMoM < 0 && {
-                    fontStyle: 'italic',
-                    border: '1px solid green',
-                    padding: '2px 6px',
-                    borderRadius: '4px',
-                    fontSize: '12px'
-                  })
-                }}>
-                  {stats.overview.gmvMoM < 0 && '↓ '}
-                  环比 {stats.overview.gmvMoM >= 0 ? '+' : ''}{stats.overview.gmvMoM}%
-                </span>
-              </div>
-            </Card>
-          </Col>
-          
-          {/* 核销金额 */}
-          <Col style={{ width: 'calc(16.66% - 8px)' }}>
-            <Card>
-              <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
-                <span style={{ fontSize: '14px', color: '#262626' }}>核销金额（元）</span>
-                <AntTooltip 
-                  title={
-                    <div style={{ maxWidth: 300 }}>
-                      <div style={{ marginBottom: 4 }}><strong>微信/支付宝：</strong></div>
-                      <div style={{ marginBottom: 8 }}>账单中返回的优惠金额之和（已扣除退款）</div>
-                      <div style={{ marginBottom: 4 }}><strong>抖音到店：</strong></div>
-                      <div>待补充</div>
-                    </div>
-                  }
-                  placement="topLeft"
-                >
-                  <QuestionCircleOutlined style={{ marginLeft: 4, color: '#8c8c8c', cursor: 'help' }} />
-                </AntTooltip>
-              </div>
-              <Statistic
-                title=""
-                value={stats.overview.writeOffAmount}
-                precision={2}
-                valueStyle={{ color: '#000000', fontSize: '24px', fontWeight: 'bold' }}
-              />
-              <div style={{ marginTop: 8 }}>
-                <span style={{ color: stats.overview.writeOffAmountYoY >= 0 ? 'red' : 'green', marginRight: 8 }}>
-                  同比 {stats.overview.writeOffAmountYoY >= 0 ? '+' : ''}{stats.overview.writeOffAmountYoY}%
-                </span>
-                <span style={{ color: stats.overview.writeOffAmountMoM >= 0 ? 'red' : 'green' }}>
-                  环比 {stats.overview.writeOffAmountMoM >= 0 ? '+' : ''}{stats.overview.writeOffAmountMoM}%
-                </span>
+              <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 4 }}>
+                <span style={{ fontSize: '12px', color: '#8c8c8c' }}>环比：</span>
+                {(() => {
+                  const registered = stats.overview.registeredStores;
+                  const active = stats.overview.activeStores;
+                  const current = registered > 0 ? ((active / registered) * 100) : 0;
+                  const previous = 85.7; // 模拟上期数据
+                  const change = ((current - previous) / previous * 100).toFixed(1);
+                  const isPositive = parseFloat(change) >= 0;
+                  return (
+                    <span style={{ 
+                      fontSize: '12px', 
+                      color: isPositive ? '#f5222d' : '#52c41a',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 2
+                    }}>
+                      {isPositive ? <ArrowUpOutlined /> : <ArrowDownOutlined />}
+                      {Math.abs(parseFloat(change))}%
+                    </span>
+                  );
+                })()}
               </div>
             </Card>
           </Col>
           
           {/* 核销份数 */}
-          <Col style={{ width: 'calc(16.66% - 8px)' }}>
+          <Col flex="1">
             <Card>
               <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
-                <span style={{ fontSize: '14px', color: '#262626' }}>核销份数（份）</span>
+                <span style={{ fontSize: '14px', color: '#000000' }}>核销份数（份）</span>
                 <AntTooltip 
                   title={
                     <div style={{ maxWidth: 300 }}>
-                      <div style={{ marginBottom: 4 }}><strong>微信/支付宝：</strong></div>
-                      <div style={{ marginBottom: 8 }}>核销的优惠券份数总和（已扣除退款）</div>
-                      <div style={{ marginBottom: 4 }}><strong>抖音到店：</strong></div>
-                      <div>待补充</div>
+                      <div style={{ marginBottom: 8, fontWeight: 'bold' }}>该数据仅供参考，不作为最终结算依据</div>
+                      <div>活动期间实际核销的优惠券份数</div>
                     </div>
                   }
                   placement="topLeft"
                 >
-                  <QuestionCircleOutlined style={{ marginLeft: 4, color: '#8c8c8c', cursor: 'help' }} />
+                  <QuestionCircleOutlined style={{ marginLeft: 4, color: '#000000', cursor: 'help' }} />
                 </AntTooltip>
               </div>
               <Statistic
                 title=""
                 value={stats.overview.writeOffCount}
                 precision={0}
-                valueStyle={{ color: '#000000', fontSize: '24px', fontWeight: 'bold' }}
+                valueStyle={{ color: '#262626', fontSize: '24px', fontWeight: 'bold' }}
               />
-              <div style={{ marginTop: 8 }}>
-                <span style={{ 
-                  color: stats.overview.writeOffCountYoY >= 0 ? 'red' : 'green', 
-                  marginRight: 8,
-                  ...(stats.overview.writeOffCountYoY < 0 && {
-                    background: 'linear-gradient(90deg, transparent 0%, rgba(0,255,0,0.1) 50%, transparent 100%)',
-                    padding: '2px 4px',
-                    borderRadius: '3px'
-                  })
-                }}>
-                  同比 {stats.overview.writeOffCountYoY >= 0 ? '+' : ''}{stats.overview.writeOffCountYoY}%
-                  {stats.overview.writeOffCountYoY < 0 && ' ⬇'}
-                </span>
-                <span style={{ 
-                  color: stats.overview.writeOffCountMoM >= 0 ? 'red' : 'green',
-                  ...(stats.overview.writeOffCountMoM < 0 && {
-                    textShadow: '1px 1px 2px rgba(0,128,0,0.3)',
-                    fontWeight: '600',
-                    letterSpacing: '0.5px'
-                  })
-                }}>
-                  {stats.overview.writeOffCountMoM < 0 && <ArrowDownOutlined style={{ marginRight: 4 }} />}
-                  环比 {stats.overview.writeOffCountMoM >= 0 ? '+' : ''}{stats.overview.writeOffCountMoM}%
-                </span>
+              <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 4 }}>
+                <span style={{ fontSize: '12px', color: '#8c8c8c' }}>环比：</span>
+                {(() => {
+                  const current = stats.overview.writeOffCount;
+                  const previous = 2900; // 模拟上期数据
+                  const change = ((current - previous) / previous * 100).toFixed(1);
+                  const isPositive = parseFloat(change) >= 0;
+                  return (
+                    <span style={{ 
+                      fontSize: '12px', 
+                      color: isPositive ? '#f5222d' : '#52c41a',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 2
+                    }}>
+                      {isPositive ? <ArrowUpOutlined /> : <ArrowDownOutlined />}
+                      {Math.abs(parseFloat(change))}%
+                    </span>
+                  );
+                })()}
               </div>
             </Card>
           </Col>
-          
-          {/* 店均日产出 */}
-          <Col style={{ width: 'calc(16.66% - 8px)' }}>
+
+          {/* 店均产出 */}
+          <Col flex="1">
             <Card>
               <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
-                <span style={{ fontSize: '14px', color: '#262626' }}>店均日产出（元）</span>
+                <span style={{ fontSize: '14px', color: '#000000' }}>店均产出（份）</span>
                 <AntTooltip 
                   title={
                     <div style={{ maxWidth: 300 }}>
-                      <div style={{ marginBottom: 8, fontWeight: 'bold' }}>平均每个门店每日的销售产出</div>
-                      <div>店均日产出 = 销售额 / 动销门店数 / 天数</div>
-                      <div style={{ marginTop: 8, fontSize: '12px', color: '#666' }}>
-                        该指标反映门店的平均销售效率
-                      </div>
+                      <div style={{ marginBottom: 8, fontWeight: 'bold' }}>该数据仅供参考，不作为最终结算依据</div>
+                      <div>平均每个动销门店的核销份数</div>
                     </div>
                   }
                   placement="topLeft"
                 >
-                  <QuestionCircleOutlined style={{ marginLeft: 4, color: '#8c8c8c', cursor: 'help' }} />
+                  <QuestionCircleOutlined style={{ marginLeft: 4, color: '#000000', cursor: 'help' }} />
                 </AntTooltip>
               </div>
               <Statistic
                 title=""
-                value={stats.overview.avgDailyOutput}
-                precision={0}
-                valueStyle={{ color: '#000000', fontSize: '24px', fontWeight: 'bold' }}
+                value={(() => {
+                  const active = stats.overview.activeStores;
+                  const redeemCount = stats.overview.writeOffCount;
+                  return active > 0 ? (redeemCount / active).toFixed(1) : '0.0';
+                })()}
+                precision={1}
+                valueStyle={{ color: '#262626', fontSize: '24px', fontWeight: 'bold' }}
               />
-              <div style={{ marginTop: 8 }}>
-                <span style={{ color: stats.overview.avgDailyOutputYoY >= 0 ? 'red' : 'green', marginRight: 8 }}>
-                  同比 {stats.overview.avgDailyOutputYoY >= 0 ? '+' : ''}{stats.overview.avgDailyOutputYoY}%
-                </span>
-                <span style={{ color: stats.overview.avgDailyOutputMoM >= 0 ? 'red' : 'green' }}>
-                  环比 {stats.overview.avgDailyOutputMoM >= 0 ? '+' : ''}{stats.overview.avgDailyOutputMoM}%
-                </span>
+              <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 4 }}>
+                <span style={{ fontSize: '12px', color: '#8c8c8c' }}>环比：</span>
+                {(() => {
+                  const active = stats.overview.activeStores;
+                  const redeemCount = stats.overview.writeOffCount;
+                  const current = active > 0 ? (redeemCount / active) : 0;
+                  const previous = 15.5; // 模拟上期数据
+                  const change = ((current - previous) / previous * 100).toFixed(1);
+                  const isPositive = parseFloat(change) >= 0;
+                  return (
+                    <span style={{ 
+                      fontSize: '12px', 
+                      color: isPositive ? '#f5222d' : '#52c41a',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 2
+                    }}>
+                      {isPositive ? <ArrowUpOutlined /> : <ArrowDownOutlined />}
+                      {Math.abs(parseFloat(change))}%
+                    </span>
+                  );
+                })()}
+              </div>
+            </Card>
+          </Col>
+
+          {/* 店均日产出 */}
+          <Col flex="1">
+            <Card>
+              <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
+                <span style={{ fontSize: '14px', color: '#000000' }}>店均日产出（份）</span>
+                <AntTooltip 
+                  title={
+                    <div style={{ maxWidth: 300 }}>
+                      <div style={{ marginBottom: 8, fontWeight: 'bold' }}>该数据仅供参考，不作为最终结算依据</div>
+                      <div>平均每个门店每日的核销份数</div>
+                    </div>
+                  }
+                  placement="topLeft"
+                >
+                  <QuestionCircleOutlined style={{ marginLeft: 4, color: '#000000', cursor: 'help' }} />
+                </AntTooltip>
+              </div>
+              <Statistic
+                title=""
+                value={(() => {
+                  const active = stats.overview.activeStores;
+                  const redeemCount = stats.overview.writeOffCount;
+                  const days = 30; // 假设30天
+                  return active > 0 ? (redeemCount / active / days).toFixed(1) : '0.0';
+                })()}
+                precision={1}
+                valueStyle={{ color: '#262626', fontSize: '24px', fontWeight: 'bold' }}
+              />
+              <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 4 }}>
+                <span style={{ fontSize: '12px', color: '#8c8c8c' }}>环比：</span>
+                {(() => {
+                  const active = stats.overview.activeStores;
+                  const redeemCount = stats.overview.writeOffCount;
+                  const days = 30;
+                  const current = active > 0 ? (redeemCount / active / days) : 0;
+                  const previous = 1.95; // 模拟上期数据
+                  const change = ((current - previous) / previous * 100).toFixed(1);
+                  const isPositive = parseFloat(change) >= 0;
+                  return (
+                    <span style={{ 
+                      fontSize: '12px', 
+                      color: isPositive ? '#f5222d' : '#52c41a',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 2
+                    }}>
+                      {isPositive ? <ArrowUpOutlined /> : <ArrowDownOutlined />}
+                      {Math.abs(parseFloat(change))}%
+                    </span>
+                  );
+                })()}
               </div>
             </Card>
           </Col>
@@ -758,10 +905,10 @@ const SmalStoreDashboard: React.FC = () => {
             {[
               { key: 'registeredStores', label: '报名门店数（个）', color: '#1890ff' },
               { key: 'activeStores', label: '动销门店数（个）', color: '#52c41a' },
-              { key: 'gmv', label: '销售额（元）', color: '#faad14' },
-              { key: 'writeOffAmount', label: '核销金额（元）', color: '#722ed1' },
-              { key: 'writeOffCount', label: '核销份数（份）', color: '#f5222d' },
-              { key: 'avgDailyOutput', label: '店均日产出（元）', color: '#13c2c2' }
+              { key: 'activeStoreRatio', label: '动销门店占比', color: '#faad14' },
+              { key: 'redeemCount', label: '核销份数（份）', color: '#f5222d' },
+              { key: 'avgOutput', label: '店均产出（份）', color: '#722ed1' },
+              { key: 'avgDailyOutput', label: '店均日产出（份）', color: '#13c2c2' }
             ].map(metric => (
               <div 
                 key={metric.key} 
@@ -778,9 +925,9 @@ const SmalStoreDashboard: React.FC = () => {
                 onClick={() => setVisibleLines({
                   registeredStores: false,
                   activeStores: false,
-                  gmv: false,
-                  writeOffAmount: false,
-                  writeOffCount: false,
+                  activeStoreRatio: false,
+                  redeemCount: false,
+                  avgOutput: false,
                   avgDailyOutput: false,
                   [metric.key]: true
                 })}
@@ -827,18 +974,18 @@ const SmalStoreDashboard: React.FC = () => {
                 const metricLabels: {[key: string]: string} = {
                   'registeredStores': '报名门店数（个）',
                   'activeStores': '动销门店数（个）',
-                  'gmv': '销售额（元）',
-                  'writeOffAmount': '核销金额（元）',
-                  'writeOffCount': '核销份数（份）',
-                  'avgDailyOutput': '店均日产出（元）'
+                  'activeStoreRatio': '动销门店占比',
+                  'redeemCount': '核销份数（份）',
+                  'avgOutput': '店均产出（份）',
+                  'avgDailyOutput': '店均日产出（份）'
                 };
                 
-                if (name === 'registeredStores' || name === 'activeStores' || name === 'writeOffCount') {
+                if (name === 'activeStoreRatio') {
+                  return [`${(value as number).toFixed(1)}%`, metricLabels[name as string]];
+                } else if (name === 'registeredStores' || name === 'activeStores' || name === 'redeemCount' || name === 'avgOutput' || name === 'avgDailyOutput') {
                   return [(value as number).toLocaleString(), metricLabels[name as string]];
-                } else if (name === 'gmv' || name === 'writeOffAmount' || name === 'avgDailyOutput') {
-                  return [`${(value as number).toLocaleString()} 元`, metricLabels[name as string]];
                 } else {
-                  return [(value as number).toLocaleString(), metricLabels[name as string]];
+                  return [(value as number).toLocaleString(), metricLabels[name as string] || name];
                 }
               }} />
               <Legend />
@@ -868,39 +1015,39 @@ const SmalStoreDashboard: React.FC = () => {
                 />
               )}
               
-              {visibleLines.gmv && (
+              {visibleLines.activeStoreRatio && (
                 <RechartsLine
-                  yAxisId="left"
+                  yAxisId="right"
                   type="monotone"
-                  dataKey="gmv"
+                  dataKey="activeStoreRatio"
                   stroke="#faad14"
                   strokeWidth={2}
                   activeDot={{ r: 6 }}
-                  name="销售额（元）"
+                  name="动销门店占比"
                 />
               )}
               
-              {visibleLines.writeOffAmount && (
+              {visibleLines.redeemCount && (
                 <RechartsLine
                   yAxisId="left"
                   type="monotone"
-                  dataKey="writeOffAmount"
-                  stroke="#722ed1"
-                  strokeWidth={2}
-                  activeDot={{ r: 6 }}
-                  name="核销金额（元）"
-                />
-              )}
-              
-              {visibleLines.writeOffCount && (
-                <RechartsLine
-                  yAxisId="left"
-                  type="monotone"
-                  dataKey="writeOffCount"
+                  dataKey="redeemCount"
                   stroke="#f5222d"
                   strokeWidth={2}
                   activeDot={{ r: 6 }}
                   name="核销份数（份）"
+                />
+              )}
+              
+              {visibleLines.avgOutput && (
+                <RechartsLine
+                  yAxisId="left"
+                  type="monotone"
+                  dataKey="avgOutput"
+                  stroke="#722ed1"
+                  strokeWidth={2}
+                  activeDot={{ r: 6 }}
+                  name="店均产出（份）"
                 />
               )}
               
@@ -912,7 +1059,7 @@ const SmalStoreDashboard: React.FC = () => {
                   stroke="#13c2c2"
                   strokeWidth={2}
                   activeDot={{ r: 6 }}
-                  name="店均日产出（元）"
+                  name="店均日产出（份）"
                 />
               )}
             </LineChart>

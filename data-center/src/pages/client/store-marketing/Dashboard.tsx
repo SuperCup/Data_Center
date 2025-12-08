@@ -4,6 +4,7 @@ import { Row, Col, Card, Statistic, Progress, Divider, DatePicker, Select, Tabs,
 import { ArrowUpOutlined, ArrowDownOutlined, ShoppingOutlined, DollarOutlined, TagOutlined, AppstoreOutlined, InfoCircleOutlined, QuestionCircleOutlined, DownloadOutlined } from '@ant-design/icons';
 import { PieChart, Pie as RechartsPie, Cell, LineChart, Line as RechartsLine, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import moment from 'moment';
+import dayjs from 'dayjs';
 import { dashboardStats, type ChannelData } from '../../../data/storeMarketingData';
 const { RangePicker } = DatePicker;
 const { Option } = Select;
@@ -25,9 +26,8 @@ const COLORS = [
 ];
 
 const PLATFORM_COLORS = {
-  '微信': '#07C160',     // 微信绿色
   '支付宝': '#1677FF',   // 支付宝蓝色
-  '抖音到店': '#000000'  // 抖音黑色
+  '微信小店': '#07C160', // 微信小店绿色
 };
 
 // 渐变高亮配色 - 蓝色系为主
@@ -50,7 +50,12 @@ const Dashboard: React.FC = () => {
   
   // 状态管理
   const [dateType, setDateType] = useState<string>('month');
-  const [dateRange, setDateRange] = useState<[string, string]>(['2025-10-01', '2025-10-31']);
+  // 默认筛选时间范围为：30天前到昨天
+  const [dateRange, setDateRange] = useState<[string, string]>(() => {
+    const yesterday = dayjs().subtract(1, 'day');
+    const thirtyDaysAgo = dayjs().subtract(30, 'day');
+    return [thirtyDaysAgo.format('YYYY-MM-DD'), yesterday.format('YYYY-MM-DD')];
+  });
   const [platform, setPlatform] = useState<string>('all');
   const [trendMetric, setTrendMetric] = useState<string>('gmv');
   
@@ -64,13 +69,74 @@ const Dashboard: React.FC = () => {
   });
   
   // 发券渠道状态 - 重新设计为平台视图
-  const [selectedPlatform, setSelectedPlatform] = useState<string | null>('微信'); // 默认选中微信平台
+  const [selectedPlatform, setSelectedPlatform] = useState<string | null>('微信小店'); // 默认选中微信小店平台
   
   // 零售商/机制指标状态
   const [retailerMetric, setRetailerMetric] = useState<string>('gmv');
   
   // SKU排序状态
   const [skuSortBy, setSkuSortBy] = useState<string>('gmv');
+  
+  // 部/课/所筛选状态
+  const [selectedDepartment, setSelectedDepartment] = useState<string>('广州乳饮');
+  const [selectedCourse, setSelectedCourse] = useState<string>('');
+  const [selectedOffice, setSelectedOffice] = useState<string>('');
+  
+  // 部/课/所三级联动数据
+  const departmentData = {
+    '广州乳饮': {
+      courses: {
+        '天河': ['天河', '越秀', '荔湾'],
+        '海珠': ['海珠', '番禺', '白云'],
+        '黄埔': ['黄埔', '花都']
+      }
+    },
+    '深圳乳饮': {
+      courses: {
+        '南山': ['南山', '福田'],
+        '宝安': ['宝安', '龙岗']
+      }
+    }
+  };
+  
+  // 获取可选的课程（根据选中的部）
+  const availableCourses = selectedDepartment && departmentData[selectedDepartment as keyof typeof departmentData]
+    ? Object.keys(departmentData[selectedDepartment as keyof typeof departmentData].courses)
+    : [];
+  
+  // 获取可选的所（根据选中的课）
+  const availableOffices = (() => {
+    if (!selectedDepartment || !selectedCourse) return [];
+    const dept = departmentData[selectedDepartment as keyof typeof departmentData];
+    if (!dept) return [];
+    const courseKey = selectedCourse as keyof typeof dept.courses;
+    const course = dept.courses[courseKey];
+    return Array.isArray(course) ? course : [];
+  })();
+  
+  // 处理部选择变化
+  const handleDepartmentChange = (value: string) => {
+    setSelectedDepartment(value);
+    setSelectedCourse(''); // 重置课
+    setSelectedOffice(''); // 重置所
+  };
+  
+  // 处理课选择变化
+  const handleCourseChange = (value: string) => {
+    setSelectedCourse(value);
+    setSelectedOffice(''); // 重置所
+  };
+  
+  // 处理所选择变化
+  const handleOfficeChange = (value: string) => {
+    setSelectedOffice(value);
+  };
+  
+  // 获取数据更新日期（当日早上10点）
+  const getUpdateTime = () => {
+    const today = dayjs();
+    return today.hour(10).minute(0).second(0).format('YYYY-MM-DD HH:mm:ss');
+  };
   
   // 使用统一的数据
   const platformIssuanceData = dashboardStats.platformIssuanceData;
@@ -172,7 +238,7 @@ const Dashboard: React.FC = () => {
       <div style={{ display: 'flex', alignItems: 'center', marginBottom: 16 }}>
         <Title level={2} style={{ margin: 0, marginRight: 8 }}>销售分析</Title>
         <div style={{ marginLeft: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
-          <Text type="secondary">数据更新时间：{stats.budget.updateTime}</Text>
+          <Text type="secondary">数据更新时间：{getUpdateTime()}</Text>
           <Text type="secondary" style={{ fontSize: '12px', color: '#999' }}>
             该数据仅作业务分析参考，不作为最终结算依据。
           </Text>
@@ -200,15 +266,64 @@ const Dashboard: React.FC = () => {
           <Col span={16} style={{ paddingLeft: '24px', display: 'flex', justifyContent: 'flex-end' }}>
             <Radio.Group value={platform} onChange={handlePlatformChange} buttonStyle="solid">
               <Radio.Button value="all">全部</Radio.Button>
-              <Radio.Button value="wechat">微信</Radio.Button>
               <Radio.Button value="alipay">支付宝</Radio.Button>
-              <Radio.Button value="douyin">抖音到店</Radio.Button>
               <Radio.Button value="wechat-store">微信小店</Radio.Button>
-              <Radio.Button value="meituan" disabled>美团到店</Radio.Button>
-              <Radio.Button value="tmall" disabled>天猫校园</Radio.Button>
             </Radio.Group>
           </Col>
         </Row>
+      </Card>
+      
+      {/* 部课所筛选模块 */}
+      <Card style={{ marginBottom: 16 }}>
+        <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Text>部：</Text>
+            <Select
+              style={{ width: 150 }}
+              placeholder="选择部"
+              value={selectedDepartment}
+              onChange={handleDepartmentChange}
+              allowClear
+              size="small"
+            >
+              {Object.keys(departmentData).map(dept => (
+                <Option key={dept} value={dept}>{dept}</Option>
+              ))}
+            </Select>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Text>课：</Text>
+            <Select
+              style={{ width: 150 }}
+              placeholder="选择课"
+              value={selectedCourse}
+              onChange={handleCourseChange}
+              disabled={!selectedDepartment}
+              allowClear
+              size="small"
+            >
+              {availableCourses.map(course => (
+                <Option key={course} value={course}>{course}</Option>
+              ))}
+            </Select>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Text>所：</Text>
+            <Select
+              style={{ width: 150 }}
+              placeholder="选择所"
+              value={selectedOffice}
+              onChange={handleOfficeChange}
+              disabled={!selectedCourse}
+              allowClear
+              size="small"
+            >
+              {availableOffices.map((office: string) => (
+                <Option key={office} value={office}>{office}</Option>
+              ))}
+            </Select>
+          </div>
+        </div>
       </Card>
       
       {/* 2. 核心指标与活动效果趋势 */}

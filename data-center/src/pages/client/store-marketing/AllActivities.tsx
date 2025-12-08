@@ -33,8 +33,14 @@ const AllActivities: React.FC = () => {
   const [verifySearchText, setVerifySearchText] = useState('');
 
   // 活动分析页面跳转
-  const handleActivityAnalysis = (activityId: string) => {
-    navigate(`/client/activity-analysis/${activityId}`);
+  const handleActivityAnalysis = (activityId: string, platforms: string[]) => {
+    // 如果活动平台只有微信小店，跳转到微信小店活动分析页面
+    if (platforms.length === 1 && platforms[0] === '微信小店') {
+      navigate(`/client/small-store-activity-analysis?activityId=${activityId}`);
+    } else {
+      // 多个平台时，跳转到普通活动分析页面
+      navigate(`/client/activity-analysis/${activityId}`);
+    }
   };
 
   // 领券明细处理函数
@@ -271,9 +277,11 @@ const AllActivities: React.FC = () => {
       render: (_, record) => (
         <Space size="middle">
           <a
-            href={`/client/activity-analysis/${record.activityId}`}
-            target="_blank"
-            rel="noopener noreferrer"
+            onClick={(e) => {
+              e.preventDefault();
+              handleActivityAnalysis(record.activityId, record.platforms);
+            }}
+            style={{ cursor: 'pointer' }}
           >
             活动详情
           </a>
