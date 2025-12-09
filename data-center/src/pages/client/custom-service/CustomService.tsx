@@ -1,212 +1,342 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Row, Col, Modal, Button } from 'antd';
-import { DashboardOutlined, ShopOutlined, QrcodeOutlined, CustomerServiceOutlined } from '@ant-design/icons';
+import { Card, Table, Input, Button, Space, Typography, Select, Tooltip } from 'antd';
+import { SearchOutlined, LinkOutlined, FullscreenOutlined, FullscreenExitOutlined } from '@ant-design/icons';
+import type { ColumnsType } from 'antd/es/table';
+import dayjs from 'dayjs';
 
-const { Meta } = Card;
+const { Title } = Typography;
+const { Option } = Select;
+
+// 报表数据接口
+interface ReportItem {
+  id: string;
+  name: string;
+  description: string;
+  url: string;
+  createTime: string;
+  validTime: string; // 报表有效时间
+  category: string; // 业务分类：到店营销、即时零售、物码营销
+}
+
+// 可用的报表链接
+const reportUrls = [
+  'https://quickbi.ismartgo.cn/token3rd/dashboard/view/pc.htm?pageId=2b2a4ccf-582e-4072-a98e-f6411df63f68&accessTicket=76ff1515-8996-4659-b057-460e87cdf378&dd_orientation=auto',
+  'https://quickbi.ismartgo.cn/token3rd/dashboard/view/pc.htm?pageId=03189d09-d197-443f-8294-7408abeffff5&accessTicket=c0eb7673-cc3e-4187-a374-2bc7a2894e75&dd_orientation=auto',
+  'https://quickbi.ismartgo.cn/token3rd/dashboard/view/pc.htm?pageId=e26f92d1-2c6d-4f97-920a-a2027bb79b8e&accessTicket=75df7a5b-1bdb-409e-ab26-b06d606c2d8f&dd_orientation=auto',
+  'https://quickbi.ismartgo.cn/token3rd/dashboard/view/pc.htm?pageId=f16ff422-d0c6-4578-a698-7e7cf431128c&accessTicket=58eb5fd8-7a51-4882-af2c-1c32b8795410&dd_orientation=auto',
+  'https://quickbi.ismartgo.cn/token3rd/dashboard/view/pc.htm?pageId=246be602-44ff-46b1-9857-afde762b264d&accessTicket=1d7a294f-386d-4ecc-b98a-c69019f3b91b&dd_orientation=auto',
+];
+
+// 随机选择链接的函数
+const getRandomUrl = () => {
+  return reportUrls[Math.floor(Math.random() * reportUrls.length)];
+};
+
+// 模拟报表数据
+const mockReports: ReportItem[] = [
+  {
+    id: '1',
+    name: '到店营销销售数据分析看板',
+    description: '全面展示到店营销活动的销售数据、核销情况、渠道分布等关键指标',
+    url: getRandomUrl(),
+    createTime: '2025-12-01',
+    validTime: '2025-12-01 至 2026-12-01',
+    category: '到店营销',
+  },
+  {
+    id: '2',
+    name: '即时零售平台运营报表',
+    description: '美团闪购、饿了么等即时零售平台的订单分析、GMV趋势、ROI分析',
+    url: getRandomUrl(),
+    createTime: '2025-11-28',
+    validTime: '2025-11-28 至 2026-11-28',
+    category: '即时零售',
+  },
+  {
+    id: '3',
+    name: '物码营销用户行为分析',
+    description: '扫码用户行为轨迹、转化漏斗、地域分布等深度分析',
+    url: getRandomUrl(),
+    createTime: '2025-11-25',
+    validTime: '2025-11-25 至 2026-11-25',
+    category: '物码营销',
+  },
+  {
+    id: '4',
+    name: '全渠道营销效果对比看板',
+    description: '对比分析不同渠道的营销效果，包括微信、支付宝、抖音等平台数据',
+    url: getRandomUrl(),
+    createTime: '2025-11-20',
+    validTime: '2025-11-20 至 2026-11-20',
+    category: '到店营销',
+  },
+  {
+    id: '5',
+    name: '门店核销明细报表',
+    description: '详细展示各门店的核销数据、排名、趋势分析',
+    url: getRandomUrl(),
+    createTime: '2025-11-15',
+    validTime: '2025-11-15 至 2026-11-15',
+    category: '到店营销',
+  },
+  {
+    id: '6',
+    name: '即时零售商品销售排行',
+    description: '实时展示即时零售平台商品销售排行、库存预警、价格监控',
+    url: getRandomUrl(),
+    createTime: '2025-11-10',
+    validTime: '2025-11-10 至 2026-11-10',
+    category: '即时零售',
+  },
+];
 
 const CustomService: React.FC = () => {
-  const [modalVisible, setModalVisible] = useState(false);
+  const [searchText, setSearchText] = useState<string>('');
+  const [filteredReports, setFilteredReports] = useState<ReportItem[]>([]);
+  const [allReports, setAllReports] = useState<ReportItem[]>([]); // 所有报表（已排序）
+  const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
+  const [selectedReport, setSelectedReport] = useState<ReportItem | null>(null);
+  const [selectedReportId, setSelectedReportId] = useState<string>('');
 
-  // 页面加载时自动弹出提示
+  // 初始化：按创建时间倒序排序
   useEffect(() => {
-    setModalVisible(true);
+    const sorted = [...mockReports].sort((a, b) => {
+      return dayjs(b.createTime).valueOf() - dayjs(a.createTime).valueOf();
+    });
+    setAllReports(sorted);
+    setFilteredReports(sorted);
   }, []);
 
-  const productCards = [
-    {
-      key: 'dashboard',
-      title: '到店营销',
-      description: '通过微信支付、支付宝、抖音本地生活、美团团购在商超便利渠道、传统小店渠道发放优惠券并完成支付核销的业务',
-      icon: <ShopOutlined style={{ fontSize: '48px', color: '#1890ff' }} />,
-      features: [
-        '微信支付和支付宝发券',
-        '品牌私域开发规划（小程序、公众号、企业微信、H5活动等）',
-        '抖音本地生活、美团团购投放',
-        '投放渠道规划（品牌直播、零售直播、平台直播、达人投放、内容或短视频制作与投放等）'
-      ]
-    },
-    {
-      key: 'instant-retail',
-      title: '即时零售',
-      description: '品牌在美团闪购、饿了么/淘宝闪购、京东到家、多点、朴朴等平台的综合服务',
-      icon: <DashboardOutlined style={{ fontSize: '48px', color: '#40a9ff' }} />,
-      features: [
-        '活动代运营服务',
-        'RTB广告投放服务',
-        '平台官旗运营服务',
-        '闪电仓托盘服务'
-      ]
-    },
-    {
-      key: 'qr-marketing',
-      title: '物码营销',
-      description: '待补充',
-      icon: <QrcodeOutlined style={{ fontSize: '48px', color: '#597ef7' }} />,
-      features: ['待补充']
+  // 组件卸载时清理全屏预览类名
+  useEffect(() => {
+    return () => {
+      // 组件卸载时确保移除全屏预览类名
+      document.body.classList.remove('fullscreen-preview');
+    };
+  }, []);
+
+  // 筛选报表
+  const handleSearch = (value: string) => {
+    setSearchText(value);
+    let filtered = [...mockReports];
+    
+    if (value) {
+      filtered = filtered.filter(report => 
+        report.name.toLowerCase().includes(value.toLowerCase())
+      );
     }
+    
+    // 按创建时间倒序排序
+    filtered.sort((a, b) => {
+      return dayjs(b.createTime).valueOf() - dayjs(a.createTime).valueOf();
+    });
+    
+    setFilteredReports(filtered);
+  };
+
+  // 在新窗口打开报表
+  const handleOpenInNewTab = (url: string) => {
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
+  // 进入全屏预览（默认选择第一个报表）
+  const handleEnterFullscreen = () => {
+    if (allReports.length > 0) {
+      const firstReport = allReports[0];
+      setSelectedReport(firstReport);
+      setSelectedReportId(firstReport.id);
+      setIsFullscreen(true);
+      // 隐藏系统菜单（通过添加类名到 body）
+      document.body.classList.add('fullscreen-preview');
+    }
+  };
+
+  // 退出全屏预览
+  const handleExitFullscreen = () => {
+    // 先恢复系统菜单
+    document.body.classList.remove('fullscreen-preview');
+    // 然后更新状态
+    setIsFullscreen(false);
+    setSelectedReport(null);
+    setSelectedReportId('');
+  };
+
+  // 在全屏模式下切换报表
+  const handleSwitchReport = (reportId: string) => {
+    const report = allReports.find(r => r.id === reportId);
+    if (report) {
+      setSelectedReport(report);
+      setSelectedReportId(reportId);
+    }
+  };
+
+  // 表格列定义
+  const columns: ColumnsType<ReportItem> = [
+    {
+      title: '报表名称',
+      dataIndex: 'name',
+      key: 'name',
+      width: '30%',
+      render: (text: string) => (
+        <div style={{ fontWeight: 500 }}>{text}</div>
+      ),
+    },
+    {
+      title: '报表有效时间',
+      dataIndex: 'validTime',
+      key: 'validTime',
+      width: '25%',
+    },
+    {
+      title: '描述',
+      dataIndex: 'description',
+      key: 'description',
+      width: '40%',
+      render: (text: string) => {
+        const maxLength = 20;
+        const displayText = text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+        return (
+          <Tooltip title={text.length > maxLength ? text : ''}>
+            <div style={{ 
+              overflow: 'hidden', 
+              textOverflow: 'ellipsis', 
+              whiteSpace: 'nowrap',
+              maxWidth: '100%'
+            }}>
+              {displayText}
+            </div>
+          </Tooltip>
+        );
+      },
+    },
+    {
+      title: '操作',
+      key: 'action',
+      width: '10%',
+      render: (_: any, record: ReportItem) => (
+        <Button
+          type="link"
+          icon={<LinkOutlined />}
+          size="small"
+          onClick={() => handleOpenInNewTab(record.url)}
+        >
+          查看
+        </Button>
+      ),
+    },
   ];
 
-  return (
-    <div style={{ padding: '24px', background: '#f5f5f5', minHeight: '100vh' }}>
-      {/* 功能设计阶段说明 */}
+  // 全屏预览模式
+  if (isFullscreen && selectedReport) {
+    return (
       <div style={{ 
-        marginBottom: '16px', 
-        textAlign: 'center',
-        background: '#e6f7ff',
-        border: '1px solid #91d5ff',
-        borderRadius: '8px',
-        padding: '12px 16px'
+        position: 'fixed', 
+        top: 0, 
+        left: 0, 
+        right: 0, 
+        bottom: 0, 
+        zIndex: 9999,
+        background: '#fff',
+        display: 'flex',
+        flexDirection: 'column'
       }}>
-        <p style={{ 
-          fontSize: '14px', 
-          color: '#1890ff', 
-          margin: 0,
-          fontWeight: '500'
+        {/* 全屏预览头部 */}
+        <div style={{ 
+          padding: '16px 24px', 
+          borderBottom: '1px solid #f0f0f0',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          background: '#fff',
+          zIndex: 10000
         }}>
-          ⚠️ 功能设计阶段，如有描述错误，敬请指正
-        </p>
-      </div>
-
-      <div style={{ marginBottom: '24px', textAlign: 'center' }}>
-        <h1 style={{ fontSize: '28px', fontWeight: 'bold', color: '#262626', marginBottom: '8px' }}>
-          专属定制服务
-        </h1>
-        <p style={{ fontSize: '16px', color: '#8c8c8c' }}>
-          为您提供个性化的报表定制服务
-        </p>
-      </div>
-
-      <Row gutter={[24, 24]} justify="center">
-        {productCards.map((product) => (
-          <Col xs={24} sm={12} lg={8} key={product.key}>
-            <Card
-              hoverable
-              style={{ 
-                height: '100%',
-                borderRadius: '12px',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                transition: 'all 0.3s ease'
-              }}
-              bodyStyle={{ padding: '32px 24px' }}
-              cover={
-                <div style={{ 
-                  padding: '40px 24px 20px', 
-                  textAlign: 'center',
-                  background: 'linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%)'
-                }}>
-                  {product.icon}
-                </div>
+          <Space size="middle">
+            <Select
+              value={selectedReportId}
+              onChange={handleSwitchReport}
+              style={{ width: 300 }}
+              showSearch
+              filterOption={(input, option) =>
+                (option?.children as unknown as string)?.toLowerCase().includes(input.toLowerCase())
               }
             >
-              <Meta
-                title={
-                  <div style={{ textAlign: 'center', marginBottom: '16px' }}>
-                    <h3 style={{ fontSize: '20px', fontWeight: 'bold', margin: 0 }}>
-                      {product.title}
-                    </h3>
-                  </div>
-                }
-                description={
-                  <div>
-                    <p style={{ 
-                      fontSize: '14px', 
-                      color: '#666', 
-                      textAlign: 'center',
-                      marginBottom: '20px',
-                      lineHeight: '1.6'
-                    }}>
-                      {product.description}
-                    </p>
-                    <div>
-                      <h4 style={{ fontSize: '14px', fontWeight: 'bold', marginBottom: '12px', color: '#262626' }}>
-                        核心功能：
-                      </h4>
-                      <ul style={{ 
-                        paddingLeft: '16px', 
-                        margin: 0,
-                        fontSize: '13px',
-                        color: '#666'
-                      }}>
-                        {product.features.map((feature, index) => (
-                          <li key={index} style={{ marginBottom: '4px' }}>
-                            {feature}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
-                }
-              />
-            </Card>
-          </Col>
-        ))}
-      </Row>
-
-      {/* 定制服务说明 */}
-      <Card 
-        style={{ 
-          marginTop: '32px',
-          borderRadius: '12px',
-          background: 'linear-gradient(135deg, #1890ff 0%, #096dd9 100%)',
-          border: 'none'
-        }}
-        bodyStyle={{ padding: '32px' }}
-      >
-        <div style={{ textAlign: 'center', color: 'white' }}>
-          <CustomerServiceOutlined style={{ fontSize: '48px', marginBottom: '16px' }} />
-          <h2 style={{ color: 'white', marginBottom: '16px' }}>专业定制服务</h2>
-          <p style={{ fontSize: '16px', lineHeight: '1.6', marginBottom: '24px', opacity: 0.9 }}>
-            我们提供专业的报表定制服务，根据您的需求量身打造个性化报表。
-            无论是数据分析、可视化展示，我们都能为您提供最适合的报表方案。
-          </p>
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '32px', flexWrap: 'wrap' }}>
-            <div>
-              <h4 style={{ color: 'white', marginBottom: '8px' }}>📊 数据分析</h4>
-              <p style={{ fontSize: '14px', opacity: 0.8, margin: 0 }}>深度数据挖掘与分析</p>
-            </div>
-            <div>
-              <h4 style={{ color: 'white', marginBottom: '8px' }}>📈 可视化报表</h4>
-              <p style={{ fontSize: '14px', opacity: 0.8, margin: 0 }}>个性化图表与仪表板</p>
-            </div>
-          </div>
+              {allReports.map(report => (
+                <Option key={report.id} value={report.id}>
+                  {report.name}
+                </Option>
+              ))}
+            </Select>
+            <span style={{ color: '#8c8c8c' }}>{selectedReport.validTime}</span>
+          </Space>
+          <Button
+            icon={<FullscreenExitOutlined />}
+            onClick={handleExitFullscreen}
+          >
+            退出全屏
+          </Button>
         </div>
+        
+        {/* 报表内容区域 */}
+        <div style={{ flex: 1, overflow: 'hidden' }}>
+          <iframe
+            src={selectedReport.url}
+            style={{
+              width: '100%',
+              height: '100%',
+              border: 'none',
+            }}
+            title={selectedReport.name}
+            allowFullScreen
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // 正常列表模式
+  return (
+    <div style={{ padding: '0', minHeight: '100vh' }}>
+      {/* 页面标题 */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+        <Title level={4} style={{ margin: 0 }}>专属定制报表</Title>
+        <Button
+          icon={<FullscreenOutlined />}
+          onClick={handleEnterFullscreen}
+          disabled={allReports.length === 0}
+        >
+          全屏预览
+        </Button>
+      </div>
+
+      {/* 筛选区域 */}
+      <Card style={{ marginBottom: 16 }}>
+        <Space size="middle" wrap>
+          <Input
+            placeholder="搜索报表名称"
+            prefix={<SearchOutlined />}
+            value={searchText}
+            onChange={(e) => handleSearch(e.target.value)}
+            style={{ width: 250 }}
+            allowClear
+          />
+        </Space>
       </Card>
 
-      {/* 弹窗提示 */}
-      <Modal
-        title={
-          <div style={{ textAlign: 'center' }}>
-            <CustomerServiceOutlined style={{ fontSize: '24px', color: '#1890ff', marginRight: '8px' }} />
-            定制服务说明
-          </div>
-        }
-        open={modalVisible}
-        onOk={() => setModalVisible(false)}
-        onCancel={() => setModalVisible(false)}
-        width={500}
-        footer={[
-          <Button key="ok" type="primary" onClick={() => setModalVisible(false)}>
-            我知道了
-          </Button>
-        ]}
-      >
-        <div style={{ padding: '16px 0', textAlign: 'center' }}>
-          <p style={{ fontSize: '16px', lineHeight: '1.6', marginBottom: '16px' }}>
-            如果您对报表有定制需要，可联系客户经理提出定制要求。
-          </p>
-          <div style={{ 
-            background: '#f6ffed', 
-            border: '1px solid #b7eb8f',
-            borderRadius: '6px',
-            padding: '16px',
-            marginTop: '16px'
-          }}>
-            <p style={{ margin: 0, fontSize: '14px', color: '#52c41a' }}>
-              💡 我们的专业团队将根据您的具体需求，为您量身定制最适合的数据分析和报表方案。
-            </p>
-          </div>
-        </div>
-      </Modal>
+      {/* 报表列表 */}
+      <Card>
+        <Table<ReportItem>
+          columns={columns}
+          dataSource={filteredReports}
+          rowKey="id"
+          pagination={{
+            total: filteredReports.length,
+            pageSize: 10,
+            showSizeChanger: true,
+            showQuickJumper: true,
+            showTotal: (total, range) => `第 ${range[0]}-${range[1]} 条/总共 ${total} 条`,
+          }}
+        />
+      </Card>
     </div>
   );
 };

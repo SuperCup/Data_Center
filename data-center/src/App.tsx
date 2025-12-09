@@ -32,6 +32,8 @@ import QrRealtime from './pages/client/qr-marketing/Realtime';
 import QrActivityAnalysis from './pages/client/qr-marketing/QrActivityAnalysis';
 // 专属定制
 import CustomService from './pages/client/custom-service/CustomService';
+// 文件交付
+import FileDelivery from './pages/client/file-delivery/FileDelivery';
 // 数据资产
 import ProductList from './pages/client/data-asset/ProductList';
 
@@ -48,6 +50,7 @@ function App() {
           <Route path="small-store-activity-analysis" element={<SmallStoreActivityAnalysis />} />
           <Route path="store-marketing/small-store-dashboard" element={<SmalStoreDashboard />} />
           <Route path="user-analysis" element={<UserAnalysis />} />
+          <Route path="custom-service-store" element={<CustomService />} />
           <Route path="coupon-detail/:couponId" element={<CouponDetail />} />
           <Route path="product-list" element={<ProductList />} />
           <Route path="instant-retail" element={<InstantRetail />} />
@@ -59,12 +62,15 @@ function App() {
           <Route path="activity-progress" element={<ActivityProgress />} />
           <Route path="activity-analysis-instant" element={<ActivityAnalysisInstant />} />
           <Route path="all-analysis" element={<AllAnalysis />} />
+          <Route path="custom-service-instant" element={<CustomService />} />
           <Route path="qr-marketing" element={<QrMarketing />} />
           <Route path="qr-all-activities" element={<QrAllActivities />} />
           <Route path="qr-user-analysis" element={<QrUserAnalysis />} />
           <Route path="qr-realtime/:activityId" element={<QrRealtime />} />
           <Route path="qr-activity-analysis/:activityId" element={<QrActivityAnalysis />} />
+          <Route path="custom-service-qr" element={<CustomService />} />
           <Route path="custom-service" element={<CustomService />} />
+          <Route path="file-delivery" element={<FileDelivery />} />
           <Route index element={<AllActivities />} />
         </Route>
         {/* 根路径重定向 */}

@@ -84,6 +84,11 @@ const ClientLayout: React.FC = () => {
       icon: <BarChartOutlined />,
     },
     {
+      key: 'custom-service-store',
+      label: '专属定制',
+      icon: <SettingOutlined />,
+    },
+    {
       key: 'instant-retail-group',
       label: '即时零售',
       type: 'group' as const,
@@ -91,6 +96,11 @@ const ClientLayout: React.FC = () => {
     {
       key: 'marketing-calendar',
       label: '营销日历',
+      icon: <CalendarOutlined />,
+    },
+    {
+      key: 'marketing-calendar-v1',
+      label: '营销日历V1',
       icon: <CalendarOutlined />,
     },
     {
@@ -114,6 +124,11 @@ const ClientLayout: React.FC = () => {
       icon: <MonitorOutlined />,
     },
     {
+      key: 'custom-service-instant',
+      label: '专属定制',
+      icon: <SettingOutlined />,
+    },
+    {
       key: 'qr-marketing-group',
       label: '物码营销',
       type: 'group' as const,
@@ -129,14 +144,19 @@ const ClientLayout: React.FC = () => {
       icon: <BarChartOutlined />,
     },
     {
-      key: 'custom-service-group',
+      key: 'custom-service-qr',
       label: '专属定制',
+      icon: <SettingOutlined />,
+    },
+    {
+      key: 'file-delivery-group',
+      label: '文件交付',
       type: 'group' as const,
     },
     {
-      key: 'custom-service',
-      label: '专属定制',
-      icon: <SettingOutlined />,
+      key: 'file-delivery',
+      label: '文件交付',
+      icon: <DatabaseOutlined />,
     },
     {
       key: 'data-asset-group',
