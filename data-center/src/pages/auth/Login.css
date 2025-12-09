@@ -1,0 +1,174 @@
+.login-container {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  position: relative;
+  overflow: hidden;
+}
+
+.login-bg-section {
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  position: relative;
+}
+
+.login-content {
+  width: 420px;
+  min-width: 420px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  background: #fff;
+  position: relative;
+  z-index: 1;
+}
+
+.login-card {
+  width: 420px;
+  min-height: 520px;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  background: #fff;
+}
+
+.login-header {
+  text-align: center;
+  margin-bottom: 32px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.brand-title {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.brand-name {
+  font-size: 28px;
+  font-weight: bold;
+  color: #ff6b00;
+  letter-spacing: 1px;
+}
+
+.brand-subtitle {
+  font-size: 14px;
+  color: #8c8c8c;
+  margin-top: 4px;
+  text-align: center;
+}
+
+.login-tabs {
+  margin-top: 8px;
+}
+
+.login-tabs .ant-tabs-tab {
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.login-tabs .ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: #ff6b00 !important;
+}
+
+.login-tabs .ant-tabs-tab:hover .ant-tabs-tab-btn {
+  color: #ff6b00;
+}
+
+.login-tabs .ant-tabs-ink-bar {
+  background: #ff6b00;
+}
+
+/* 复选框橙色主题 */
+.login-card .ant-checkbox-checked .ant-checkbox-inner {
+  background-color: #ff6b00;
+  border-color: #ff6b00;
+}
+
+.login-card .ant-checkbox-wrapper:hover .ant-checkbox-inner {
+  border-color: #ff6b00;
+}
+
+.login-card .ant-checkbox-checked::after {
+  border-color: #ff6b00;
+}
+
+.login-tabs .ant-tabs-content-holder {
+  padding-top: 24px;
+  min-height: 380px;
+}
+
+.login-hint {
+  margin-top: -8px;
+  margin-bottom: 16px;
+  text-align: left;
+}
+
+.login-button {
+  height: 44px;
+  font-size: 16px;
+  font-weight: 500;
+  border-radius: 6px;
+  margin-top: 8px;
+  background-color: #ff6b00;
+  border-color: #ff6b00;
+}
+
+.login-button:hover,
+.login-button:focus {
+  background-color: #ff8533;
+  border-color: #ff8533;
+}
+
+.wechat-login-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 20px 20px;
+  min-height: 380px;
+}
+
+.qr-code-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.qr-code-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .login-container {
+    flex-direction: column;
+  }
+
+  .login-bg-section {
+    display: none;
+  }
+
+  .login-content {
+    width: 100%;
+    min-width: 100%;
+    padding: 20px;
+  }
+
+  .login-card {
+    width: 100%;
+    max-width: 420px;
+  }
+}

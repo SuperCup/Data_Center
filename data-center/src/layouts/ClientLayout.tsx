@@ -55,6 +55,7 @@ const ClientLayout: React.FC = () => {
     if (key === 'logout') {
       // 处理退出登录逻辑
       console.log('退出登录');
+      navigate('/login');
     } else if (key === 'account') {
       // 处理账号管理逻辑
       console.log('账号管理');

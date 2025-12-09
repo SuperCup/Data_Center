@@ -36,11 +36,15 @@ import CustomService from './pages/client/custom-service/CustomService';
 import FileDelivery from './pages/client/file-delivery/FileDelivery';
 // 数据资产
 import ProductList from './pages/client/data-asset/ProductList';
+// 登录页面
+import Login from './pages/auth/Login';
 
 function App() {
   return (
     <Router>
       <Routes>
+        {/* 登录路由 */}
+        <Route path="/login" element={<Login />} />
         {/* 客户端路由 */}
         <Route path="/client" element={<ClientLayout />}>
           <Route path="sales-analysis" element={<Dashboard />} />
@@ -58,6 +62,7 @@ function App() {
           <Route path="price-monitoring-dashboard" element={<PriceMonitoringDashboard />} />
           <Route path="price-monitoring-dashboard/:taskId" element={<PriceMonitoringDashboard />} />
           <Route path="marketing-calendar" element={<MarketingCalendarV2 />} />
+          <Route path="marketing-calendar-v1" element={<MarketingCalendar />} />
           <Route path="activity-progress" element={<ActivityProgress />} />
           <Route path="activity-analysis-instant" element={<ActivityAnalysisInstant />} />
           <Route path="all-analysis" element={<AllAnalysis />} />
