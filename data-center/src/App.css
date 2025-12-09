@@ -36,3 +36,17 @@
     transform: rotate(360deg);
   }
 }
+
+/* 全屏预览模式：隐藏系统菜单 */
+body.fullscreen-preview .ant-layout-sider {
+  display: none !important;
+}
+
+body.fullscreen-preview .ant-layout-header {
+  display: none !important;
+}
+
+body.fullscreen-preview .ant-layout-content {
+  margin-left: 0 !important;
+  margin-top: 0 !important;
+}
