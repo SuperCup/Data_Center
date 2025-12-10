@@ -110,19 +110,24 @@ const ClientLayout: React.FC = () => {
       icon: <ProjectOutlined />,
     },
     {
-      key: 'activity-analysis-instant',
-      label: '活动分析',
-      icon: <LineChartOutlined />,
-    },
-    {
-      key: 'all-analysis',
-      label: '全量分析',
-      icon: <LineChartOutlined />,
-    },
-    {
       key: 'price-monitoring',
       label: '破价监测',
       icon: <MonitorOutlined />,
+    },
+    {
+      key: 'rtb-analysis',
+      label: 'RTB分析',
+      icon: <BarChartOutlined />,
+    },
+    {
+      key: 'official-flag-analysis',
+      label: '官旗分析',
+      icon: <BarChartOutlined />,
+    },
+    {
+      key: 'supply-analysis',
+      label: '供给分析',
+      icon: <BarChartOutlined />,
     },
     {
       key: 'custom-service-instant',

@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Card, Table, DatePicker, Select, Typography, Row, Col, Progress, Button, Drawer, Checkbox, Space, Radio } from 'antd';
-import { SettingOutlined, MenuOutlined } from '@ant-design/icons';
+import { Card, Table, DatePicker, Select, Typography, Row, Col, Progress, Button, Drawer, Checkbox, Space, Radio, Modal, Tag } from 'antd';
+import { SettingOutlined, MenuOutlined, LockOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import dayjs, { Dayjs } from 'dayjs';
 
@@ -53,6 +53,12 @@ const ActivityProgress: React.FC = () => {
   const [selectedPlatform, setSelectedPlatform] = useState<string>('美团闪购');
   const [selectedRegions, setSelectedRegions] = useState<string[]>([]);
   const [columnConfigVisible, setColumnConfigVisible] = useState(false);
+  // 付费开通状态
+  const [customFilterEnabled, setCustomFilterEnabled] = useState<boolean>(false); // 自定义筛选（默认未开通）
+  const [platformMetricsEnabled, setPlatformMetricsEnabled] = useState<boolean>(false); // 全平台GMV和ROI（默认未开通）
+  // 方案汇总Drawer
+  const [planSummaryVisible, setPlanSummaryVisible] = useState(false);
+  const [selectedPlanName, setSelectedPlanName] = useState<string>('');
   
   // 定义所有可配置的列（除了固定的三个：方案名称、活动名称、机制名称）
   const allConfigurableColumns: ColumnConfig[] = [
@@ -892,8 +898,8 @@ const ActivityProgress: React.FC = () => {
         return false;
       }
       
-      // 区域筛选（支持多选）
-      if (selectedRegions && selectedRegions.length > 0 && activity.region && !selectedRegions.includes(activity.region)) {
+      // 自定义筛选（支持多选）- 需要付费开通
+      if (customFilterEnabled && selectedRegions && selectedRegions.length > 0 && activity.region && !selectedRegions.includes(activity.region)) {
         return false;
       }
       
@@ -1275,7 +1281,19 @@ const ActivityProgress: React.FC = () => {
           return {
             rowSpan: rowSpan > 0 ? rowSpan : 0
           };
-        }
+        },
+        render: (text: string) => (
+          <Button
+            type="link"
+            onClick={() => {
+              setSelectedPlanName(text);
+              setPlanSummaryVisible(true);
+            }}
+            style={{ padding: 0, height: 'auto', fontWeight: 500 }}
+          >
+            {text}
+          </Button>
+        )
       },
       {
         title: '活动名称',
@@ -1407,34 +1425,67 @@ const ActivityProgress: React.FC = () => {
         </div>
       </Card>
 
-      {/* 区域筛选 */}
+      {/* 自定义筛选 */}
       <Card style={{ marginBottom: 16 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
-          <Text strong style={{ fontSize: '14px' }}>区域筛选：</Text>
-          <Checkbox.Group
-            value={selectedRegions}
-            onChange={(checkedValues) => setSelectedRegions(checkedValues as string[])}
-            style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}
-          >
-            <Button
-              type={selectedRegions.length === 7 ? 'primary' : 'default'}
-              size="small"
-              onClick={() => {
-                const allRegions = ['华东', '华南', '华北', '华中', '西南', '西北', '东北'];
-                setSelectedRegions(selectedRegions.length === 7 ? [] : allRegions);
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap', flex: 1 }}>
+            <Text strong style={{ fontSize: '14px' }}>自定义筛选：</Text>
+            {!customFilterEnabled && (
+              <Tag icon={<LockOutlined />} color="orange" style={{ cursor: 'pointer' }} onClick={() => {
+                Modal.info({
+                  title: '开通自定义筛选',
+                  content: '自定义筛选功能需要付费开通，请联系管理员开通此功能。',
+                  okText: '我知道了'
+                });
+              }}>
+                未开通
+              </Tag>
+            )}
+            <Checkbox.Group
+              value={selectedRegions}
+              onChange={(checkedValues) => {
+                if (customFilterEnabled) {
+                  setSelectedRegions(checkedValues as string[]);
+                } else {
+                  Modal.info({
+                    title: '开通自定义筛选',
+                    content: '自定义筛选功能需要付费开通，请联系管理员开通此功能。',
+                    okText: '我知道了'
+                  });
+                }
               }}
-              style={{ marginRight: 8 }}
+              style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}
+              disabled={!customFilterEnabled}
             >
-              全部
-            </Button>
-            <Checkbox value="华东">华东</Checkbox>
-            <Checkbox value="华南">华南</Checkbox>
-            <Checkbox value="华北">华北</Checkbox>
-            <Checkbox value="华中">华中</Checkbox>
-            <Checkbox value="西南">西南</Checkbox>
-            <Checkbox value="西北">西北</Checkbox>
-            <Checkbox value="东北">东北</Checkbox>
-          </Checkbox.Group>
+              <Button
+                type={selectedRegions.length === 7 ? 'primary' : 'default'}
+                size="small"
+                onClick={() => {
+                  if (!customFilterEnabled) {
+                    Modal.info({
+                      title: '开通自定义筛选',
+                      content: '自定义筛选功能需要付费开通，请联系管理员开通此功能。',
+                      okText: '我知道了'
+                    });
+                    return;
+                  }
+                  const allRegions = ['华东', '华南', '华北', '华中', '西南', '西北', '东北'];
+                  setSelectedRegions(selectedRegions.length === 7 ? [] : allRegions);
+                }}
+                disabled={!customFilterEnabled}
+                style={{ marginRight: 8 }}
+              >
+                全部
+              </Button>
+              <Checkbox value="华东">华东</Checkbox>
+              <Checkbox value="华南">华南</Checkbox>
+              <Checkbox value="华北">华北</Checkbox>
+              <Checkbox value="华中">华中</Checkbox>
+              <Checkbox value="西南">西南</Checkbox>
+              <Checkbox value="西北">西北</Checkbox>
+              <Checkbox value="东北">东北</Checkbox>
+            </Checkbox.Group>
+          </div>
         </div>
       </Card>
 
@@ -1533,11 +1584,28 @@ const ActivityProgress: React.FC = () => {
                 </div>
               </Col>
               <Col span={12}>
-                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  <Text strong style={{ fontSize: '13px', color: '#8c8c8c', marginBottom: 4 }}>全平台GMV</Text>
-                  <Text strong style={{ fontSize: '18px', color: '#262626', fontWeight: 600 }}>
-                    ¥{summaryData.allPlatformGMV.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </Text>
+                <div style={{ display: 'flex', flexDirection: 'column', position: 'relative' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                    <Text strong style={{ fontSize: '13px', color: '#8c8c8c' }}>全平台GMV</Text>
+                    {!platformMetricsEnabled && (
+                      <Tag icon={<LockOutlined />} color="orange" style={{ cursor: 'pointer', fontSize: '11px' }} onClick={() => {
+                        Modal.info({
+                          title: '开通全平台指标',
+                          content: '全平台GMV和ROI功能需要付费开通，请联系管理员开通此功能。',
+                          okText: '我知道了'
+                        });
+                      }}>
+                        未开通
+                      </Tag>
+                    )}
+                  </div>
+                  {platformMetricsEnabled ? (
+                    <Text strong style={{ fontSize: '18px', color: '#262626', fontWeight: 600 }}>
+                      ¥{summaryData.allPlatformGMV.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </Text>
+                  ) : (
+                    <Text type="secondary" style={{ fontSize: '14px' }}>--</Text>
+                  )}
                 </div>
               </Col>
               <Col span={12}>
@@ -1549,11 +1617,28 @@ const ActivityProgress: React.FC = () => {
                 </div>
               </Col>
               <Col span={12}>
-                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  <Text strong style={{ fontSize: '13px', color: '#8c8c8c', marginBottom: 4 }}>全平台ROI</Text>
-                  <Text strong style={{ fontSize: '24px', color: '#262626', fontWeight: 600 }}>
-                    {summaryData.allPlatformROI.toFixed(1)}
-                  </Text>
+                <div style={{ display: 'flex', flexDirection: 'column', position: 'relative' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                    <Text strong style={{ fontSize: '13px', color: '#8c8c8c' }}>全平台ROI</Text>
+                    {!platformMetricsEnabled && (
+                      <Tag icon={<LockOutlined />} color="orange" style={{ cursor: 'pointer', fontSize: '11px' }} onClick={() => {
+                        Modal.info({
+                          title: '开通全平台指标',
+                          content: '全平台GMV和ROI功能需要付费开通，请联系管理员开通此功能。',
+                          okText: '我知道了'
+                        });
+                      }}>
+                        未开通
+                      </Tag>
+                    )}
+                  </div>
+                  {platformMetricsEnabled ? (
+                    <Text strong style={{ fontSize: '24px', color: '#262626', fontWeight: 600 }}>
+                      {summaryData.allPlatformROI.toFixed(1)}
+                    </Text>
+                  ) : (
+                    <Text type="secondary" style={{ fontSize: '14px' }}>--</Text>
+                  )}
                 </div>
               </Col>
             </Row>
@@ -1561,107 +1646,6 @@ const ActivityProgress: React.FC = () => {
         </Row>
       </Card>
 
-      {/* 方案汇总 */}
-      {planSummary.length > 0 && (
-        <Card
-          title="方案汇总"
-          style={{ marginBottom: 16 }}
-        >
-          <Table
-            columns={[
-              {
-                title: '方案名称',
-                dataIndex: 'planName',
-                key: 'planName',
-                width: 300,
-                fixed: 'left' as const
-              },
-              {
-                title: '活动数',
-                dataIndex: 'activityCount',
-                key: 'activityCount',
-                width: 100,
-                align: 'right'
-              },
-              {
-                title: '预算',
-                dataIndex: 'budget',
-                key: 'budget',
-                width: 120,
-                align: 'right',
-                render: (value: number) => value.toLocaleString('zh-CN')
-              },
-              {
-                title: '预算消耗',
-                dataIndex: 'budgetConsumption',
-                key: 'budgetConsumption',
-                width: 120,
-                align: 'right',
-                render: (value: number) => value.toLocaleString('zh-CN')
-              },
-              {
-                title: '销售金额',
-                dataIndex: 'salesAmount',
-                key: 'salesAmount',
-                width: 150,
-                align: 'right',
-                render: (value: number) => (
-                  <Text style={{ fontSize: '13px', fontWeight: 500 }}>
-                    ¥{value.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </Text>
-                )
-              },
-              {
-                title: '补贴金额',
-                dataIndex: 'subsidyAmount',
-                key: 'subsidyAmount',
-                width: 150,
-                align: 'right',
-                render: (value: number) => (
-                  <Text style={{ fontSize: '13px', fontWeight: 500 }}>
-                    ¥{value.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </Text>
-                )
-              },
-              {
-                title: '消耗进度',
-                key: 'consumptionProgress',
-                width: 120,
-                align: 'right',
-                render: (_: any, record: any) => {
-                  const progress = record.budget > 0 ? (record.budgetConsumption / record.budget) * 100 : 0;
-                  const color = progress >= 100 ? '#ff4d4f' : progress >= 90 ? '#faad14' : '#262626';
-                  return (
-                    <Text style={{ color, fontSize: '13px', fontWeight: progress >= 100 ? 600 : 400 }}>
-                      {progress.toFixed(1)}%
-                    </Text>
-                  );
-                }
-              },
-              {
-                title: 'ROI',
-                key: 'roi',
-                width: 100,
-                align: 'right',
-                render: (_: any, record: any) => {
-                  const roi = record.budgetConsumption > 0 ? Math.min(record.salesAmount / record.budgetConsumption, 10) : 0;
-                  return (
-                    <Text style={{ fontSize: '13px', fontWeight: 500 }}>
-                      {roi.toFixed(1)}
-                    </Text>
-                  );
-                }
-              }
-            ]}
-            dataSource={planSummary}
-            rowKey="planName"
-            pagination={false}
-            bordered
-            size="small"
-            scroll={{ x: 'max-content' }}
-          />
-        </Card>
-      )}
 
       {/* 活动表格 */}
       <Card
@@ -1740,6 +1724,102 @@ const ActivityProgress: React.FC = () => {
               </div>
             ))}
         </div>
+      </Drawer>
+
+      {/* 方案汇总抽屉 */}
+      <Drawer
+        title={`方案汇总 - ${selectedPlanName}`}
+        placement="right"
+        onClose={() => {
+          setPlanSummaryVisible(false);
+          setSelectedPlanName('');
+        }}
+        open={planSummaryVisible}
+        width={600}
+      >
+        {(() => {
+          const selectedPlanSummary = planSummary.find(p => p.planName === selectedPlanName);
+          if (!selectedPlanSummary) {
+            return <Text type="secondary">暂无数据</Text>;
+          }
+          
+          const progress = selectedPlanSummary.budget > 0 
+            ? (selectedPlanSummary.budgetConsumption / selectedPlanSummary.budget) * 100 
+            : 0;
+          const roi = selectedPlanSummary.budgetConsumption > 0 
+            ? Math.min(selectedPlanSummary.salesAmount / selectedPlanSummary.budgetConsumption, 10) 
+            : 0;
+          
+          return (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+              <Row gutter={[16, 16]}>
+                <Col span={12}>
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <Text strong style={{ fontSize: '13px', color: '#8c8c8c', marginBottom: 4 }}>活动数</Text>
+                    <Text style={{ fontSize: '18px', color: '#262626', fontWeight: 600 }}>
+                      {selectedPlanSummary.activityCount}
+                    </Text>
+                  </div>
+                </Col>
+                <Col span={12}>
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <Text strong style={{ fontSize: '13px', color: '#8c8c8c', marginBottom: 4 }}>预算</Text>
+                    <Text style={{ fontSize: '18px', color: '#262626', fontWeight: 600 }}>
+                      ¥{selectedPlanSummary.budget.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </Text>
+                  </div>
+                </Col>
+                <Col span={12}>
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <Text strong style={{ fontSize: '13px', color: '#8c8c8c', marginBottom: 4 }}>预算消耗</Text>
+                    <Text style={{ fontSize: '18px', color: '#262626', fontWeight: 600 }}>
+                      ¥{selectedPlanSummary.budgetConsumption.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </Text>
+                  </div>
+                </Col>
+                <Col span={12}>
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <Text strong style={{ fontSize: '13px', color: '#8c8c8c', marginBottom: 4 }}>销售金额</Text>
+                    <Text style={{ fontSize: '18px', color: '#262626', fontWeight: 600 }}>
+                      ¥{selectedPlanSummary.salesAmount.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </Text>
+                  </div>
+                </Col>
+                <Col span={12}>
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <Text strong style={{ fontSize: '13px', color: '#8c8c8c', marginBottom: 4 }}>补贴金额</Text>
+                    <Text style={{ fontSize: '18px', color: '#262626', fontWeight: 600 }}>
+                      ¥{selectedPlanSummary.subsidyAmount.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </Text>
+                  </div>
+                </Col>
+                <Col span={12}>
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <Text strong style={{ fontSize: '13px', color: '#8c8c8c', marginBottom: 4 }}>ROI</Text>
+                    <Text style={{ fontSize: '18px', color: '#262626', fontWeight: 600 }}>
+                      {roi.toFixed(1)}
+                    </Text>
+                  </div>
+                </Col>
+                <Col span={24}>
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                      <Text strong style={{ fontSize: '13px', color: '#8c8c8c' }}>消耗进度</Text>
+                      <Text style={{ fontSize: '13px', color: progress >= 100 ? '#ff4d4f' : progress >= 90 ? '#faad14' : '#262626', fontWeight: progress >= 100 ? 600 : 400 }}>
+                        {progress.toFixed(1)}%
+                      </Text>
+                    </div>
+                    <Progress
+                      percent={progress}
+                      strokeColor={progress >= 100 ? '#ff4d4f' : progress >= 90 ? '#faad14' : '#1890ff'}
+                      showInfo={false}
+                    />
+                  </div>
+                </Col>
+              </Row>
+            </div>
+          );
+        })()}
       </Drawer>
 
       <style>{`
