@@ -67,6 +67,8 @@ function App() {
           <Route path="marketing-calendar" element={<MarketingCalendarV2 />} />
           <Route path="marketing-calendar-v1" element={<MarketingCalendar />} />
           <Route path="activity-progress" element={<ActivityProgress />} />
+          <Route path="activity-progress-general" element={<ActivityProgress />} />
+          <Route path="activity-progress-flash" element={<ActivityProgress />} />
           <Route path="activity-analysis-instant" element={<ActivityAnalysisInstant />} />
           <Route path="all-analysis" element={<AllAnalysis />} />
           <Route path="rtb-analysis" element={<RTBAnalysis />} />

@@ -95,24 +95,19 @@ const ClientLayout: React.FC = () => {
       type: 'group' as const,
     },
     {
-      key: 'marketing-calendar',
+      key: 'marketing-calendar-v1',
       label: '营销日历',
       icon: <CalendarOutlined />,
     },
     {
-      key: 'marketing-calendar-v1',
-      label: '营销日历V1',
-      icon: <CalendarOutlined />,
-    },
-    {
-      key: 'activity-progress',
-      label: '活动进度',
+      key: 'activity-progress-general',
+      label: '活动进度（通用）',
       icon: <ProjectOutlined />,
     },
     {
-      key: 'price-monitoring',
-      label: '破价监测',
-      icon: <MonitorOutlined />,
+      key: 'activity-progress-flash',
+      label: '活动进度（闪购）',
+      icon: <ProjectOutlined />,
     },
     {
       key: 'rtb-analysis',
