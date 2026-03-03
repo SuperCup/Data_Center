@@ -281,20 +281,20 @@ const MarketingCalendar: React.FC = () => {
               key={`m-${day}`}
               colSpan={span}
               style={{
-                padding: '2px 6px',
+                padding: '1px 4px',
                 backgroundColor: theme.bg,
-                borderLeft: `3px solid ${theme.primary}`,
+                borderLeft: `2px solid ${theme.primary}`,
                 borderRight: `1px solid ${theme.border}`,
                 borderTop: `1px solid ${theme.border}`,
                 borderBottom: `1px solid ${theme.border}`,
-                borderRadius: '3px',
-                fontSize: '12px',
+                borderRadius: '2px',
+                fontSize: '11px',
                 color: theme.text,
                 fontWeight: 500,
                 whiteSpace: 'nowrap',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
-                lineHeight: '22px',
+                lineHeight: '18px',
               }}
             >
               {mech.name}
@@ -341,16 +341,16 @@ const MarketingCalendar: React.FC = () => {
   };
 
   return (
-    <div style={{ padding: 0, minHeight: '100vh' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-        <Title level={2} style={{ margin: 0 }}>营销日历</Title>
+    <div style={{ padding: 0, height: 'calc(100vh - 64px - 48px)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8, flexShrink: 0 }}>
+        <Title level={4} style={{ margin: 0 }}>营销日历</Title>
         <Text type="secondary" style={{ fontSize: '12px' }}>
           数据更新时间：{dayjs().format('YYYY-MM-DD HH:mm:ss')}
         </Text>
       </div>
 
       <div style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8,
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8, flexShrink: 0,
         padding: '10px 16px', background: '#fff', borderRadius: 8, border: '1px solid #f0f0f0',
       }}>
         <DatePicker
@@ -374,55 +374,54 @@ const MarketingCalendar: React.FC = () => {
         </Radio.Group>
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 16, marginBottom: 10, padding: '0 2px', fontSize: 12, color: '#8c8c8c' }}>
-        <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-          <span style={{ display: 'inline-block', width: 14, height: 14, borderRadius: '50%', background: '#1890ff' }} />
+      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, marginBottom: 4, padding: '0 2px', fontSize: 11, color: '#8c8c8c', flexShrink: 0 }}>
+        <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+          <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: '50%', background: '#1890ff' }} />
           今天
         </span>
-        <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-          <span style={{ display: 'inline-block', width: 14, height: 14, borderRadius: 2, background: '#fff0f0', border: '1px solid #ffccc7' }} />
+        <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+          <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: 2, background: '#fff0f0', border: '1px solid #ffccc7' }} />
           节假日
         </span>
-        <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-          <span style={{ display: 'inline-block', width: 14, height: 14, borderRadius: 2, background: '#fff2e8', border: '1px solid #ffd591' }} />
+        <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+          <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: 2, background: '#fff2e8', border: '1px solid #ffd591' }} />
           周末
         </span>
       </div>
 
       <div style={{
-        background: '#fff', borderRadius: 8, border: '1px solid #e8e8e8',
-        overflow: 'auto',
+        background: '#fff', borderRadius: 6, border: '1px solid #e8e8e8',
+        flex: 1, overflow: 'auto', minHeight: 0,
       }}>
         <table style={{
           borderCollapse: 'collapse',
           width: '100%',
-          minWidth: daysInMonth * 42 + 280,
           tableLayout: 'fixed',
         }}>
           <colgroup>
-            <col style={{ width: 220 }} />
-            <col style={{ width: 80 }} />
+            <col style={{ width: 180 }} />
+            <col style={{ width: 60 }} />
             {days.map((_, i) => (
-              <col key={i} style={{ width: 42 }} />
+              <col key={i} />
             ))}
           </colgroup>
-          <thead>
+          <thead style={{ position: 'sticky', top: 0, zIndex: 4 }}>
             <tr>
               <th style={{
-                position: 'sticky', left: 0, zIndex: 3,
-                background: '#fafafa', padding: '8px 12px',
+                position: 'sticky', left: 0, zIndex: 5,
+                background: '#fafafa', padding: '4px 8px',
                 borderBottom: '1px solid #e8e8e8', borderRight: '1px solid #e8e8e8',
-                textAlign: 'left', fontWeight: 600, fontSize: '13px',
+                textAlign: 'left', fontWeight: 600, fontSize: '12px',
               }}>
                 活动
               </th>
               <th style={{
-                position: 'sticky', left: 220, zIndex: 3,
-                background: '#fafafa', padding: '8px 8px',
+                position: 'sticky', left: 180, zIndex: 5,
+                background: '#fafafa', padding: '4px 4px',
                 borderBottom: '1px solid #e8e8e8', borderRight: '1px solid #e8e8e8',
-                textAlign: 'center', fontWeight: 600, fontSize: '13px',
+                textAlign: 'center', fontWeight: 600, fontSize: '12px',
               }}>
-                参与渠道
+                渠道
               </th>
               {days.map((d, idx) => {
                 const stat = dayStats[idx];
@@ -452,30 +451,30 @@ const MarketingCalendar: React.FC = () => {
                   >
                     <th style={{
                       background: bg,
-                      padding: '4px 0',
+                      padding: '2px 0',
                       borderBottom: '1px solid #e8e8e8',
                       borderRight: '1px solid #f0f0f0',
                       textAlign: 'center',
                       fontWeight: d.isToday ? 700 : d.isWeekend || d.holiday ? 700 : 500,
-                      fontSize: '12px',
+                      fontSize: '11px',
                       color,
-                      lineHeight: '18px',
+                      lineHeight: '16px',
                       cursor: 'default',
                     }}>
                       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                         <span style={d.isToday ? {
                           display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                          width: 22, height: 22, borderRadius: '50%',
-                          backgroundColor: '#1890ff', color: '#fff', fontWeight: 700, lineHeight: '22px',
+                          width: 18, height: 18, borderRadius: '50%',
+                          backgroundColor: '#1890ff', color: '#fff', fontWeight: 700, lineHeight: '18px',
                         } : undefined}>
                           {d.day}
                         </span>
                         {d.holiday && (
                           <span style={{
-                            fontSize: '9px',
+                            fontSize: '8px',
                             color: d.isToday ? '#fff' : '#cf1322',
-                            lineHeight: '12px',
-                            maxWidth: 38, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                            lineHeight: '10px',
+                            maxWidth: 32, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                           }}>
                             {d.holiday}
                           </span>
@@ -488,23 +487,23 @@ const MarketingCalendar: React.FC = () => {
             </tr>
             <tr>
               <th style={{
-                position: 'sticky', left: 0, zIndex: 3,
-                background: '#fafafa', padding: '4px 12px',
+                position: 'sticky', left: 0, zIndex: 5,
+                background: '#fafafa', padding: '2px 8px',
                 borderBottom: '2px solid #e8e8e8', borderRight: '1px solid #e8e8e8',
               }} />
               <th style={{
-                position: 'sticky', left: 220, zIndex: 3,
-                background: '#fafafa', padding: '4px 8px',
+                position: 'sticky', left: 180, zIndex: 5,
+                background: '#fafafa', padding: '2px 4px',
                 borderBottom: '2px solid #e8e8e8', borderRight: '1px solid #e8e8e8',
               }} />
               {days.map((d) => (
                 <th key={`w-${d.day}`} style={{
                   background: d.isToday ? '#e6f4ff' : d.holiday ? '#fff0f0' : d.isWeekend ? '#fff2e8' : '#fafafa',
-                  padding: '2px 0',
+                  padding: '1px 0',
                   borderBottom: '2px solid #e8e8e8',
                   borderRight: '1px solid #f0f0f0',
                   textAlign: 'center',
-                  fontSize: '11px',
+                  fontSize: '10px',
                   fontWeight: 400,
                   color: getWeekdayColor(d),
                 }}>
@@ -526,22 +525,23 @@ const MarketingCalendar: React.FC = () => {
                         style={{
                           position: 'sticky', left: 0, zIndex: 2,
                           background: '#fff',
-                          padding: '8px 12px',
-                          borderBottom: '2px solid #e8e8e8',
+                          padding: '3px 6px',
+                          borderBottom: '1px solid #e8e8e8',
                           borderRight: '1px solid #e8e8e8',
-                          borderLeft: `4px solid ${theme.primary}`,
+                          borderLeft: `3px solid ${theme.primary}`,
                           verticalAlign: 'top',
-                          lineHeight: '24px',
+                          lineHeight: '18px',
                         }}
                       >
-                        <div style={{ fontWeight: 600, fontSize: '13px', color: '#262626' }}>
+                        <div style={{ fontWeight: 600, fontSize: '11px', color: '#262626', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 140 }}>
                           {activity.activityName}
                         </div>
                         <Tag
                           style={{
-                            marginTop: 4,
-                            fontSize: '11px',
-                            lineHeight: '18px',
+                            marginTop: 2,
+                            fontSize: '10px',
+                            lineHeight: '16px',
+                            padding: '0 4px',
                             border: `1px solid ${theme.border}`,
                             backgroundColor: theme.tagBg,
                             color: theme.tagText,
@@ -553,13 +553,13 @@ const MarketingCalendar: React.FC = () => {
                       <td
                         rowSpan={mechCount}
                         style={{
-                          position: 'sticky', left: 220, zIndex: 2,
+                          position: 'sticky', left: 180, zIndex: 2,
                           background: '#fff',
-                          padding: '8px 8px',
-                          borderBottom: '2px solid #e8e8e8',
+                          padding: '3px 4px',
+                          borderBottom: '1px solid #e8e8e8',
                           borderRight: '1px solid #e8e8e8',
                           textAlign: 'center',
-                          fontSize: '12px',
+                          fontSize: '11px',
                           color: '#595959',
                           verticalAlign: 'top',
                         }}
