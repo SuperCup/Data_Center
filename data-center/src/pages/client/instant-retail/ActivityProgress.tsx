@@ -1403,27 +1403,24 @@ const ActivityProgress: React.FC = () => {
       </div>
 
       {/* 筛选条件 */}
-      <Card style={{ marginBottom: 16 }}>
-        <div style={{ display: 'flex', gap: 16, alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Text strong style={{ width: '60px' }}>月份：</Text>
-            <DatePicker
-              picker="month"
-              value={selectedMonth}
-              onChange={(date) => date && setSelectedMonth(date)}
-              style={{ width: 160 }}
-              format="YYYY年MM月"
-            />
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Radio.Group value={selectedPlatform} onChange={(e) => setSelectedPlatform(e.target.value)} buttonStyle="solid">
-              <Radio.Button value="美团闪购">美团闪购</Radio.Button>
-              <Radio.Button value="淘宝闪购">淘宝闪购</Radio.Button>
-              <Radio.Button value="京东到家">京东到家</Radio.Button>
-            </Radio.Group>
-          </div>
-        </div>
-      </Card>
+      <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16,
+        padding: '10px 16px', background: '#fff', borderRadius: 8, border: '1px solid #f0f0f0',
+      }}>
+        <DatePicker
+          picker="month"
+          value={selectedMonth}
+          onChange={(date) => date && setSelectedMonth(date)}
+          style={{ width: 140 }}
+          format="YYYY年MM月"
+          allowClear={false}
+        />
+        <Radio.Group value={selectedPlatform} onChange={(e) => setSelectedPlatform(e.target.value)} buttonStyle="solid">
+          <Radio.Button value="美团闪购">美团闪购</Radio.Button>
+          <Radio.Button value="淘宝闪购">淘宝闪购</Radio.Button>
+          <Radio.Button value="京东到家">京东到家</Radio.Button>
+        </Radio.Group>
+      </div>
 
       {/* 自定义筛选 */}
       <Card style={{ marginBottom: 16 }}>

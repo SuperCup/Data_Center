@@ -22,6 +22,7 @@ import PriceMonitoringDashboard from './pages/client/instant-retail/PriceMonitor
 import MarketingCalendar from './pages/client/instant-retail/MarketingCalendar';
 import MarketingCalendarV2 from './pages/client/instant-retail/MarketingCalendarV2';
 import ActivityProgress from './pages/client/instant-retail/ActivityProgress';
+import ActivityProgressCustom from './pages/client/instant-retail/ActivityProgressCustom';
 import ActivityAnalysisInstant from './pages/client/instant-retail/ActivityAnalysis';
 import AllAnalysis from './pages/client/instant-retail/AllAnalysis';
 import RTBAnalysis from './pages/client/instant-retail/RTBAnalysis';
@@ -68,7 +69,7 @@ function App() {
           <Route path="marketing-calendar-v1" element={<MarketingCalendar />} />
           <Route path="activity-progress" element={<ActivityProgress />} />
           <Route path="activity-progress-general" element={<ActivityProgress />} />
-          <Route path="activity-progress-flash" element={<ActivityProgress />} />
+          <Route path="activity-progress-flash" element={<ActivityProgressCustom />} />
           <Route path="activity-analysis-instant" element={<ActivityAnalysisInstant />} />
           <Route path="all-analysis" element={<AllAnalysis />} />
           <Route path="rtb-analysis" element={<RTBAnalysis />} />

@@ -106,7 +106,7 @@ const ClientLayout: React.FC = () => {
     },
     {
       key: 'activity-progress-flash',
-      label: '活动进度（闪购）',
+      label: '活动进度（定制）',
       icon: <ProjectOutlined />,
     },
     {
