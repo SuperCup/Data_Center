@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Card, Row, Col, Statistic, Typography, Table, Radio, DatePicker, Tooltip } from 'antd';
+import { Card, Row, Col, Statistic, Typography, Table, Radio, DatePicker, Tooltip, Tag, Space, Button } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import ReactECharts from 'echarts-for-react';
 import dayjs from 'dayjs';
@@ -17,7 +17,6 @@ interface ActivityDetail {
   status: '进行中' | '已结束' | '待开始';
   planCodeCount: number;
   actualScanCount: number;
-  planScanRate: number;
   actualScanRate: number;
   repurchaseRate: number;
 }
@@ -49,7 +48,6 @@ const mockActivities: Record<string, ActivityDetail> = {
     status: '进行中',
     planCodeCount: 200000,
     actualScanCount: 156320,
-    planScanRate: 75.0,
     actualScanRate: 78.2,
     repurchaseRate: 21.5,
   },
@@ -61,7 +59,6 @@ const mockActivities: Record<string, ActivityDetail> = {
     status: '已结束',
     planCodeCount: 150000,
     actualScanCount: 121540,
-    planScanRate: 70.0,
     actualScanRate: 81.0,
     repurchaseRate: 19.8,
   },
@@ -73,7 +70,6 @@ const mockActivities: Record<string, ActivityDetail> = {
     status: '已结束',
     planCodeCount: 120000,
     actualScanCount: 93210,
-    planScanRate: 65.0,
     actualScanRate: 77.7,
     repurchaseRate: 17.2,
   },
@@ -85,7 +81,6 @@ const mockActivities: Record<string, ActivityDetail> = {
     status: '待开始',
     planCodeCount: 260000,
     actualScanCount: 0,
-    planScanRate: 80.0,
     actualScanRate: 0,
     repurchaseRate: 0,
   },
@@ -119,6 +114,14 @@ const QrActivityAnalysis: React.FC = () => {
   };
   const handleDateRangeChange = (range: any) => {
     setDateRange(range as any);
+    // 选了具体的日期，如果是全量状态则切走
+    if (dateType === 'all') {
+      setDateType('day');
+    }
+  };
+  const handleAllClick = () => {
+    setDateType('all');
+    setDateRange([dayjs(activity.startDate), dayjs(activity.endDate)]);
   };
 
   const core = useMemo(() => {
@@ -169,20 +172,27 @@ const QrActivityAnalysis: React.FC = () => {
     const end = (dateRange && dateRange[1]) ? dateRange[1] : dayjs(activity.endDate);
     const days = Math.max(1, end.diff(start, 'day') + 1);
     const labels: string[] = [];
-    const values: number[] = [];
+    const scanValues: number[] = [];
+    const prizeValues: number[] = [];
     for (let i = 0; i < days; i += 1) {
       const d = start.add(i, 'day');
       labels.push(d.format('MM-DD'));
       const base = 1 + Math.max(0, Math.sin(i / 3)) + (i % 7 >= 1 && i % 7 <= 5 ? 0.8 : 0.2);
-      values.push(Math.round((activity.actualScanCount / days) * base * 0.9));
+      const scanCount = Math.round((activity.actualScanCount / days) * base * 0.9);
+      scanValues.push(scanCount);
+      prizeValues.push(Math.round(scanCount * 0.2));
     }
     return {
-      title: { text: '扫码趋势分析', left: 'center' },
+      title: { text: '扫码与发奖趋势分析', left: 'center' },
       tooltip: { trigger: 'axis' },
-      grid: { left: 40, right: 24, bottom: 40, top: 40 },
+      legend: { bottom: 0, data: ['扫码次数', '奖品发放量'] },
+      grid: { left: 60, right: 40, bottom: 60, top: 40 },
       xAxis: { type: 'category', data: labels },
-      yAxis: { type: 'value', name: '扫码次数' },
-      series: [{ name: '扫码次数', type: 'line', smooth: true, data: values, lineStyle: { color: '#1890ff' } }],
+      yAxis: { type: 'value', name: '数量' },
+      series: [
+        { name: '扫码次数', type: 'line', smooth: true, data: scanValues, lineStyle: { color: '#1890ff' } },
+        { name: '奖品发放量', type: 'line', smooth: true, data: prizeValues, lineStyle: { color: '#52c41a' } },
+      ],
     };
   }, [activity, dateRange]);
 
@@ -195,7 +205,7 @@ const QrActivityAnalysis: React.FC = () => {
       return m;
     }, {} as Record<string, { scanUsers: number; scanRate: number; repurchaseRate: number }>);
     return {
-      title: { text: '商品扫码排行', left: 'center' },
+      title: { text: '产品扫码排行', left: 'center' },
       tooltip: {
         trigger: 'item',
         formatter: (params: any) => {
@@ -212,35 +222,10 @@ const QrActivityAnalysis: React.FC = () => {
     };
   }, []);
 
-  const [selectedSource, setSelectedSource] = useState<string | null>(null);
-  const sourcePieOption = useMemo(() => {
-    const sources = [
-      { name: '微信小程序', value: 48000 },
-      { name: '线下推广', value: 32000 },
-      { name: '自然购买', value: 28000 },
-      { name: '线上推广', value: 36000 },
-    ];
-    const data = sources.map((s) => ({
-      ...s,
-      selected: selectedSource ? (s.name === selectedSource) : false,
-      itemStyle: selectedSource ? { opacity: s.name === selectedSource ? 1 : 0.25 } : undefined,
-    }));
-    return {
-      title: { text: '来源占比', left: 'center' },
-      tooltip: { trigger: 'item', formatter: '{b}: {c} ({d}%)' },
-      legend: { bottom: 0 },
-      series: [{
-        type: 'pie',
-        radius: '60%',
-        selectedMode: 'single',
-        data,
-        emphasis: { itemStyle: { shadowBlur: 10, shadowOffsetX: 0, shadowColor: 'rgba(0, 0, 0, 0.5)' } },
-      }],
-    };
-  }, [selectedSource]);
+  const funnelOption = useMemo(() => {
+    const sourceColors = ['#5b8ff9', '#5b8ff9', '#5b8ff9', '#5b8ff9'];
 
-  const getFunnelData = (source: string | null) => {
-    const all = {
+    const allSourcesData = {
       '微信小程序': [
         { name: '活动扫码', value: 48000 },
         { name: '活动参与', value: 42000 },
@@ -265,23 +250,49 @@ const QrActivityAnalysis: React.FC = () => {
         { name: '活动抽奖', value: 22000 },
         { name: '活动复购', value: 9000 },
       ],
-    } as Record<string, { name: string; value: number }[]>;
-    if (source && all[source]) {
-      return [{ name: source, type: 'funnel', left: 'center', width: '70%', sort: 'descending', label: { show: true, position: 'inside' }, data: all[source] }];
-    }
-    return [
-      { name: '微信小程序', type: 'funnel', left: '10%', width: '35%', sort: 'descending', label: { show: true, position: 'inside' }, data: all['微信小程序'] },
-      { name: '支付宝小程序', type: 'funnel', left: '55%', width: '35%', sort: 'descending', label: { show: true, position: 'inside' }, data: all['支付宝小程序'] },
-      { name: '抖音到店', type: 'funnel', left: '10%', top: '55%', width: '35%', sort: 'descending', label: { show: true, position: 'inside' }, data: all['抖音到店'] },
-      { name: '美团到店', type: 'funnel', left: '55%', top: '55%', width: '35%', sort: 'descending', label: { show: true, position: 'inside' }, data: all['美团到店'] },
-    ];
-  };
-  const funnelOption = useMemo(() => ({
-    title: { text: '来源转化漏斗', left: 'center' },
-    tooltip: { trigger: 'item', formatter: (p: any) => `${p.seriesName} - ${p.name}: ${p.value}` },
-    legend: { bottom: 0 },
-    series: getFunnelData(selectedSource),
-  }), [selectedSource]);
+    };
+
+    const stages = ['活动扫码', '活动参与', '活动抽奖', '活动复购'];
+    const displayData = stages.map(stage => {
+      const totalValue = Object.values(allSourcesData).reduce((sum, sourceData) => {
+        const stageItem = sourceData.find(item => item.name === stage);
+        return sum + (stageItem ? stageItem.value : 0);
+      }, 0);
+      return { name: stage, value: totalValue };
+    });
+
+    const data = displayData.map((item, idx) => ({
+      ...item,
+      itemStyle: {
+        color: {
+          type: 'linear',
+          x: 0, y: 0, x2: 0, y2: 1,
+          colorStops: [
+            { offset: 0, color: sourceColors[idx] },
+            { offset: 1, color: sourceColors[idx + 1] || sourceColors[idx] }
+          ]
+        }
+      }
+    }));
+
+    return {
+      title: { text: '页面转化漏斗', left: 'center' },
+      tooltip: { trigger: 'item', formatter: (p: any) => `${p.name}: ${p.value}` },
+      series: [{
+        name: '全部',
+        type: 'funnel',
+        left: 'center',
+        width: '70%',
+        sort: 'descending',
+        label: {
+          show: true,
+          position: 'inside',
+          formatter: '{b}: {c}'
+        },
+        data
+      }]
+    };
+  }, []);
 
   return (
     <div style={{ padding: 24 }}>
@@ -298,7 +309,11 @@ const QrActivityAnalysis: React.FC = () => {
           <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <Text>时间筛选：</Text>
-              <Radio.Group value={dateType} onChange={handleDateTypeChange} size="small">
+              <Radio.Group 
+                value={dateType === 'all' ? null : dateType} 
+                onChange={handleDateTypeChange} 
+                size="small"
+              >
                 <Radio.Button value="day">日</Radio.Button>
                 <Radio.Button value="week">周</Radio.Button>
                 <Radio.Button value="month">月</Radio.Button>
@@ -306,10 +321,17 @@ const QrActivityAnalysis: React.FC = () => {
               <RangePicker
                 value={dateRange}
                 onChange={handleDateRangeChange}
-                picker={dateType as any}
+                picker={dateType === 'all' ? 'date' : (dateType as any)}
                 style={{ width: 240 }}
                 size="small"
               />
+              <Button 
+                size="small" 
+                type={dateType === 'all' ? 'primary' : 'default'}
+                onClick={handleAllClick}
+              >
+                全量
+              </Button>
             </div>
           </div>
         </div>
@@ -320,26 +342,45 @@ const QrActivityAnalysis: React.FC = () => {
           <Col span={16}>
             <Row gutter={[16, 16]}>
               <Col span={24}>
-                <div><Text strong>活动名称：</Text><Text>{activity.name}</Text></div>
-              </Col>
-              <Col span={24}>
-                <div><Text strong>活动周期：</Text><Text>{dayjs(activity.startDate).format('YYYY-MM-DD')} 至 {dayjs(activity.endDate).format('YYYY-MM-DD')}</Text></div>
-              </Col>
-              <Col span={24}>
-                <div style={{ display: 'flex', gap: 24 }}>
-                  <div><Text strong>状态：</Text><Text>{activity.status}</Text></div>
-                  <div><Text strong>计划码量：</Text><Text>{activity.planCodeCount.toLocaleString()}</Text></div>
+                <div>
+                  <Text strong>活动名称：</Text>
+                  <Text>{activity.name}</Text>
                 </div>
               </Col>
               <Col span={24}>
-                <div style={{ display: 'flex', gap: 24 }}>
-                  <div><Text strong>实际扫码次数：</Text><Text>{activity.actualScanCount.toLocaleString()}</Text></div>
-                  <div><Text strong>计划扫码率：</Text><Text>{`${activity.planScanRate.toFixed(1)}%`}</Text></div>
-                  <div><Text strong>实际扫码率：</Text><Text>{`${activity.actualScanRate.toFixed(1)}%`}</Text></div>
-                  <div><Text strong>复购率：</Text><Text>{`${activity.repurchaseRate.toFixed(1)}%`}</Text></div>
+                <div>
+                  <Text strong>活动周期：</Text>
+                  <Text>{dayjs(activity.startDate).format('YYYY-MM-DD')} ~ {dayjs(activity.endDate).format('YYYY-MM-DD')}</Text>
+                </div>
+              </Col>
+              <Col span={24}>
+                <div>
+                  <Text strong>状态：</Text>
+                  <Tag color={activity.status === '进行中' ? 'processing' : activity.status === '已结束' ? 'success' : 'warning'}>
+                    {activity.status}
+                  </Tag>
                 </div>
               </Col>
             </Row>
+          </Col>
+          <Col span={8}>
+            <div>
+              <Text strong>码量与扫码：</Text>
+              <div style={{ marginTop: 8 }}>
+                <div style={{ marginBottom: 8 }}>
+                  <Text>计划码量：</Text>
+                  <Text strong style={{ color: '#1890ff' }}>{activity.planCodeCount.toLocaleString()}</Text>
+                </div>
+                <div>
+                  <Text>实际扫码量：</Text>
+                  <Text strong style={{ color: '#52c41a' }}>{activity.actualScanCount.toLocaleString()}</Text>
+                </div>
+                <div style={{ display: 'flex', gap: 16, marginTop: 8 }}>
+                  <Text>实际扫码率：{activity.actualScanRate.toFixed(1)}%</Text>
+                  <Text>复购率：{activity.repurchaseRate.toFixed(1)}%</Text>
+                </div>
+              </div>
+            </div>
           </Col>
         </Row>
       </Card>
@@ -407,7 +448,7 @@ const QrActivityAnalysis: React.FC = () => {
       </Row>
       </Card>
 
-      <Card title="扫码趋势分析" style={{ marginBottom: 16 }}>
+      <Card title="扫码与发奖趋势分析" style={{ marginBottom: 16 }}>
         <ReactECharts option={scanTrendOption} style={{ height: 360 }} />
       </Card>
 
@@ -425,23 +466,12 @@ const QrActivityAnalysis: React.FC = () => {
         })()}
       </Card>
 
-      <Card title="商品排行" style={{ marginBottom: 16 }}>
+      <Card title="产品排行" style={{ marginBottom: 16 }}>
         <ReactECharts option={productRankingOption} style={{ height: 360 }} />
       </Card>
 
       <Card title="活动转化" style={{ marginBottom: 16 }}>
-      <Row gutter={16}>
-        <Col span={10}>
-          <Card>
-            <ReactECharts option={sourcePieOption} style={{ height: 360 }} onEvents={{ click: (p: any) => setSelectedSource(p.name) }} />
-          </Card>
-        </Col>
-        <Col span={14}>
-          <Card>
-            <ReactECharts option={funnelOption} style={{ height: 360 }} />
-          </Card>
-        </Col>
-      </Row>
+        <ReactECharts option={funnelOption} style={{ height: 400 }} />
       </Card>
     </div>
   );

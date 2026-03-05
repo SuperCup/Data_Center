@@ -18,7 +18,6 @@ interface QrActivityData {
   status: '进行中' | '已结束' | '待开始';
   planCodeCount: number;
   actualScanCount: number;
-  planScanRate: number;
   actualScanRate: number;
   repurchaseRate: number;
 }
@@ -33,7 +32,6 @@ const mockQrActivities: QrActivityData[] = [
     status: '进行中',
     planCodeCount: 200000,
     actualScanCount: 156320,
-    planScanRate: 75.0,
     actualScanRate: 78.2,
     repurchaseRate: 21.5,
   },
@@ -46,7 +44,6 @@ const mockQrActivities: QrActivityData[] = [
     status: '已结束',
     planCodeCount: 150000,
     actualScanCount: 121540,
-    planScanRate: 70.0,
     actualScanRate: 81.0,
     repurchaseRate: 19.8,
   },
@@ -59,7 +56,6 @@ const mockQrActivities: QrActivityData[] = [
     status: '已结束',
     planCodeCount: 120000,
     actualScanCount: 93210,
-    planScanRate: 65.0,
     actualScanRate: 77.7,
     repurchaseRate: 17.2,
   },
@@ -72,7 +68,6 @@ const mockQrActivities: QrActivityData[] = [
     status: '待开始',
     planCodeCount: 260000,
     actualScanCount: 0,
-    planScanRate: 80.0,
     actualScanRate: 0,
     repurchaseRate: 0,
   },
@@ -110,12 +105,12 @@ const AllActivities: React.FC = () => {
         const itemStartDate = dayjs(item.startDate);
         const itemEndDate = dayjs(item.endDate);
         return (
-          ((itemStartDate.isAfter(startDate) || itemStartDate.isSame(startDate)) &&
-           (itemStartDate.isBefore(endDate) || itemStartDate.isSame(endDate))) ||
-          ((itemEndDate.isAfter(startDate) || itemEndDate.isSame(startDate)) &&
-           (itemEndDate.isBefore(endDate) || itemEndDate.isSame(endDate))) ||
-          ((itemStartDate.isBefore(startDate) || itemStartDate.isSame(startDate)) &&
-           (itemEndDate.isAfter(endDate) || itemEndDate.isSame(endDate)))
+          (itemStartDate.isAfter(startDate) || itemStartDate.isSame(startDate)) &&
+          (itemStartDate.isBefore(endDate) || itemStartDate.isSame(endDate)) ||
+          (itemEndDate.isAfter(startDate) || itemEndDate.isSame(startDate)) &&
+          (itemEndDate.isBefore(endDate) || itemEndDate.isSame(endDate)) ||
+          (itemStartDate.isBefore(startDate) || itemStartDate.isSame(startDate)) &&
+          (itemEndDate.isAfter(endDate) || itemEndDate.isSame(endDate))
         );
       });
     }
@@ -161,8 +156,7 @@ const AllActivities: React.FC = () => {
       },
     },
     { title: '计划码量', dataIndex: 'planCodeCount', key: 'planCodeCount', width: 120, render: (v: number) => v.toLocaleString() },
-    { title: '实际扫码次数', dataIndex: 'actualScanCount', key: 'actualScanCount', width: 140, render: (v: number) => v.toLocaleString() },
-    { title: '计划扫码率', dataIndex: 'planScanRate', key: 'planScanRate', width: 120, render: (v: number) => `${v.toFixed(1)}%` },
+    { title: '实际扫码量', dataIndex: 'actualScanCount', key: 'actualScanCount', width: 120, render: (v: number) => v.toLocaleString() },
     { title: '实际扫码率', dataIndex: 'actualScanRate', key: 'actualScanRate', width: 120, render: (v: number) => `${v.toFixed(1)}%` },
     { title: '复购率', dataIndex: 'repurchaseRate', key: 'repurchaseRate', width: 100, render: (v: number) => `${v.toFixed(1)}%` },
     {

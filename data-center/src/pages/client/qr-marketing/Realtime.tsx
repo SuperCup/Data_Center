@@ -15,7 +15,6 @@ interface ActivityDetail {
   status: '进行中' | '已结束' | '待开始';
   planCodeCount: number;
   actualScanCount: number;
-  planScanRate: number;
   actualScanRate: number;
   repurchaseRate: number;
 }
@@ -47,7 +46,6 @@ const mockActivityDetail: Record<string, ActivityDetail> = {
     status: '进行中',
     planCodeCount: 200000,
     actualScanCount: 156320,
-    planScanRate: 75.0,
     actualScanRate: 78.2,
     repurchaseRate: 21.5,
   },
@@ -58,7 +56,6 @@ const mockActivityDetail: Record<string, ActivityDetail> = {
     status: '已结束',
     planCodeCount: 150000,
     actualScanCount: 121540,
-    planScanRate: 70.0,
     actualScanRate: 81.0,
     repurchaseRate: 19.8,
   },
@@ -70,14 +67,14 @@ const Realtime: React.FC = () => {
 
   const [regionType, setRegionType] = useState<'province' | 'city'>('province');
   const [rangeType, setRangeType] = useState<'today' | 'all'>('today');
-  type ProductFilterKey = '全部' | '康师傅红烧牛肉面' | '康师傅香辣牛肉面' | '康师傅老坛酸菜面';
+  type ProductFilterKey = '全部' | '康师傅红烧牛肉面 6923333422' | '康师傅香辣牛肉面 6923333423' | '康师傅老坛酸菜面 6923333424';
   const [selectedProduct, setSelectedProduct] = useState<ProductFilterKey>('全部');
 
   const productMap: Record<ProductFilterKey, (p: ProductRow) => boolean> = useMemo(() => ({
     全部: (p: ProductRow) => true,
-    康师傅红烧牛肉面: (p: ProductRow) => p.nameWithCode.includes('红烧牛肉面'),
-    康师傅香辣牛肉面: (p: ProductRow) => p.nameWithCode.includes('香辣牛肉面'),
-    康师傅老坛酸菜面: (p: ProductRow) => p.nameWithCode.includes('老坛酸菜面'),
+    '康师傅红烧牛肉面 6923333422': (p: ProductRow) => p.nameWithCode.includes('红烧牛肉面'),
+    '康师傅香辣牛肉面 6923333423': (p: ProductRow) => p.nameWithCode.includes('香辣牛肉面'),
+    '康师傅老坛酸菜面 6923333424': (p: ProductRow) => p.nameWithCode.includes('老坛酸菜面'),
   }), []);
 
   const prizeColumns: ColumnsType<PrizeRow> = [
@@ -150,101 +147,57 @@ const Realtime: React.FC = () => {
     const base = hours.map((h) => 1 + Math.max(0, Math.sin(h / 3)) + (h > 8 && h < 22 ? 1.2 : 0.2));
     const baseSum = base.reduce((a, b) => a + b, 0);
     const scale = metrics.todayScanCount > 0 ? metrics.todayScanCount / baseSum : 0;
-    const values = base.map((v) => Math.round(v * scale));
+    const scanValues = base.map((v) => Math.round(v * scale));
+    const prizeValues = scanValues.map((v) => Math.round(v * 0.2));
     return {
-      title: { text: '扫码量时序趋势（0-24点）', left: 'center' },
+      title: { text: '扫码与发奖时序趋势（0-24点）', left: 'center' },
       tooltip: { trigger: 'axis' },
-      grid: { left: 40, right: 24, bottom: 40, top: 40 },
+      legend: { bottom: 0, data: ['扫码量', '奖品发放量'] },
+      grid: { left: 40, right: 24, bottom: 60, top: 40 },
       xAxis: { type: 'category', name: '时间点', nameLocation: 'middle', nameGap: 30, data: hours.map((h) => `${h}:00`) },
-      yAxis: { type: 'value', name: '扫码量', nameLocation: 'middle', nameGap: 45 },
-      series: [{ name: '扫码量', type: 'line', smooth: true, data: values, lineStyle: { color: '#1890ff' } }],
+      yAxis: { type: 'value', name: '数量', nameLocation: 'middle', nameGap: 45 },
+      series: [
+        { name: '扫码量', type: 'line', smooth: true, data: scanValues, lineStyle: { color: '#1890ff' } },
+        { name: '奖品发放量', type: 'line', smooth: true, data: prizeValues, lineStyle: { color: '#52c41a' } },
+      ],
     };
   }, [metrics.todayScanCount]);
 
   const regionCategories = useMemo(() => {
     if (regionType === 'province') {
-      return ['广东', '江苏', '浙江', '山东', '河南', '四川', '湖北', '福建'];
+      return ['广东', '江苏', '浙江', '山东', '河南', '四川', '湖北', '北京', '上海', '福建'];
     }
-    return ['广州', '深圳', '苏州', '杭州', '青岛', '郑州', '成都', '武汉'];
+    return ['广州', '深圳', '苏州', '杭州', '北京', '上海', '成都', '武汉', '南京', '天津'];
   }, [regionType]);
 
   const regionValues = useMemo(() => {
     const base = rangeType === 'today' ? 1000 : 25000;
-    return regionCategories.map((_, idx) => Math.round(base * (1 - idx * 0.06)));
+    return regionCategories.map((_, idx) => Math.round(base * (1 - idx * 0.08)));
   }, [regionCategories, rangeType]);
 
   const regionOption = useMemo(() => ({
-    title: { text: `${regionType === 'province' ? '省份' : '城市'}扫码排行（${rangeType === 'today' ? '今日' : '全量'}）`, left: 'center' },
+    title: { text: `${regionType === 'province' ? '省份' : '城市'}扫码排行 Top 10（${rangeType === 'today' ? '今日' : '全量'}）`, left: 'center' },
     tooltip: { trigger: 'axis' },
     grid: { left: 40, right: 24, bottom: 40, top: 40 },
-    xAxis: { type: 'category', data: regionCategories },
+    xAxis: { 
+      type: 'category', 
+      data: regionCategories,
+      axisLabel: {
+        interval: 0,
+        rotate: 30
+      }
+    },
     yAxis: { type: 'value', name: '扫码次数' },
-    series: [{ type: 'bar', data: regionValues, itemStyle: { color: '#1890ff' } }],
+    series: [{ 
+      type: 'bar', 
+      data: regionValues, 
+      itemStyle: { color: '#1890ff' },
+      label: {
+        show: true,
+        position: 'top'
+      }
+    }],
   }), [regionCategories, regionValues, regionType, rangeType]);
-
-  const [regionSearch, setRegionSearch] = useState<string>('');
-
-  const detailColumns = useMemo(() => {
-    const isProvince = regionType === 'province';
-    const isToday = rangeType === 'today';
-    const nameTitle = isProvince ? '省份' : '城市';
-    if (isToday) {
-      return [
-        { title: nameTitle, dataIndex: 'name', key: 'name', width: 120 },
-        { title: '今日扫码量', dataIndex: 'todayScanCount', key: 'todayScanCount', width: 120 },
-        { title: '今日扫码人数', dataIndex: 'todayScanUsers', key: 'todayScanUsers', width: 120 },
-        { title: '今日扫码率', dataIndex: 'todayScanRate', key: 'todayScanRate', width: 120, render: (v: number) => `${v.toFixed(1)}%` },
-        { title: '今日复购率', dataIndex: 'todayRepurchaseRate', key: 'todayRepurchaseRate', width: 120, render: (v: number) => `${v.toFixed(1)}%` },
-        { title: '今日发奖量', dataIndex: 'todayPrizeIssued', key: 'todayPrizeIssued', width: 120 },
-        { title: '今日红包发放金额', dataIndex: 'todayRedEnvelopeAmount', key: 'todayRedEnvelopeAmount', width: 160, render: (v: number) => `¥${v.toLocaleString()}` },
-      ] as ColumnsType<any>;
-    }
-    return [
-      { title: nameTitle, dataIndex: 'name', key: 'name', width: 120 },
-      { title: '扫码量', dataIndex: 'scanCount', key: 'scanCount', width: 120 },
-      { title: '扫码人数', dataIndex: 'scanUsers', key: 'scanUsers', width: 120 },
-      { title: '扫码率', dataIndex: 'scanRate', key: 'scanRate', width: 120, render: (v: number) => `${v.toFixed(1)}%` },
-      { title: '复购率', dataIndex: 'repurchaseRate', key: 'repurchaseRate', width: 120, render: (v: number) => `${v.toFixed(1)}%` },
-      { title: '发奖量', dataIndex: 'prizeIssued', key: 'prizeIssued', width: 120 },
-      { title: '红包发放金额', dataIndex: 'redEnvelopeAmount', key: 'redEnvelopeAmount', width: 160, render: (v: number) => `¥${v.toLocaleString()}` },
-    ] as ColumnsType<any>;
-  }, [regionType, rangeType]);
-
-  const detailData = useMemo(() => {
-    const data = regionCategories.map((name: string, idx: number) => {
-      const baseToday = regionValues[idx];
-      const todayUsers = Math.max(1, Math.round(baseToday * 0.9));
-      const todayRate = Math.max(0, 60 + (10 - idx) * 2);
-      const todayRep = Math.max(0, 20 - idx);
-      const todayPrize = Math.round(baseToday * 0.25);
-      const todayMoney = todayPrize * 3;
-      const allFactor = 25;
-      const allCount = baseToday * allFactor;
-      const allUsers = todayUsers * allFactor;
-      const allRate = todayRate;
-      const allRep = todayRep;
-      const allPrize = todayPrize * allFactor;
-      const allMoney = todayMoney * allFactor;
-      return {
-        name,
-        todayScanCount: baseToday,
-        todayScanUsers: todayUsers,
-        todayScanRate: todayRate,
-        todayRepurchaseRate: todayRep,
-        todayPrizeIssued: todayPrize,
-        todayRedEnvelopeAmount: todayMoney,
-        scanCount: allCount,
-        scanUsers: allUsers,
-        scanRate: allRate,
-        repurchaseRate: allRep,
-        prizeIssued: allPrize,
-        redEnvelopeAmount: allMoney,
-      };
-    });
-    const q = regionSearch.trim().toLowerCase();
-    if (!q) return data;
-    return data.filter((item: any) => item.name.toLowerCase().includes(q));
-  }, [regionCategories, regionValues, regionSearch]);
 
   return (
     <div style={{ padding: 0 }}>
@@ -257,12 +210,18 @@ const Realtime: React.FC = () => {
 
       <Row gutter={16} style={{ marginBottom: 16 }}>
         <Col span={8}>
-          <Select value={selectedProduct} onChange={setSelectedProduct} style={{ width: '100%' }}>
-            <Select.Option value="全部">全部</Select.Option>
-            <Select.Option value="康师傅红烧牛肉面">康师傅红烧牛肉面</Select.Option>
-            <Select.Option value="康师傅香辣牛肉面">康师傅香辣牛肉面</Select.Option>
-            <Select.Option value="康师傅老坛酸菜面">康师傅老坛酸菜面</Select.Option>
-          </Select>
+          <Space>
+            <Select value={selectedProduct} onChange={setSelectedProduct} style={{ width: 260 }}>
+              <Select.Option value="全部">全部</Select.Option>
+              <Select.Option value="康师傅红烧牛肉面 6923333422">康师傅红烧牛肉面 6923333422</Select.Option>
+              <Select.Option value="康师傅香辣牛肉面 6923333423">康师傅香辣牛肉面 6923333423</Select.Option>
+              <Select.Option value="康师傅老坛酸菜面 6923333424">康师傅老坛酸菜面 6923333424</Select.Option>
+            </Select>
+            <Radio.Group value={rangeType} onChange={(e) => setRangeType(e.target.value)}>
+              <Radio.Button value="today">今日</Radio.Button>
+              <Radio.Button value="all">全量</Radio.Button>
+            </Radio.Group>
+          </Space>
         </Col>
       </Row>
 
@@ -305,7 +264,6 @@ const Realtime: React.FC = () => {
                   <Text strong style={{ color: '#52c41a' }}>{detail.actualScanCount.toLocaleString()}</Text>
                 </div>
                 <div style={{ display: 'flex', gap: 16, marginTop: 8 }}>
-                  <Text>计划扫码率：{detail.planScanRate.toFixed(1)}%</Text>
                   <Text>实际扫码率：{detail.actualScanRate.toFixed(1)}%</Text>
                   <Text>复购率：{detail.repurchaseRate.toFixed(1)}%</Text>
                 </div>
@@ -376,27 +334,14 @@ const Realtime: React.FC = () => {
         <Table columns={productColumns} dataSource={productData} rowKey="key" pagination={{ pageSize: 10 }} />
       </Card>
 
-      <Card title="省份/城市扫码排行">
+      <Card title="省份/城市扫码排行 Top 10">
         <Space style={{ marginBottom: 12 }}>
           <Radio.Group value={regionType} onChange={(e) => setRegionType(e.target.value)}>
             <Radio.Button value="province">省份</Radio.Button>
             <Radio.Button value="city">城市</Radio.Button>
           </Radio.Group>
-          <Radio.Group value={rangeType} onChange={(e) => setRangeType(e.target.value)}>
-            <Radio.Button value="today">今日</Radio.Button>
-            <Radio.Button value="all">全量</Radio.Button>
-          </Radio.Group>
         </Space>
         <ReactECharts option={regionOption} style={{ height: 360 }} />
-      </Card>
-
-      <Card title="省份/城市扫码明细">
-        <Row gutter={16} style={{ marginBottom: 12 }}>
-          <Col span={8}>
-            <Input placeholder="搜索省份/城市" value={regionSearch} onChange={(e) => setRegionSearch(e.target.value)} />
-          </Col>
-        </Row>
-        <Table columns={detailColumns} dataSource={detailData} rowKey={(r) => r.name} pagination={{ pageSize: 10 }} />
       </Card>
     </div>
   );
