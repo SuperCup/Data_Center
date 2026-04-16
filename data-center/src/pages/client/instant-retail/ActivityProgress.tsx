@@ -1387,6 +1387,17 @@ const ActivityProgress: React.FC = () => {
     return Array.from(planMap.values());
   }, [filteredActivities]);
 
+  const activityListUpdatedAtText = useMemo(() => {
+    return dayjs().format('YYYY年MM月DD日 HH:mm:ss');
+  }, []);
+
+  const budgetOverviewUpdatedAtText = useMemo(() => {
+    const now = dayjs();
+    const todayAt0800 = now.startOf('day').hour(8).minute(0).second(0);
+    const lastRefresh = now.isBefore(todayAt0800) ? todayAt0800.subtract(1, 'day') : todayAt0800;
+    return lastRefresh.format('YYYY年MM月DD日 HH:mm:ss');
+  }, []);
+
   return (
     <div className="activity-progress-container">
       {/* 页面标题 */}
@@ -1487,7 +1498,17 @@ const ActivityProgress: React.FC = () => {
       </Card>
 
       {/* 汇总信息 - 表单形式 */}
-      <Card style={{ marginBottom: 16 }}>
+      <Card
+        title={
+          <span style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <span>进度概览</span>
+            <Text type="secondary" style={{ fontSize: 12, fontWeight: 400 }}>
+              数据更新时间：{budgetOverviewUpdatedAtText}
+            </Text>
+          </span>
+        }
+        style={{ marginBottom: 16 }}
+      >
         <Row gutter={24}>
           {/* 左侧：预算相关信息 */}
           <Col span={14}>
@@ -1647,15 +1668,20 @@ const ActivityProgress: React.FC = () => {
       {/* 活动表格 */}
       <Card
         title={
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span>活动进度列表</span>
-            <Button
-              icon={<SettingOutlined />}
-              onClick={() => setColumnConfigVisible(true)}
-            >
-              列设置
-            </Button>
-          </div>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <span>活动列表</span>
+            <Text type="secondary" style={{ fontSize: 12, fontWeight: 400 }}>
+              数据更新时间：{activityListUpdatedAtText}
+            </Text>
+          </span>
+        }
+        extra={
+          <Button
+            icon={<SettingOutlined />}
+            onClick={() => setColumnConfigVisible(true)}
+          >
+            列设置
+          </Button>
         }
       >
         <Table
