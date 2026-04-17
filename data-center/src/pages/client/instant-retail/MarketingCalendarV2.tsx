@@ -577,7 +577,7 @@ const MarketingCalendarV2: React.FC = () => {
     <div className="marketing-calendar-v2-container" style={{ width: '100%', minWidth: '0' }}>
       {/* 页面标题 */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-        <Title level={2} style={{ margin: 0 }}>营销日历 V2</Title>
+        <Title level={2} style={{ margin: 0 }}>活动日历 V2</Title>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
           <Text type="secondary" style={{ fontSize: '12px' }}>
             数据更新时间：{dayjs().format('YYYY-MM-DD HH:mm:ss')}

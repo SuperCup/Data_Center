@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Card, Table, DatePicker, Select, Typography, Row, Col, Progress, Button, Drawer, Checkbox, Space, Radio, Modal, Tag } from 'antd';
-import { SettingOutlined, MenuOutlined, LockOutlined } from '@ant-design/icons';
+import { Card, Table, DatePicker, Select, Typography, Row, Col, Progress, Button, Drawer, Checkbox, Space, Radio, Modal, Tag, Input } from 'antd';
+import { SettingOutlined, MenuOutlined, LockOutlined, SearchOutlined, DownloadOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import dayjs, { Dayjs } from 'dayjs';
 
@@ -59,6 +59,10 @@ const ActivityProgress: React.FC = () => {
   // 方案汇总Drawer
   const [planSummaryVisible, setPlanSummaryVisible] = useState(false);
   const [selectedPlanName, setSelectedPlanName] = useState<string>('');
+  // 活动列表筛选
+  const [filterActivityName, setFilterActivityName] = useState<string>('');
+  const [filterMechanismName, setFilterMechanismName] = useState<string>('');
+  const [filterStatus, setFilterStatus] = useState<string>('全部');
   
   // 定义所有可配置的列（除了固定的三个：方案名称、活动名称、机制名称）
   const allConfigurableColumns: ColumnConfig[] = [
@@ -898,6 +902,19 @@ const ActivityProgress: React.FC = () => {
         return false;
       }
       
+      // 活动名称筛选
+      if (filterActivityName.trim() && !activity.activityName.toLowerCase().includes(filterActivityName.trim().toLowerCase())) {
+        return false;
+      }
+      // 机制名称筛选
+      if (filterMechanismName.trim() && !activity.mechanismName.toLowerCase().includes(filterMechanismName.trim().toLowerCase())) {
+        return false;
+      }
+      // 状态筛选
+      if (filterStatus !== '全部' && activity.status !== filterStatus) {
+        return false;
+      }
+
       // 自定义筛选（支持多选）- 需要付费开通
       if (customFilterEnabled && selectedRegions && selectedRegions.length > 0 && activity.region && !selectedRegions.includes(activity.region)) {
         return false;
@@ -926,7 +943,7 @@ const ActivityProgress: React.FC = () => {
       
       return true;
     });
-  }, [allActivities, selectedPlatform, selectedMonth, selectedRegions]);
+  }, [allActivities, selectedPlatform, selectedMonth, selectedRegions, customFilterEnabled, filterActivityName, filterMechanismName, filterStatus]);
 
   // 计算汇总数据
   const summaryData = useMemo(() => {
@@ -996,6 +1013,15 @@ const ActivityProgress: React.FC = () => {
       dataIndex: 'onlineDate',
       key: 'onlineDate',
       width: 140,
+      sorter: (a: ActivityData, b: ActivityData) => {
+        const parseStart = (s: string): number => {
+          const first = (s || '').split('-')[0].trim();
+          const [m, d] = first.split('.');
+          if (!m || !d) return 0;
+          return parseInt(m, 10) * 100 + parseInt(d, 10);
+        };
+        return parseStart(a.onlineDate) - parseStart(b.onlineDate);
+      },
       render: (text: string) => (
         <div style={{ whiteSpace: 'pre-line' }}>{text}</div>
       )
@@ -1387,6 +1413,48 @@ const ActivityProgress: React.FC = () => {
     return Array.from(planMap.values());
   }, [filteredActivities]);
 
+  // 导出活动列表为 Excel（.xls，基于 HTML table，Excel/WPS 均可打开）
+  const handleExportExcel = () => {
+    const sortedConfigs = [...columnConfigs].sort((a, b) => a.order - b.order).filter(c => c.visible);
+    const fixedHeaders: Array<{ key: keyof ActivityData; title: string }> = [
+      { key: 'planName', title: '方案名称' },
+      { key: 'activityName', title: '活动名称' },
+      { key: 'mechanismName', title: '机制名称' },
+    ];
+    const dynamicHeaders = sortedConfigs.map(c => ({ key: c.key as keyof ActivityData, title: c.title }));
+    const headers = [...fixedHeaders, ...dynamicHeaders];
+
+    const formatCell = (key: keyof ActivityData, value: any): string => {
+      if (value === undefined || value === null || value === '') return '';
+      if (typeof value === 'number') {
+        if (key === 'consumptionProgress' || key === 'discountRate' || key === 'activityProgress' || key === 'usedBudgetRatio' || key === 'costRatio') {
+          return `${value.toFixed(2)}%`;
+        }
+        return value.toLocaleString('zh-CN');
+      }
+      return String(value).replace(/\r?\n/g, ' ');
+    };
+
+    const thHtml = headers.map(h =>
+      `<th style="background:#f5f5f5;font-weight:bold;border:1px solid #ccc;padding:6px 10px;">${h.title}</th>`
+    ).join('');
+    const tbodyHtml = filteredActivities.map(row =>
+      `<tr>${headers.map(h => `<td style="border:1px solid #ddd;padding:5px 10px;">${formatCell(h.key, (row as any)[h.key])}</td>`).join('')}</tr>`
+    ).join('');
+
+    const html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+<head><meta charset="UTF-8"/><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>活动列表</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head>
+<body><table><thead><tr>${thHtml}</tr></thead><tbody>${tbodyHtml}</tbody></table></body></html>`;
+
+    const blob = new Blob(['\uFEFF' + html], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `活动列表_${selectedPlatform}_${selectedMonth.format('YYYY年MM月')}.xls`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const activityListUpdatedAtText = useMemo(() => {
     return dayjs().format('YYYY年MM月DD日 HH:mm:ss');
   }, []);
@@ -1676,14 +1744,52 @@ const ActivityProgress: React.FC = () => {
           </span>
         }
         extra={
-          <Button
-            icon={<SettingOutlined />}
-            onClick={() => setColumnConfigVisible(true)}
-          >
-            列设置
-          </Button>
+          <Space>
+            <Button
+              icon={<DownloadOutlined />}
+              onClick={handleExportExcel}
+            >
+              导出 Excel
+            </Button>
+            <Button
+              icon={<SettingOutlined />}
+              onClick={() => setColumnConfigVisible(true)}
+            >
+              列设置
+            </Button>
+          </Space>
         }
       >
+        <div style={{ marginBottom: 12 }}>
+          <Space wrap size={12}>
+            <Input
+              placeholder="活动名称"
+              prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
+              value={filterActivityName}
+              onChange={(e) => setFilterActivityName(e.target.value)}
+              allowClear
+              style={{ width: 200 }}
+            />
+            <Input
+              placeholder="机制名称"
+              prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
+              value={filterMechanismName}
+              onChange={(e) => setFilterMechanismName(e.target.value)}
+              allowClear
+              style={{ width: 200 }}
+            />
+            <Select
+              value={filterStatus}
+              onChange={setFilterStatus}
+              style={{ width: 140 }}
+            >
+              <Option value="全部">全部状态</Option>
+              <Option value="进行中">进行中</Option>
+              <Option value="冻结中">冻结中</Option>
+              <Option value="已结束">已结束</Option>
+            </Select>
+          </Space>
+        </div>
         <Table
           columns={columns}
           dataSource={filteredActivities}
