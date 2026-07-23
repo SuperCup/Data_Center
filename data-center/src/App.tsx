@@ -40,6 +40,13 @@ import CustomService from './pages/client/custom-service/CustomService';
 import FileDelivery from './pages/client/file-delivery/FileDelivery';
 // 数据资产
 import ProductList from './pages/client/data-asset/ProductList';
+// AI 工作台
+import AiWorkbench from './pages/client/ai-workbench/AiWorkbench';
+import AiWorkspaceLayout from './pages/client/ai-workbench/AiWorkspaceLayout';
+import KnowledgeBase from './pages/client/ai-workbench/KnowledgeBase';
+import MemoryManager from './pages/client/ai-workbench/MemoryManager';
+import ArtifactsCenter from './pages/client/ai-workbench/ArtifactsCenter';
+import AttachmentsWarehouse from './pages/client/ai-workbench/AttachmentsWarehouse';
 // 登录页面
 import Login from './pages/auth/Login';
 
@@ -84,6 +91,14 @@ function App() {
           <Route path="custom-service-qr" element={<CustomService />} />
           <Route path="custom-service" element={<CustomService />} />
           <Route path="file-delivery" element={<FileDelivery />} />
+          {/* AI 工作台（与数据看板切换，非融合） */}
+          <Route path="ai" element={<AiWorkspaceLayout />}>
+            <Route index element={<AiWorkbench />} />
+            <Route path="knowledge" element={<KnowledgeBase />} />
+            <Route path="memory" element={<MemoryManager />} />
+            <Route path="artifacts" element={<ArtifactsCenter />} />
+            <Route path="attachments" element={<AttachmentsWarehouse />} />
+          </Route>
           <Route index element={<AllActivities />} />
         </Route>
         {/* 根路径重定向 */}
