@@ -65,7 +65,7 @@ const MemoryManager: React.FC = () => {
               title={
                 <Space>
                   {m.pinned ? (
-                    <PushpinFilled style={{ color: '#1890ff' }} />
+                    <PushpinFilled className="ai-wb-icon-accent" />
                   ) : (
                     <PushpinOutlined />
                   )}

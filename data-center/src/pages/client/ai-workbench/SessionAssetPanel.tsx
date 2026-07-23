@@ -1,9 +1,7 @@
 import React from 'react';
-import { Empty, List, Tabs, Tag, Typography, Button } from 'antd';
+import { Empty, List, Tabs, Tag, Button } from 'antd';
 import { DeleteOutlined, FileOutlined } from '@ant-design/icons';
-import { ArtifactItem, AttachmentItem } from '../../../services/aiMock';
-
-const { Text } = Typography;
+import { ArtifactItem, AttachmentItem, FORMAT_LABEL } from '../../../services/aiMock';
 
 interface Props {
   artifacts: ArtifactItem[];
@@ -42,7 +40,10 @@ const SessionAssetPanel: React.FC<Props> = ({
                       <List.Item.Meta
                         title={
                           <span>
-                            <Tag>{item.type}</Tag> {item.title}
+                            <Tag>
+                              {item.format ? FORMAT_LABEL[item.format] : item.type}
+                            </Tag>{' '}
+                            {item.title}
                           </span>
                         }
                         description={`${item.createdAt} · ${item.summary}`}
@@ -78,7 +79,7 @@ const SessionAssetPanel: React.FC<Props> = ({
                       ]}
                     >
                       <List.Item.Meta
-                        avatar={<FileOutlined style={{ fontSize: 18, color: '#1890ff' }} />}
+                        avatar={<FileOutlined className="ai-wb-icon-accent" style={{ fontSize: 18 }} />}
                         title={item.name}
                         description={`${item.size} · ${item.createdAt}`}
                       />

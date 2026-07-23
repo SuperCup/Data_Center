@@ -16,11 +16,31 @@ export interface ChatAction {
   text?: string;
 }
 
+/** 产物文件格式：以 html / md / xlsx 为主 */
+export type ArtifactFormat = 'html' | 'md' | 'xlsx';
+
+export const FORMAT_LABEL: Record<ArtifactFormat, string> = {
+  html: 'HTML',
+  md: 'Markdown',
+  xlsx: 'Excel',
+};
+
+export interface ArtifactPayload {
+  title: string;
+  type: string;
+  summary: string;
+  format?: ArtifactFormat;
+  /** 可预览/下载的资源路径（如 /reports/xxx.html） */
+  url?: string;
+  /** md 等内联内容 */
+  content?: string;
+}
+
 export interface ChatReply {
   text: string;
   metrics?: { label: string; value: string }[];
   actions?: ChatAction[];
-  artifact?: { title: string; type: string; summary: string };
+  artifact?: ArtifactPayload;
   context?: string[];
 }
 
@@ -39,6 +59,11 @@ export interface SessionItem {
   type: CapabilityType;
   updatedAt: string;
   preview: string;
+  /** 是否已归档 */
+  archived?: boolean;
+  archivedAt?: string;
+  /** 是否置顶 */
+  pinned?: boolean;
 }
 
 export interface ArtifactItem {
@@ -49,6 +74,9 @@ export interface ArtifactItem {
   createdAt: string;
   summary: string;
   sessionId?: string;
+  format?: ArtifactFormat;
+  url?: string;
+  content?: string;
 }
 
 export interface AttachmentItem {
@@ -85,13 +113,51 @@ export const CAPABILITIES: {
   name: string;
   desc: string;
   example: string;
+  /** 选中该服务后展示的可选提示词 */
+  suggestions: string[];
 }[] = [
-  { type: 'query', name: '数据查询', desc: '自然语言查看板指标，返回带口径结果', example: '上周美团闪购 GMV？' },
-  { type: 'diagnose', name: '经营诊断', desc: '定位异常与根因，输出诊断结论', example: '华东核销率为何下滑？' },
-  { type: 'analyze', name: '数据分析', desc: '对比、趋势、结构与机制效果分析', example: '满减档位哪个更好？' },
-  { type: 'action', name: '行动建议', desc: '生成可落地的 P0/P1 动作清单', example: '下周该做什么？' },
-  { type: 'opportunity', name: '商机探索', desc: '渠道×品类机会矩阵与加码方向', example: '暑期冰品怎么加码？' },
-  { type: 'report', name: '报告生成', desc: '汇总指标与建议，生成经营报告', example: '生成即时零售周报' },
+  {
+    type: 'query',
+    name: '数据查询',
+    desc: '自然语言查看板指标，返回带口径结果',
+    example: '上周美团闪购 GMV？',
+    suggestions: ['上周美团闪购 GMV？', '本周核销率是多少？', '淘闪订单量环比？', '华东客单表现？'],
+  },
+  {
+    type: 'diagnose',
+    name: '经营诊断',
+    desc: '定位异常与根因，输出诊断结论',
+    example: '华东核销率为何下滑？',
+    suggestions: ['华东核销率为何下滑？', '补贴率异常怎么诊断？', 'ROI 承压根因？', '缺货对核销的影响？'],
+  },
+  {
+    type: 'analyze',
+    name: '数据分析',
+    desc: '对比、趋势、结构与机制效果分析',
+    example: '满减档位哪个更好？',
+    suggestions: ['满减档位哪个更好？', '渠道 GMV 结构对比', '品类贡献趋势分析', '机制 ROI 对比'],
+  },
+  {
+    type: 'action',
+    name: '行动建议',
+    desc: '生成可落地的 P0/P1 动作清单',
+    example: '下周该做什么？',
+    suggestions: ['下周该做什么？', '输出 P0/P1 动作清单', '预算怎么分配？', '给一版验收指标'],
+  },
+  {
+    type: 'opportunity',
+    name: '商机探索',
+    desc: '渠道×品类机会矩阵与加码方向',
+    example: '暑期冰品怎么加码？',
+    suggestions: ['暑期冰品怎么加码？', '便利店增长机会？', '夜宵时段怎么破圈？', '瓶盖码导流机会'],
+  },
+  {
+    type: 'report',
+    name: '报告生成',
+    desc: '汇总指标与建议，生成经营报告',
+    example: '生成即时零售周报',
+    suggestions: ['生成即时零售周报', '导出舒洁到家看板报告', '生成本周经营摘要 MD', '导出机制效果 Excel'],
+  },
 ];
 
 export const TYPE_LABEL: Record<CapabilityType, string> = {
@@ -120,21 +186,23 @@ const scripts: ChatScript[] = [
     title: '即时零售周报生成',
     userSeed: '帮我生成一份即时零售近一周经营报告。',
     reply: {
-      text: '已汇总看板与口径手册，生成《即时零售周报 · W29》（模拟）：\n\n**报告结构**\n1. 经营总览：GMV ¥1,286 万（+12.4%），核销率 68.2%\n2. 渠道表现：美团闪购贡献突出，饿了么稳健\n3. 风险与机会：华东核销承压；便利店冰品可加码\n4. 下周动作建议：三件落地项（见产出物）\n\n报告已写入产出物中心，可继续导出或追加行动建议章节。',
+      text: '已汇总看板与口径手册，生成《舒洁·到家即时零售 数据看板》报告（模拟）：\n\n**报告结构**\n1. 经营总览：GMV、活动 GMV、补贴率与 ROI\n2. 渠道表现：美团 / 淘闪结构与趋势\n3. 商品分析：产品系列下钻与 Size 明细\n4. 维度排行：渠道 / 零售商 / 省份 / 城市等 TOP10\n\n报告已写入产物（HTML 可预览），可继续导出 Markdown 摘要或 Excel 明细。',
       metrics: [
-        { label: '报告页数', value: '6 页' },
+        { label: '报告格式', value: 'HTML' },
         { label: '覆盖指标', value: '18 项' },
         { label: '动作建议', value: '3 条' },
         { label: '数据截止', value: 'T+1' },
       ],
       actions: [
-        { label: '查看产出物', action: 'artifact', artifactType: '报告' },
+        { label: '预览 HTML 报告', action: 'artifact', artifactType: 'HTML报告' },
         { label: '补充行动建议', action: 'followup', text: '基于这份周报，给出下周可执行的行动建议' },
       ],
       artifact: {
-        title: '即时零售周报 · W29',
-        type: '报告',
-        summary: 'GMV、核销、渠道结构与下周三条动作建议的摘要版。',
+        title: '舒洁·到家即时零售 数据看板',
+        type: 'HTML报告',
+        format: 'html',
+        url: '/reports/舒洁_到家即时零售_数据看板.html',
+        summary: '周维度经营看板：KPI、趋势、商品系列下钻与 TOP10 排行，可点击预览。',
       },
       context: ['即时零售 · 活动进度', '知识库 · 指标口径手册'],
     },
@@ -154,12 +222,15 @@ const scripts: ChatScript[] = [
         { label: '周期', value: '2周' },
       ],
       actions: [
-        { label: '生成商机矩阵', action: 'artifact', artifactType: '图表卡' },
+        { label: '生成商机 Markdown', action: 'artifact', artifactType: 'MD文档' },
         { label: '转成行动建议', action: 'followup', text: '把 Top3 商机落成下周行动建议清单' },
       ],
       artifact: {
-        title: '暑期商机矩阵',
-        type: '图表卡',
+        title: '暑期商机矩阵.md',
+        type: 'MD文档',
+        format: 'md',
+        content:
+          '# 暑期商机矩阵\n\n## Top3\n1. 便利店 × 冰品组合（机会分 92）\n2. 闪购 × 方便面套装\n3. 瓶盖码 × 会员复购\n\n## 建议\n- 第二件半价试投\n- 夜宵时段加投预算 ¥18 万\n',
         summary: '便利店冰品、闪购夜宵套装、瓶盖码会员复购为 Top3 机会。',
       },
       context: ['物码营销 · 用户分析', '知识库 · 投放红线'],
@@ -180,12 +251,15 @@ const scripts: ChatScript[] = [
         { label: '验收周期', value: '7 天' },
       ],
       actions: [
-        { label: '保存为建议卡', action: 'artifact', artifactType: '建议卡' },
+        { label: '保存为 Markdown', action: 'artifact', artifactType: 'MD文档' },
         { label: '生成完整报告', action: 'followup', text: '把诊断、分析和行动建议汇总成一份经营报告' },
       ],
       artifact: {
-        title: '下周行动建议清单',
-        type: '建议卡',
+        title: '下周行动建议清单.md',
+        type: 'MD文档',
+        format: 'md',
+        content:
+          '# 下周行动建议清单\n\n## P0\n1. 华东便利店机制下调至满 25 减 2.5\n2. Top200 缺货门店供给预警\n\n## P1\n3. 闪购夜宵套装试投 ¥18 万\n4. 瓶盖码导流到店券包\n',
         summary: 'P0/P1 四项动作、预算与验收指标。',
       },
       context: ['经营诊断结论', '商机矩阵 Top3'],
@@ -206,12 +280,15 @@ const scripts: ChatScript[] = [
         { label: '主因权重', value: '机制 55%' },
       ],
       actions: [
-        { label: '保存诊断卡', action: 'artifact', artifactType: '建议卡' },
+        { label: '保存诊断 Markdown', action: 'artifact', artifactType: 'MD文档' },
         { label: '要行动建议', action: 'followup', text: '基于诊断结论，给出可落地的行动建议' },
       ],
       artifact: {
-        title: '核销率问题诊断卡',
-        type: '建议卡',
+        title: '核销率问题诊断卡.md',
+        type: 'MD文档',
+        format: 'md',
+        content:
+          '# 核销率问题诊断卡\n\n## 现象\n华东核销率 64.0%，环比 -4.2pp\n\n## 根因\n1. 券门槛偏高（权重 55%）\n2. 周末缺货率 11%\n3. 费用与核销机制未联动\n',
         summary: '门槛偏高 + 缺货是主因，机制因素权重约 55%。',
       },
       context: ['到店营销 · 销售分析', '知识库 · 投放红线'],
@@ -232,12 +309,14 @@ const scripts: ChatScript[] = [
         { label: '平台覆盖', value: '4 个' },
       ],
       actions: [
-        { label: '导出分析表', action: 'artifact', artifactType: '导出文件' },
+        { label: '导出 Excel', action: 'artifact', artifactType: 'Excel' },
         { label: '基于分析给行动建议', action: 'followup', text: '基于满减机制分析，给出行动建议' },
       ],
       artifact: {
-        title: '到店机制效果分析表',
-        type: '导出文件',
+        title: '到店机制效果分析表.xlsx',
+        type: 'Excel',
+        format: 'xlsx',
+        url: '/reports/到店机制效果分析表.xlsx',
         summary: '各满减档位订单、GMV、客单、核销与 ROI 明细。',
       },
       context: ['到店营销 · 销售分析', '知识库 · 指标口径'],
@@ -262,8 +341,11 @@ const scripts: ChatScript[] = [
         { label: '生成周报', action: 'followup', text: '把这些查询结果生成一份周报' },
       ],
       artifact: {
-        title: '美团闪购指标摘录',
-        type: '报告',
+        title: '美团闪购指标摘录.md',
+        type: 'MD文档',
+        format: 'md',
+        content:
+          '# 美团闪购指标摘录\n\n- GMV：¥428 万（环比 +18%）\n- 核销率：71.4%\n- 订单量：9.6 万\n- 华东贡献：39%，核销 74.1%\n',
         summary: '上周 GMV 428 万、核销 71.4%，含华东对比。',
       },
       context: ['即时零售 · 活动进度', '知识库 · 品牌指标口径手册'],
@@ -272,19 +354,68 @@ const scripts: ChatScript[] = [
 ];
 
 export const INITIAL_SESSIONS: SessionItem[] = [
-  { id: 's1', title: '美团闪购 GMV 查询', type: 'query', updatedAt: '今天 10:24', preview: '美团闪购上周 GMV 为 428 万…' },
+  { id: 's1', title: '美团闪购 GMV 查询', type: 'query', updatedAt: '今天 10:24', preview: '美团闪购上周 GMV 为 428 万…', pinned: true },
   { id: 's2', title: '核销率下滑经营诊断', type: 'diagnose', updatedAt: '昨天 16:08', preview: '华东区核销率环比下降 4.2pp…' },
   { id: 's3', title: '满减机制效果分析', type: 'analyze', updatedAt: '昨天 11:20', preview: '满 20 减 2 综合分最优…' },
   { id: 's4', title: '下周行动建议', type: 'action', updatedAt: '昨天 09:40', preview: 'P0 两项 + P1 两项…' },
-  { id: 's5', title: '暑期饮品商机探索', type: 'opportunity', updatedAt: '周一 11:30', preview: '建议加码便利店冰品…' },
-  { id: 's6', title: '即时零售周报生成', type: 'report', updatedAt: '周一 09:00', preview: '已生成 W29 经营报告…' },
+  {
+    id: 's5',
+    title: '暑期饮品商机探索',
+    type: 'opportunity',
+    updatedAt: '周一 11:30',
+    preview: '建议加码便利店冰品…',
+    archived: true,
+    archivedAt: '昨天 18:00',
+  },
+  { id: 's6', title: '即时零售周报生成', type: 'report', updatedAt: '周一 09:00', preview: '已生成舒洁到家看板报告…' },
 ];
 
 export const INITIAL_ARTIFACTS: ArtifactItem[] = [
-  { id: 'a1', title: '即时零售周报 · W29', type: '报告', source: '即时零售周报生成', createdAt: '今天 10:26', summary: 'GMV、订单、核销与渠道结构一周摘要。', sessionId: 's6' },
-  { id: 'a2', title: '核销率问题诊断卡', type: '建议卡', source: '核销率下滑经营诊断', createdAt: '昨天 16:12', summary: '定位华东便利店券门槛偏高。', sessionId: 's2' },
-  { id: 'a3', title: '暑期商机矩阵', type: '图表卡', source: '暑期饮品商机探索', createdAt: '周一 11:35', summary: '渠道 × 品类机会评分 Top3。', sessionId: 's5' },
-  { id: 'a4', title: '到店机制效果导出.xlsx', type: '导出文件', source: '满减机制效果分析', createdAt: '上周', summary: '各满减档位明细。', sessionId: 's3' },
+  {
+    id: 'a1',
+    title: '舒洁·到家即时零售 数据看板',
+    type: 'HTML报告',
+    format: 'html',
+    url: '/reports/舒洁_到家即时零售_数据看板.html',
+    source: '即时零售周报生成',
+    createdAt: '今天 10:26',
+    summary: '周维度经营看板 HTML，可点击预览。',
+    sessionId: 's6',
+  },
+  {
+    id: 'a2',
+    title: '核销率问题诊断卡.md',
+    type: 'MD文档',
+    format: 'md',
+    content:
+      '# 核销率问题诊断卡\n\n## 现象\n华东核销率 64.0%，环比 -4.2pp\n\n## 根因\n1. 券门槛偏高\n2. 周末缺货率 11%\n',
+    source: '核销率下滑经营诊断',
+    createdAt: '昨天 16:12',
+    summary: '定位华东便利店券门槛偏高。',
+    sessionId: 's2',
+  },
+  {
+    id: 'a3',
+    title: '暑期商机矩阵.md',
+    type: 'MD文档',
+    format: 'md',
+    content: '# 暑期商机矩阵\n\nTop3：便利店冰品、闪购夜宵套装、瓶盖码会员复购。\n',
+    source: '暑期饮品商机探索',
+    createdAt: '周一 11:35',
+    summary: '渠道 × 品类机会评分 Top3。',
+    sessionId: 's5',
+  },
+  {
+    id: 'a4',
+    title: '到店机制效果分析表.xlsx',
+    type: 'Excel',
+    format: 'xlsx',
+    url: '/reports/到店机制效果分析表.xlsx',
+    source: '满减机制效果分析',
+    createdAt: '上周',
+    summary: '各满减档位明细（Excel）。',
+    sessionId: 's3',
+  },
 ];
 
 export const INITIAL_ATTACHMENTS: AttachmentItem[] = [

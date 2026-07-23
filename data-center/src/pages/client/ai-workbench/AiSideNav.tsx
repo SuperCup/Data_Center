@@ -5,11 +5,18 @@ import {
   BulbOutlined,
   FileTextOutlined,
   PaperClipOutlined,
+  InboxOutlined,
 } from '@ant-design/icons';
 import { useLocation, useNavigate } from 'react-router-dom';
 import './aiWorkbench.css';
 
-export type AiNavKey = 'chat' | 'knowledge' | 'memory' | 'artifacts' | 'attachments';
+export type AiNavKey =
+  | 'chat'
+  | 'knowledge'
+  | 'memory'
+  | 'artifacts'
+  | 'attachments'
+  | 'archive';
 
 interface Props {
   sessionSlot?: React.ReactNode;
@@ -30,16 +37,14 @@ const AiSideNav: React.FC<Props> = ({ sessionSlot, onNewChat }) => {
           ? 'artifacts'
           : path.endsWith('/attachments')
             ? 'attachments'
-            : 'chat';
+            : path.endsWith('/archive')
+              ? 'archive'
+              : 'chat';
 
   return (
     <aside className="ai-wb-sider">
       <div className="ai-wb-sider-top">
-        <button
-          type="button"
-          className="ai-wb-nav-btn"
-          onClick={() => onNewChat?.()}
-        >
+        <button type="button" className="ai-wb-nav-btn" onClick={() => onNewChat?.()}>
           <PlusOutlined />
           <span className="ai-wb-nav-label">新建会话</span>
         </button>
@@ -74,6 +79,14 @@ const AiSideNav: React.FC<Props> = ({ sessionSlot, onNewChat }) => {
         >
           <PaperClipOutlined />
           <span className="ai-wb-nav-label">附件仓库</span>
+        </button>
+        <button
+          type="button"
+          className={`ai-wb-nav-btn ${active === 'archive' ? 'active' : ''}`}
+          onClick={() => navigate('/client/ai/archive')}
+        >
+          <InboxOutlined />
+          <span className="ai-wb-nav-label">会话归档</span>
         </button>
       </div>
 

@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Avatar, Button, Space, Spin, Typography, message, Tag } from 'antd';
+import { Avatar, Button, Modal, Space, Spin, Typography, message, Tag } from 'antd';
 import {
   RobotOutlined,
   SendOutlined,
@@ -11,6 +11,10 @@ import {
   FormOutlined,
   PaperClipOutlined,
   LinkOutlined,
+  FileExcelOutlined,
+  FileMarkdownOutlined,
+  FileTextOutlined,
+  DownloadOutlined,
 } from '@ant-design/icons';
 import { useLocation, useNavigate } from 'react-router-dom';
 import SessionAssetPanel from './SessionAssetPanel';
@@ -21,9 +25,11 @@ import {
   INITIAL_ARTIFACTS,
   INITIAL_ATTACHMENTS,
   ArtifactItem,
+  ArtifactPayload,
   AttachmentItem,
   CapabilityType,
   ChatReply,
+  FORMAT_LABEL,
   formatReplyText,
   respond,
   scriptByType,
@@ -34,7 +40,7 @@ import {
   MOUNTED_CUSTOM_REPORTS,
 } from '../../../services/customReports';
 
-const { Text } = Typography;
+const { Text, Paragraph } = Typography;
 
 interface Message {
   id: string;
@@ -43,6 +49,7 @@ interface Message {
   reply?: ChatReply;
   attachments?: AttachmentItem[];
   mentions?: CustomReportItem[];
+  capability?: CapabilityType;
 }
 
 interface MentionState {
@@ -57,6 +64,12 @@ const CAP_ICONS: Record<CapabilityType, React.ReactNode> = {
   action: <RocketOutlined />,
   opportunity: <CompassOutlined />,
   report: <FormOutlined />,
+};
+
+const FORMAT_ICON: Record<string, React.ReactNode> = {
+  html: <FileTextOutlined />,
+  md: <FileMarkdownOutlined />,
+  xlsx: <FileExcelOutlined />,
 };
 
 const AGENT_NAME = '即时零售增长Agent';
@@ -74,6 +87,19 @@ function detectMention(value: string, cursor: number): MentionState | null {
   if (!match) return null;
   const atIndex = before.lastIndexOf('@');
   return { start: atIndex, query: match[2] || '' };
+}
+
+function renderMdPreview(content: string) {
+  return content
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/^### (.+)$/gm, '<h4>$1</h4>')
+    .replace(/^## (.+)$/gm, '<h3>$1</h3>')
+    .replace(/^# (.+)$/gm, '<h2>$1</h2>')
+    .replace(/^- (.+)$/gm, '<li>$1</li>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\n/g, '<br/>');
 }
 
 const AiWorkbench: React.FC = () => {
@@ -100,12 +126,19 @@ const AiWorkbench: React.FC = () => {
     { uid: string; name: string; size?: number }[]
   >([]);
   const [pendingMentions, setPendingMentions] = useState<CustomReportItem[]>([]);
+  const [selectedCapability, setSelectedCapability] = useState<CapabilityType | null>(null);
   const [mention, setMention] = useState<MentionState | null>(null);
   const [mentionIndex, setMentionIndex] = useState(0);
+  const [previewArtifact, setPreviewArtifact] = useState<ArtifactItem | null>(null);
 
   const openSessionId = (location.state as { openSessionId?: string } | null)?.openSessionId;
   const resetChat = (location.state as { resetChat?: boolean } | null)?.resetChat;
   const inChat = messages.length > 0 || typing;
+
+  const selectedCapMeta = useMemo(
+    () => CAPABILITIES.find((c) => c.type === selectedCapability) || null,
+    [selectedCapability]
+  );
 
   const mentionOptions = useMemo(() => {
     if (!mention) return [];
@@ -124,6 +157,7 @@ const AiWorkbench: React.FC = () => {
       setMessages([]);
       setPendingFiles([]);
       setPendingMentions([]);
+      setSelectedCapability(null);
       setMention(null);
       setSessionId(null);
       navigate('/client/ai', { replace: true, state: {} });
@@ -142,6 +176,7 @@ const AiWorkbench: React.FC = () => {
     ]);
     setPendingFiles([]);
     setPendingMentions([]);
+    setSelectedCapability(null);
     setMention(null);
     navigate('/client/ai', { replace: true, state: {} });
   }, [openSessionId, sessions, setSessionId, navigate]);
@@ -176,46 +211,70 @@ const AiWorkbench: React.FC = () => {
   );
 
   const ensureArtifact = (
-    art: { title: string; type: string; summary: string },
+    art: ArtifactPayload,
     source: string,
     sid?: string | null
-  ) => {
+  ): ArtifactItem => {
     const targetSession = sid || sessionId;
+    const existing = artifacts.find(
+      (a) => a.title === art.title && a.sessionId === targetSession
+    );
+    if (existing) return existing;
+    const next: ArtifactItem = {
+      id: uid('a'),
+      title: art.title,
+      type: art.type,
+      source,
+      createdAt: '刚刚',
+      summary: art.summary,
+      sessionId: targetSession || undefined,
+      format: art.format,
+      url: art.url,
+      content: art.content,
+    };
     setArtifacts((prev) => {
-      if (prev.some((a) => a.title === art.title && a.sessionId === targetSession)) return prev;
-      return [
-        {
-          id: uid('a'),
-          title: art.title,
-          type: art.type,
-          source,
-          createdAt: '刚刚',
-          summary: art.summary,
-          sessionId: targetSession || undefined,
-        },
-        ...prev,
-      ];
+      if (prev.some((a) => a.title === art.title && a.sessionId === targetSession)) {
+        return prev;
+      }
+      return [next, ...prev];
     });
+    return next;
   };
 
-  const startCapability = async (type: CapabilityType) => {
-    const script = scriptByType(type);
-    const id = uid('s');
-    setSessions((prev) => [
-      {
-        id,
-        title: script.title,
-        type: script.type,
-        updatedAt: '刚刚',
-        preview: script.userSeed,
-      },
-      ...prev,
-    ]);
-    setSessionId(id);
-    setMessages([]);
-    setPendingFiles([]);
-    setPendingMentions([]);
-    await sendMessage(script.userSeed, id);
+  const openArtifactPreview = (art: ArtifactItem | ArtifactPayload, source?: string) => {
+    const item =
+      'id' in art
+        ? (art as ArtifactItem)
+        : ensureArtifact(art, source || activeSession?.title || '当前会话', sessionId);
+    setPreviewArtifact(item);
+  };
+
+  const selectCapability = (type: CapabilityType) => {
+    setSelectedCapability(type);
+    setMention(null);
+    requestAnimationFrame(() => textareaRef.current?.focus());
+  };
+
+  const clearCapability = () => setSelectedCapability(null);
+
+  const removeMention = (id: string) => {
+    setPendingMentions((prev) => prev.filter((x) => x.id !== id));
+  };
+
+  const removeLastChip = () => {
+    if (pendingFiles.length > 0) {
+      setPendingFiles((prev) => prev.slice(0, -1));
+      return true;
+    }
+    if (pendingMentions.length > 0) {
+      setPendingMentions((prev) => prev.slice(0, -1));
+      return true;
+    }
+    if (selectedCapability) {
+      setSelectedCapability(null);
+      return true;
+    }
+    return false;
   };
 
   const consumePendingAttachments = (sid: string, sessionTitle: string) => {
@@ -238,23 +297,23 @@ const AiWorkbench: React.FC = () => {
     setMention(detectMention(value, cursor));
   };
 
+  /** @报表选中后以输入框内 chip 展示，不在文本中残留 @名 */
   const applyMention = (report: CustomReportItem) => {
     if (!mention) return;
     const el = textareaRef.current;
     const cursor = el?.selectionStart ?? input.length;
     const before = input.slice(0, mention.start);
     const after = input.slice(cursor);
-    const token = `@${report.name} `;
-    const next = `${before}${token}${after}`;
-    setInput(next);
+    const next = `${before}${after}`.replace(/\s{2,}/g, ' ');
+    setInput(next.trimStart());
     setPendingMentions((prev) =>
       prev.some((m) => m.id === report.id) ? prev : [...prev, report]
     );
     setMention(null);
     requestAnimationFrame(() => {
-      const pos = before.length + token.length;
       if (textareaRef.current) {
         textareaRef.current.focus();
+        const pos = before.length;
         textareaRef.current.setSelectionRange(pos, pos);
       }
     });
@@ -262,11 +321,18 @@ const AiWorkbench: React.FC = () => {
 
   const sendMessage = async (raw?: string, forceSessionId?: string) => {
     const content = (raw ?? input).trim();
-    if ((!content && pendingFiles.length === 0 && pendingMentions.length === 0) || typing) {
+    if (
+      (!content &&
+        pendingFiles.length === 0 &&
+        pendingMentions.length === 0 &&
+        !selectedCapability) ||
+      typing
+    ) {
       return;
     }
 
     let sid = forceSessionId || sessionId;
+    const capLabel = selectedCapMeta?.name;
     const mentionHint =
       pendingMentions.length > 0
         ? `（引用定制报表：${pendingMentions.map((m) => m.name).join('、')}）`
@@ -275,7 +341,9 @@ const AiWorkbench: React.FC = () => {
       content ||
       (pendingMentions.length
         ? `请基于引用的定制报表进行分析${mentionHint}`
-        : `已上传 ${pendingFiles.length} 个附件，请结合附件分析。`);
+        : selectedCapability
+          ? scriptByType(selectedCapability).userSeed
+          : `已上传 ${pendingFiles.length} 个附件，请结合附件分析。`);
 
     if (!sid) {
       sid = uid('s');
@@ -283,7 +351,7 @@ const AiWorkbench: React.FC = () => {
         {
           id: sid!,
           title: displayText.slice(0, 18),
-          type: 'query',
+          type: selectedCapability || 'query',
           updatedAt: '刚刚',
           preview: displayText,
         },
@@ -296,9 +364,11 @@ const AiWorkbench: React.FC = () => {
       sessions.find((s) => s.id === sid)?.title || displayText.slice(0, 18);
     const uploaded = consumePendingAttachments(sid!, sessionTitle);
     const usedMentions = [...pendingMentions];
+    const usedCap = selectedCapability;
 
     setInput('');
     setPendingMentions([]);
+    setSelectedCapability(null);
     setMention(null);
     setMessages((prev) => [
       ...prev,
@@ -308,18 +378,22 @@ const AiWorkbench: React.FC = () => {
         text: displayText,
         attachments: uploaded.length ? uploaded : undefined,
         mentions: usedMentions.length ? usedMentions : undefined,
+        capability: usedCap || undefined,
       },
     ]);
     setTyping(true);
 
     try {
-      const prompt =
-        usedMentions.length > 0
-          ? `${displayText}\n\n[定制报表上下文]\n${usedMentions
-              .map((m) => `- ${m.name}（${m.category}）：${m.description}`)
-              .join('\n')}`
-          : displayText;
-      const { script, reply } = await respond(prompt);
+      const promptParts = [displayText];
+      if (capLabel) promptParts.push(`[服务能力] ${capLabel}`);
+      if (usedMentions.length > 0) {
+        promptParts.push(
+          `[定制报表上下文]\n${usedMentions
+            .map((m) => `- ${m.name}（${m.category}）：${m.description}`)
+            .join('\n')}`
+        );
+      }
+      const { script, reply } = await respond(promptParts.join('\n\n'));
       setMessages((prev) => [...prev, { id: uid('m'), role: 'assistant', reply }]);
       setSessions((prev) =>
         prev.map((s) =>
@@ -327,7 +401,7 @@ const AiWorkbench: React.FC = () => {
             ? {
                 ...s,
                 title: script.title,
-                type: script.type,
+                type: usedCap || script.type,
                 updatedAt: '刚刚',
                 preview: displayText,
               }
@@ -346,12 +420,16 @@ const AiWorkbench: React.FC = () => {
     } else if (action.action === 'artifact') {
       const last = [...messages].reverse().find((m) => m.role === 'assistant');
       if (last?.reply?.artifact) {
-        ensureArtifact(
-          { ...last.reply.artifact, type: action.artifactType || last.reply.artifact.type },
+        const item = ensureArtifact(
+          {
+            ...last.reply.artifact,
+            type: action.artifactType || last.reply.artifact.type,
+          },
           activeSession?.title || '当前会话',
           sessionId
         );
-        message.success('已写入本会话产物');
+        openArtifactPreview(item);
+        message.success('已写入本会话产物，可预览');
       }
     } else if (action.action === 'goto' && action.target) {
       const map: Record<string, string> = {
@@ -399,10 +477,44 @@ const AiWorkbench: React.FC = () => {
       }
     }
 
+    if (e.key === 'Backspace') {
+      const el = e.currentTarget;
+      const atStart = (el.selectionStart ?? 0) === 0 && (el.selectionEnd ?? 0) === 0;
+      if (atStart && !input) {
+        if (removeLastChip()) {
+          e.preventDefault();
+          return;
+        }
+      }
+    }
+
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       sendMessage();
     }
+  };
+
+  const downloadMd = (art: ArtifactItem) => {
+    const blob = new Blob([art.content || art.summary], {
+      type: 'text/markdown;charset=utf-8',
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = art.title.endsWith('.md') ? art.title : `${art.title}.md`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const downloadXlsxStub = (art: ArtifactItem) => {
+    const csv = `指标,数值\n标题,${art.title}\n摘要,${art.summary}\n来源,${art.source}\n`;
+    const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = art.title.replace(/\.xlsx$/i, '') + '.csv';
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   const renderAssistant = (reply: ChatReply) => (
@@ -422,10 +534,16 @@ const AiWorkbench: React.FC = () => {
         <div
           className="ai-wb-artifact"
           onClick={() =>
-            ensureArtifact(reply.artifact!, activeSession?.title || '当前会话', sessionId)
+            openArtifactPreview(reply.artifact!, activeSession?.title || '当前会话')
           }
         >
-          <Text style={{ color: '#2563eb', fontSize: 12 }}>{reply.artifact.type}</Text>
+          <Text style={{ color: 'var(--ai-ink)', fontSize: 12 }}>
+            {FORMAT_ICON[reply.artifact.format || ''] || null}{' '}
+            {reply.artifact.format
+              ? FORMAT_LABEL[reply.artifact.format]
+              : reply.artifact.type}
+            <span style={{ marginLeft: 6, color: 'var(--ai-muted, #8b919a)' }}>点击预览</span>
+          </Text>
           <div style={{ fontWeight: 560, marginTop: 2 }}>{reply.artifact.title}</div>
         </div>
       )}
@@ -441,33 +559,56 @@ const AiWorkbench: React.FC = () => {
     </div>
   );
 
+  const hasInlineChips =
+    !!selectedCapability || pendingMentions.length > 0 || pendingFiles.length > 0;
+
   const composerBox = (
     <div className="ai-wb-composer">
-      {(pendingFiles.length > 0 || pendingMentions.length > 0) && (
-        <div className="ai-wb-pending-files">
+      {hasInlineChips && (
+        <div className="ai-wb-composer-chips">
+          {selectedCapability && selectedCapMeta && (
+            <span className="ai-wb-inline-chip capability">
+              {CAP_ICONS[selectedCapability]}
+              <span>{selectedCapMeta.name}</span>
+              <button
+                type="button"
+                className="ai-wb-inline-chip-x"
+                aria-label="移除服务"
+                onClick={clearCapability}
+              >
+                ×
+              </button>
+            </span>
+          )}
           {pendingMentions.map((m) => (
-            <Tag
-              key={m.id}
-              closable
-              color="blue"
-              onClose={() => {
-                setPendingMentions((prev) => prev.filter((x) => x.id !== m.id));
-                setInput((prev) => prev.replace(new RegExp(`@${m.name}\\s?`, 'g'), ''));
-              }}
-              icon={<LinkOutlined />}
-            >
-              {m.name}
-            </Tag>
+            <span className="ai-wb-inline-chip mention" key={m.id}>
+              <LinkOutlined />
+              <span>{m.name}</span>
+              <button
+                type="button"
+                className="ai-wb-inline-chip-x"
+                aria-label="移除报表"
+                onClick={() => removeMention(m.id)}
+              >
+                ×
+              </button>
+            </span>
           ))}
           {pendingFiles.map((f) => (
-            <Tag
-              key={f.uid}
-              closable
-              onClose={() => setPendingFiles((prev) => prev.filter((x) => x.uid !== f.uid))}
-              icon={<PaperClipOutlined />}
-            >
-              {f.name}
-            </Tag>
+            <span className="ai-wb-inline-chip file" key={f.uid}>
+              <PaperClipOutlined />
+              <span>{f.name}</span>
+              <button
+                type="button"
+                className="ai-wb-inline-chip-x"
+                aria-label="移除附件"
+                onClick={() =>
+                  setPendingFiles((prev) => prev.filter((x) => x.uid !== f.uid))
+                }
+              >
+                ×
+              </button>
+            </span>
           ))}
         </div>
       )}
@@ -519,7 +660,11 @@ const AiWorkbench: React.FC = () => {
               syncInputMention(el.value, el.selectionStart ?? el.value.length);
             }
           }}
-          placeholder="今天想了解什么？输入 @ 引用专属定制报表…"
+          placeholder={
+            selectedCapability
+              ? '输入问题，或点击上方提示词…'
+              : '今天想了解什么？输入 @ 引用专属定制报表…'
+          }
           rows={3}
           onKeyDown={onComposerKeyDown}
         />
@@ -567,7 +712,10 @@ const AiWorkbench: React.FC = () => {
           className="ai-wb-send"
           disabled={
             typing ||
-            (!input.trim() && pendingFiles.length === 0 && pendingMentions.length === 0)
+            (!input.trim() &&
+              pendingFiles.length === 0 &&
+              pendingMentions.length === 0 &&
+              !selectedCapability)
           }
           onClick={() => sendMessage()}
           title="发送"
@@ -578,26 +726,121 @@ const AiWorkbench: React.FC = () => {
     </div>
   );
 
+  const skillRow = (
+    <div className={`ai-wb-skills ${inChat ? 'in-chat' : ''}`}>
+      {!selectedCapability &&
+        CAPABILITIES.map((c) => (
+          <button
+            key={c.type}
+            type="button"
+            className="ai-wb-skill"
+            onClick={() => selectCapability(c.type)}
+          >
+            {CAP_ICONS[c.type]}
+            {c.name}
+          </button>
+        ))}
+    </div>
+  );
+
+  const suggestionRow =
+    selectedCapability && selectedCapMeta ? (
+      <div className="ai-wb-prompt-suggestions">
+        {selectedCapMeta.suggestions.map((s) => (
+          <button
+            key={s}
+            type="button"
+            className="ai-wb-prompt-chip"
+            onClick={() => {
+              setInput(s);
+              requestAnimationFrame(() => textareaRef.current?.focus());
+            }}
+          >
+            {s}
+            <span className="ai-wb-prompt-arrow">↘</span>
+          </button>
+        ))}
+      </div>
+    ) : null;
+
+  const previewModal = (
+    <Modal
+      open={!!previewArtifact}
+      title={previewArtifact?.title}
+      onCancel={() => setPreviewArtifact(null)}
+      width={previewArtifact?.format === 'html' ? '90vw' : 720}
+      style={{ top: 24 }}
+      styles={{ body: { padding: 0, height: previewArtifact?.format === 'html' ? '75vh' : 'auto' } }}
+      footer={
+        previewArtifact?.format === 'md' ? (
+          <Button
+            icon={<DownloadOutlined />}
+            onClick={() => previewArtifact && downloadMd(previewArtifact)}
+          >
+            下载 Markdown
+          </Button>
+        ) : previewArtifact?.format === 'xlsx' ? (
+          <Button
+            icon={<DownloadOutlined />}
+            onClick={() => previewArtifact && downloadXlsxStub(previewArtifact)}
+          >
+            下载 CSV（模拟 Excel）
+          </Button>
+        ) : previewArtifact?.format === 'html' && previewArtifact.url ? (
+          <Button
+            type="primary"
+            href={previewArtifact.url}
+            target="_blank"
+            rel="noreferrer"
+          >
+            新窗口打开
+          </Button>
+        ) : null
+      }
+      destroyOnClose
+    >
+      {previewArtifact?.format === 'html' && previewArtifact.url ? (
+        <iframe
+          title={previewArtifact.title}
+          src={previewArtifact.url}
+          style={{ width: '100%', height: '75vh', border: 'none' }}
+        />
+      ) : previewArtifact?.format === 'md' ? (
+        <div
+          className="ai-wb-md-preview"
+          dangerouslySetInnerHTML={{
+            __html: renderMdPreview(previewArtifact.content || previewArtifact.summary),
+          }}
+        />
+      ) : previewArtifact?.format === 'xlsx' ? (
+        <div style={{ padding: 24 }}>
+          <Paragraph>
+            <FileExcelOutlined style={{ color: '#217346', marginRight: 8 }} />
+            Excel 产物：{previewArtifact.title}
+          </Paragraph>
+          <Paragraph type="secondary">{previewArtifact.summary}</Paragraph>
+          <Paragraph type="secondary" style={{ fontSize: 12 }}>
+            当前为模拟产物，可下载 CSV 样例查看字段结构。
+          </Paragraph>
+        </div>
+      ) : (
+        <div style={{ padding: 24 }}>
+          <Paragraph>{previewArtifact?.summary}</Paragraph>
+        </div>
+      )}
+    </Modal>
+  );
+
   if (!inChat) {
     return (
       <div className="ai-wb-main-scroll">
         <div className="ai-wb-hero">
           <h1 className="ai-wb-brand">{AGENT_NAME}</h1>
-          <div className="ai-wb-skills">
-            {CAPABILITIES.map((c) => (
-              <button
-                key={c.type}
-                type="button"
-                className="ai-wb-skill"
-                onClick={() => startCapability(c.type)}
-              >
-                {CAP_ICONS[c.type]}
-                {c.name}
-              </button>
-            ))}
-          </div>
+          {skillRow}
+          {suggestionRow}
           <div className="ai-wb-composer-wrap">{composerBox}</div>
         </div>
+        {previewModal}
       </div>
     );
   }
@@ -619,10 +862,15 @@ const AiWorkbench: React.FC = () => {
                 </Avatar>
                 <div className="ai-wb-bubble">
                   {m.text}
-                  {m.mentions && m.mentions.length > 0 && (
+                  {(m.capability || (m.mentions && m.mentions.length > 0)) && (
                     <div className="ai-wb-msg-files">
-                      {m.mentions.map((r) => (
-                        <Tag key={r.id} color="blue" icon={<LinkOutlined />}>
+                      {m.capability && (
+                        <Tag color="default" icon={CAP_ICONS[m.capability]}>
+                          {CAPABILITIES.find((c) => c.type === m.capability)?.name}
+                        </Tag>
+                      )}
+                      {m.mentions?.map((r) => (
+                        <Tag key={r.id} icon={<LinkOutlined />}>
                           {r.name}
                         </Tag>
                       ))}
@@ -656,19 +904,6 @@ const AiWorkbench: React.FC = () => {
           )}
         </div>
         <div className="ai-wb-chat-composer">
-          <Space wrap style={{ marginBottom: 8 }}>
-            {CAPABILITIES.map((c) => (
-              <button
-                key={c.type}
-                type="button"
-                className="ai-wb-skill"
-                onClick={() => setInput(scriptByType(c.type).userSeed)}
-              >
-                {CAP_ICONS[c.type]}
-                {c.name}
-              </button>
-            ))}
-          </Space>
           {composerBox}
         </div>
       </div>
@@ -681,8 +916,10 @@ const AiWorkbench: React.FC = () => {
           onRemoveAttachment={(id) =>
             setAttachments((prev) => prev.filter((a) => a.id !== id))
           }
+          onOpenArtifact={(item) => openArtifactPreview(item)}
         />
       </aside>
+      {previewModal}
     </div>
   );
 };
