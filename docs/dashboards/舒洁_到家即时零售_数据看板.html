@@ -1,0 +1,1359 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>舒洁·到家即时零售 数据看板</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.4.3/echarts.min.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif;
+       background: #f4f6fa; color: #2c3e50; font-size: 14px; }
+.container { max-width: 1800px; margin: 0 auto; padding: 16px; }
+
+/* 顶部品牌头 */
+.brand-header { background: linear-gradient(135deg, #0066b3 0%, #00a0e9 100%);
+                color: #fff; padding: 22px 28px; border-radius: 10px; margin-bottom: 14px;
+                box-shadow: 0 6px 18px rgba(0,102,179,0.25); display: flex;
+                justify-content: space-between; align-items: center; }
+.brand-header h1 { font-size: 24px; margin-bottom: 6px; font-weight: 700; }
+.brand-header .meta { font-size: 12px; opacity: 0.9; }
+.brand-header .period-tag { background: rgba(255,255,255,0.25); padding: 8px 16px;
+                            border-radius: 16px; font-size: 13px; font-weight: 600; }
+
+/* 数据声明条（柔和措辞） */
+.data-note { background: #f0f7ff; border: 1px solid #cce4ff; padding: 8px 14px;
+             border-radius: 6px; margin-bottom: 14px; font-size: 12px; color: #1a5276;
+             display: flex; align-items: center; gap: 8px; }
+.data-note::before { content: "i"; display: inline-block; width: 16px; height: 16px;
+                      background: #0066b3; color: #fff; border-radius: 50%; text-align: center;
+                      line-height: 16px; font-weight: 700; font-size: 11px; }
+
+/* 控制条 */
+.controls { display: flex; gap: 12px; flex-wrap: wrap; align-items: center;
+            background: #fff; padding: 12px 18px; border-radius: 8px; margin-bottom: 14px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+.controls label { font-weight: 600; color: #34495e; font-size: 13px; }
+.controls .btn-group { display: flex; gap: 4px; }
+.controls button { padding: 6px 14px; border: 1px solid #dce4ec;
+                   border-radius: 4px; background: #fff; cursor: pointer; font-size: 13px; color: #555; }
+.controls button.active { background: #0066b3; color: #fff; border-color: #0066b3; }
+.controls .spacer { flex: 1; }
+.controls .download-btn { background: #27ae60; color: #fff; border-color: #27ae60;
+                          padding: 6px 16px; }
+.controls .update-info { font-size: 11px; color: #95a5a6; }
+.controls .divider { width: 1px; height: 24px; background: #dce4ec; margin: 0 4px; }
+
+/* 产品系列下钻 */
+.drill-panel { margin-top: 14px; padding: 14px; background: #f8f9fb; border-radius: 8px;
+               border: 1px solid #dce4ec; display: none; }
+.drill-panel.show { display: block; }
+.drill-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.drill-header h3 { font-size: 14px; color: #2c3e50; font-weight: 600; }
+.drill-close { margin-left: auto; padding: 4px 10px; border: 1px solid #dce4ec;
+               border-radius: 4px; background: #fff; cursor: pointer; font-size: 12px; color: #7f8c8d; }
+.series-row { cursor: pointer; }
+.series-row:hover { background: #e8f4fd !important; }
+.series-row.active { background: #d6ebfa !important; }
+.sub-hint { font-size: 11px; color: #95a5a6; font-weight: 400; margin-left: 8px; }
+.growth-cell { font-size: 11px; white-space: nowrap; }
+
+/* 模块 */
+.module { background: #fff; padding: 18px 20px; border-radius: 10px; margin-bottom: 14px;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+.module-title { display: flex; align-items: center; gap: 10px; margin-bottom: 14px;
+                padding-bottom: 10px; border-bottom: 2px solid #ecf0f1; }
+.module-title h2 { font-size: 17px; color: #2c3e50; font-weight: 700; }
+.module-title .icon { width: 6px; height: 22px; background: #0066b3; border-radius: 3px; }
+.module-title .sub { font-size: 12px; color: #95a5a6; margin-left: auto; }
+
+/* KPI卡片 */
+.kpi-grid { display: grid; grid-template-columns: repeat(5, 1fr);
+            gap: 12px; margin-bottom: 6px; }
+.kpi-card { background: #fff; padding: 14px 16px; border-radius: 8px;
+            border-left: 4px solid #0066b3; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
+.kpi-card .label { font-size: 12px; color: #7f8c8d; margin-bottom: 6px; cursor: help; position: relative; }
+.kpi-card .label:hover::after { content: attr(data-desc); position: absolute; left: 0; top: 100%;
+                                 background: #2c3e50; color: #fff; padding: 4px 8px; border-radius: 4px;
+                                 font-size: 10px; white-space: nowrap; z-index: 10; margin-top: 4px; }
+.kpi-card .value { font-size: 22px; font-weight: 700; color: #2c3e50; }
+.kpi-card .sub { font-size: 11px; color: #95a5a6; margin-top: 6px; line-height: 1.5; }
+.kpi-card.up { border-left-color: #e74c3c; }
+.kpi-card.up .sub { color: #e74c3c; }
+.kpi-card.down { border-left-color: #27ae60; }
+.kpi-card.down .sub { color: #27ae60; }
+.kpi-card.warn { border-left-color: #f39c12; }
+.growth-tag { display: inline-block; padding: 2px 6px; border-radius: 3px;
+              font-size: 11px; font-weight: 600; margin-left: 4px; }
+.growth-tag.up { background: #fdecec; color: #e74c3c; }
+.growth-tag.down { background: #e8f5e9; color: #27ae60; }
+.growth-tag.flat { background: #f4f6f7; color: #7f8c8d; }
+
+/* 图表 */
+.chart { width: 100%; height: 320px; }
+.chart.tall { height: 400px; }
+.chart.short { height: 260px; }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+/* TOP10表格 */
+.top-table { width: 100%; border-collapse: collapse; font-size: 12px; table-layout: auto; }
+.top-table th, .top-table td { padding: 7px 10px; border-bottom: 1px solid #ecf0f1; }
+.top-table th { background: #f8f9fb; color: #2c3e50; font-weight: 600; position: sticky; top: 0; text-align: center; }
+.top-table td { text-align: center; }
+.top-table .plat-cell { text-align: center; }
+.top-table .num-cell { text-align: right; }
+.top-table tr:hover { background: #f8f9fb; }
+.top-table .rank { width: 40px; text-align: center; font-weight: 700; color: #0066b3; }
+.top-table .rank.top1 { color: #e74c3c; font-size: 14px; }
+.top-table .rank.top2 { color: #f39c12; font-size: 13px; }
+.top-table .rank.top3 { color: #16a085; font-size: 13px; }
+.top-table .num { font-family: 'Consolas', monospace; }
+.top-table .plat-tag { display: inline-block; padding: 1px 6px; border-radius: 3px;
+                       font-size: 10px; font-weight: 600; color: #fff; }
+.table-container { max-height: 460px; overflow-y: auto; border: 1px solid #ecf0f1; border-radius: 6px; }
+.table-title { font-size: 14px; color: #2c3e50; font-weight: 600; margin: 18px 0 8px;
+               padding-left: 8px; border-left: 3px solid #0066b3; }
+
+/* 三栏行动建议 */
+.action-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+.action-col { background: #f8f9fb; border-radius: 8px; padding: 14px; border-top: 3px solid #0066b3; }
+.action-col.analysis { border-top-color: #f39c12; }
+.action-col.action { border-top-color: #27ae60; }
+.action-col h3 { font-size: 14px; color: #2c3e50; margin-bottom: 10px;
+                 font-weight: 700; padding-bottom: 6px; border-bottom: 1px solid #ecf0f1; }
+.action-col .item { padding: 10px 0; border-bottom: 1px dashed #ecf0f1; font-size: 12px;
+                    color: #5d6d7e; line-height: 1.6; }
+.action-col .item:last-child { border-bottom: none; }
+.action-col .item strong { color: #2c3e50; display: block; margin-bottom: 4px; }
+
+/* 下载弹窗 */
+.modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                 background: rgba(0,0,0,0.4); z-index: 9999; }
+.modal-overlay.show { display: block; }
+.modal { background: #fff; border-radius: 8px; padding: 24px; max-width: 480px;
+         margin: 80px auto; box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
+.modal h3 { font-size: 18px; color: #2c3e50; margin-bottom: 16px; }
+.modal .form-group { margin-bottom: 14px; }
+.modal label { display: block; font-size: 12px; color: #7f8c8d; margin-bottom: 6px; font-weight: 600; }
+.modal select, .modal input { width: 100%; padding: 8px 10px; border: 1px solid #dce4ec;
+                              border-radius: 4px; font-size: 13px; }
+.modal .btn-row { display: flex; gap: 10px; justify-content: flex-end; margin-top: 18px; }
+.modal button { padding: 8px 18px; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; }
+.modal .btn-cancel { background: #ecf0f1; color: #555; }
+.modal .btn-confirm { background: #27ae60; color: #fff; }
+
+/* 自定义类型 */
+.type-config-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
+.type-card { padding: 10px 12px; border-radius: 6px; background: #f8f9fb;
+             border-left: 3px solid; display: flex; justify-content: space-between; align-items: center; }
+.type-card .info { font-size: 12px; }
+.type-card .info .name { font-weight: 700; color: #2c3e50; }
+.type-card .info .desc { color: #7f8c8d; font-size: 11px; margin-top: 2px; }
+.toggle { width: 36px; height: 18px; background: #ccc; border-radius: 10px;
+          position: relative; cursor: pointer; }
+.toggle.on { background: #27ae60; }
+.toggle::after { content: ''; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px;
+                 background: #fff; border-radius: 50%; transition: left 0.2s; }
+.toggle.on::after { left: 20px; }
+
+footer { text-align: center; padding: 18px; color: #95a5a6; font-size: 12px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="brand-header">
+    <div>
+      <h1>舒洁 Kleenex · 到家即时零售 数据看板</h1>
+      <div class="meta">服务品牌：舒洁（Kleenex） ｜ 平台：美团 + 淘宝闪购（淘闪） ｜ 更新时间：<span id="updateTime"></span> ｜ 数据周期：按日更新周维度报表</div>
+    </div>
+    <div class="period-tag" id="periodTag">本周 7/14-7/20</div>
+  </div>
+
+  <div class="data-note">
+    <span id="dataNote"></span>
+  </div>
+
+  <div class="controls">
+    <label>时间筛选：</label>
+    <div class="btn-group" id="periodGroup">
+      <button id="period-W" class="active" data-period="W">本周</button>
+      <button id="period-PW" data-period="PW">上周</button>
+      <button id="period-PY" data-period="PY">去年同周</button>
+    </div>
+    <div class="divider"></div>
+    <label>平台筛选：</label>
+    <div class="btn-group">
+      <button id="plat-all" class="active">合计</button>
+      <button id="plat-mt">美团</button>
+      <button id="plat-ts">淘闪</button>
+    </div>
+    <div class="spacer"></div>
+    <span class="update-info" id="compareNote">环比口径：本周 vs 上周 ｜ 同比口径：本周 vs 去年同周</span>
+    <button class="download-btn" id="downloadBtn">⬇ 下载原数据</button>
+  </div>
+
+  <!-- ===== 模块1: 生意大盘 ===== -->
+  <div class="module">
+    <div class="module-title">
+      <div class="icon"></div>
+      <h2>生意大盘</h2>
+      <span class="sub">核心指标总览</span>
+    </div>
+    <div id="kpiGrid" class="kpi-grid"></div>
+  </div>
+
+  <!-- ===== 模块2: 分析报告 ===== -->
+  <div class="module">
+    <div class="module-title">
+      <div class="icon" style="background:#27ae60;"></div>
+      <h2>分析报告</h2>
+      <span class="sub">结论 · 分析 · 下一阶段行动建议</span>
+    </div>
+    <div class="action-grid" id="actionGrid"></div>
+  </div>
+
+  <!-- ===== 模块3: 生意趋势 ===== -->
+  <div class="module">
+    <div class="module-title">
+      <div class="icon"></div>
+      <h2>生意趋势</h2>
+      <span class="sub">核心指标日趋势 · 同环比</span>
+    </div>
+    <div id="trendChart" class="chart tall"></div>
+  </div>
+
+  <!-- ===== 模块4: 渠道生意 ===== -->
+  <div class="module">
+    <div class="module-title">
+      <div class="icon" style="background:#FF6A00;"></div>
+      <h2>渠道生意</h2>
+      <span class="sub">各渠道GMV分布 · 按平台堆叠</span>
+    </div>
+    <div id="channelChart" class="chart"></div>
+  </div>
+
+  <!-- ===== 模块4: 商品分析 ===== -->
+  <div class="module">
+    <div class="module-title">
+      <div class="icon"></div>
+      <h2>商品分析</h2>
+      <span class="sub">产品系列下钻 · 商品结构 · 品类贡献 · UPC TOP10 · 子品牌 TOP10</span>
+    </div>
+
+    <div class="table-title">产品系列 <span class="sub-hint">点击系列下钻查看 SKU 明细（含 Size）</span></div>
+    <div class="table-container" style="max-height:220px;margin-bottom:14px;">
+      <table class="top-table" id="seriesTable"></table>
+    </div>
+    <div class="drill-panel" id="seriesDrillPanel">
+      <div class="drill-header">
+        <h3 id="drillTitle">系列明细</h3>
+        <button class="drill-close" id="drillClose">关闭下钻</button>
+      </div>
+      <div class="table-container" style="max-height:360px;">
+        <table class="top-table" id="seriesDrillTable"></table>
+      </div>
+    </div>
+
+    <div class="row2" style="margin-bottom:14px;">
+      <div>
+        <h3 style="font-size:14px;color:#2c3e50;margin-bottom:8px;">商品结构矩阵（品类×系列 SKU数）</h3>
+        <div id="productStructChart" class="chart short"></div>
+      </div>
+      <div>
+        <h3 style="font-size:14px;color:#2c3e50;margin-bottom:8px;">品类 GMV 贡献占比</h3>
+        <div id="categoryPieChart" class="chart short"></div>
+      </div>
+    </div>
+
+    <div class="table-title">UPC TOP10</div>
+    <div class="table-container">
+      <table class="top-table" id="upcTable"></table>
+    </div>
+
+    <div class="table-title">子品牌 TOP10</div>
+    <div class="table-container">
+      <table class="top-table" id="subBrandTable"></table>
+    </div>
+  </div>
+
+  <!-- ===== 模块5: 维度排行 TOP10 ===== -->
+  <div class="module">
+    <div class="module-title">
+      <div class="icon"></div>
+      <h2>维度排行 TOP10</h2>
+      <span class="sub">渠道 / 零售商 / 省份 / 城市 / 券类型 / 活动机制</span>
+    </div>
+
+    <div class="table-title">渠道 TOP10</div>
+    <div class="table-container"><table class="top-table" id="channelTable"></table></div>
+
+    <div class="table-title">零售商 TOP10</div>
+    <div class="table-container"><table class="top-table" id="retailTable"></table></div>
+
+    <div class="table-title">省份 TOP10</div>
+    <div class="table-container"><table class="top-table" id="provinceTable"></table></div>
+
+    <div class="table-title">城市 TOP10</div>
+    <div class="table-container"><table class="top-table" id="cityTable"></table></div>
+
+    <div class="table-title">券类型 TOP10</div>
+    <div class="table-container"><table class="top-table" id="couponTable"></table></div>
+
+    <div class="table-title">活动机制 TOP10</div>
+    <div class="table-container"><table class="top-table" id="mechanismTable"></table></div>
+  </div>
+
+  <footer>
+    舒洁·到家即时零售数据看板 ｜ 周期：周维度（按日更新） ｜ 维度：UPC/渠道/零售商/省份/城市/券类型/活动机制/子品牌/品类/产品系列
+  </footer>
+</div>
+
+<!-- 下载原数据弹窗 -->
+<div class="modal-overlay" id="downloadModal">
+  <div class="modal">
+    <h3>下载原数据</h3>
+    <div class="form-group">
+      <label>选择平台</label>
+      <select id="dlPlat">
+        <option value="all">全部平台</option>
+        <option value="美团闪购">美团</option>
+        <option value="饿了么">淘闪</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>选择时间范围</label>
+      <select id="dlPeriod">
+        <option value="W">本周（2026-07-14 ~ 2026-07-20）</option>
+        <option value="PW">上周（2026-07-07 ~ 2026-07-13）</option>
+        <option value="PY">去年同周（2025-07-15 ~ 2025-07-21）</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>选择维度（可多选）</label>
+      <select id="dlDims" multiple size="5" style="height:130px;">
+        <option value="overview" selected>平台汇总</option>
+        <option value="upc" selected>UPC明细</option>
+        <option value="channel" selected>渠道明细</option>
+        <option value="retail" selected>零售商明细</option>
+        <option value="province" selected>省份明细</option>
+        <option value="city" selected>城市明细</option>
+        <option value="coupon" selected>券类型明细</option>
+        <option value="mechanism" selected>活动机制明细</option>
+        <option value="subbrand" selected>子品牌明细</option>
+      </select>
+    </div>
+    <div class="btn-row">
+      <button class="btn-cancel" id="dlCancel">取消</button>
+      <button class="btn-confirm" id="dlConfirm">下载CSV</button>
+    </div>
+  </div>
+</div>
+
+<script>
+var DASHBOARD = {"meta": {"brand": "舒洁", "brand_en": "Kleenex", "platforms": [{"plat": "美团闪购", "label": "美团", "color": "#FFC300"}, {"plat": "饿了么", "label": "淘闪", "color": "#FF6A00"}], "periods": {"W": {"label": "本周", "start": "2026-07-14", "end": "2026-07-20", "days": 7}, "PW": {"label": "上周", "start": "2026-07-07", "end": "2026-07-13", "days": 7}, "PY": {"label": "去年同周", "start": "2025-07-15", "end": "2025-07-21", "days": 7}}, "data_source_note": "数据为舒洁品牌接入前的合理推测预览，正式接入后将替换为实际数据"}, "products": [{"upc": "6970000000001", "name": "舒洁软抽面巾纸 3层130抽", "sub_brand": "经典", "series": "面巾纸", "class_system": "面巾纸", "model": "JY-RT-130", "price": 9.9}, {"upc": "6970000000002", "name": "舒洁软抽面巾纸 3层150抽", "sub_brand": "经典", "series": "面巾纸", "class_system": "面巾纸", "model": "JY-RT-150", "price": 12.9}, {"upc": "6970000000003", "name": "舒洁盒抽面巾纸 3层130抽", "sub_brand": "经典", "series": "面巾纸", "class_system": "面巾纸", "model": "JY-BC-130", "price": 11.9}, {"upc": "6970000000004", "name": "舒洁荷包纸 10片装", "sub_brand": "经典", "series": "面巾纸", "class_system": "面巾纸", "model": "JY-PK-10", "price": 4.5}, {"upc": "6970000000005", "name": "舒洁柔软系列软抽 3层150抽", "sub_brand": "柔软", "series": "面巾纸", "class_system": "面巾纸", "model": "SR-RT-150", "price": 15.9}, {"upc": "6970000000006", "name": "舒洁海洋系列软抽 3层130抽", "sub_brand": "海洋", "series": "面巾纸", "class_system": "面巾纸", "model": "OC-RT-130", "price": 13.9}, {"upc": "6970000000007", "name": "舒洁柔软盒抽 3层200抽", "sub_brand": "柔软", "series": "面巾纸", "class_system": "面巾纸", "model": "SR-BC-200", "price": 18.9}, {"upc": "6970000000010", "name": "舒洁卫生卷纸 4卷/提", "sub_brand": "经典", "series": "卫生纸", "class_system": "卫生纸", "model": "JY-TP-4", "price": 14.9}, {"upc": "6970000000011", "name": "舒洁卫生卷纸 10卷/提", "sub_brand": "经典", "series": "卫生纸", "class_system": "卫生纸", "model": "JY-TP-10", "price": 29.9}, {"upc": "6970000000012", "name": "舒洁卫生卷纸 12卷/提", "sub_brand": "经典", "series": "卫生纸", "class_system": "卫生纸", "model": "JY-TP-12", "price": 34.9}, {"upc": "6970000000013", "name": "舒洁实芯卷纸 6卷/提", "sub_brand": "经典", "series": "卫生纸", "class_system": "卫生纸", "model": "JY-CS-6", "price": 19.9}, {"upc": "6970000000014", "name": "舒洁柔软卷纸 10卷/提", "sub_brand": "柔软", "series": "卫生纸", "class_system": "卫生纸", "model": "SR-TP-10", "price": 32.9}, {"upc": "6970000000015", "name": "舒洁海洋卷纸 10卷/提", "sub_brand": "海洋", "series": "卫生纸", "class_system": "卫生纸", "model": "OC-TP-10", "price": 31.9}, {"upc": "6970000000020", "name": "舒洁婴儿柔湿巾 80抽", "sub_brand": "婴儿", "series": "湿巾", "class_system": "湿巾", "model": "BB-WW-80", "price": 19.9}, {"upc": "6970000000021", "name": "舒洁婴儿柔湿巾 120抽", "sub_brand": "婴儿", "series": "湿巾", "class_system": "湿巾", "model": "BB-WW-120", "price": 25.9}, {"upc": "6970000000022", "name": "舒洁厨房专用湿巾 60抽", "sub_brand": "厨房", "series": "湿巾", "class_system": "湿巾", "model": "KT-WW-60", "price": 22.9}, {"upc": "6970000000023", "name": "舒洁厨房专用湿巾 80抽", "sub_brand": "厨房", "series": "湿巾", "class_system": "湿巾", "model": "KT-WW-80", "price": 28.9}, {"upc": "6970000000024", "name": "舒洁抑菌湿巾 80抽", "sub_brand": "经典", "series": "湿巾", "class_system": "湿巾", "model": "JY-AB-80", "price": 18.9}, {"upc": "6970000000025", "name": "舒洁便携湿巾 10片装", "sub_brand": "经典", "series": "湿巾", "class_system": "湿巾", "model": "JY-PW-10", "price": 5.9}, {"upc": "6970000000030", "name": "舒洁擦手纸 200抽", "sub_brand": "商用", "series": "商用纸品", "class_system": "商用纸品", "model": "CM-HT-200", "price": 39.9}, {"upc": "6970000000031", "name": "舒洁大卷纸 2层200g", "sub_brand": "商用", "series": "商用纸品", "class_system": "商用纸品", "model": "CM-RC-200", "price": 32.9}, {"upc": "6970000000032", "name": "舒洁商用擦手纸 400抽", "sub_brand": "商用", "series": "商用纸品", "class_system": "商用纸品", "model": "CM-HT-400", "price": 59.9}], "product_structure": [{"class_system": "面巾纸", "sub_brand": "经典", "sku_cnt": 4, "upc_list": ["6970000000001", "6970000000002", "6970000000003", "6970000000004"], "product_names": ["舒洁软抽面巾纸 3层130抽", "舒洁软抽面巾纸 3层150抽", "舒洁盒抽面巾纸 3层130抽", "舒洁荷包纸 10片装"]}, {"class_system": "面巾纸", "sub_brand": "海洋", "sku_cnt": 1, "upc_list": ["6970000000006"], "product_names": ["舒洁海洋系列软抽 3层130抽"]}, {"class_system": "面巾纸", "sub_brand": "柔软", "sku_cnt": 2, "upc_list": ["6970000000005", "6970000000007"], "product_names": ["舒洁柔软系列软抽 3层150抽", "舒洁柔软盒抽 3层200抽"]}, {"class_system": "卫生纸", "sub_brand": "经典", "sku_cnt": 4, "upc_list": ["6970000000010", "6970000000011", "6970000000012", "6970000000013"], "product_names": ["舒洁卫生卷纸 4卷/提", "舒洁卫生卷纸 10卷/提", "舒洁卫生卷纸 12卷/提", "舒洁实芯卷纸 6卷/提"]}, {"class_system": "卫生纸", "sub_brand": "海洋", "sku_cnt": 1, "upc_list": ["6970000000015"], "product_names": ["舒洁海洋卷纸 10卷/提"]}, {"class_system": "卫生纸", "sub_brand": "柔软", "sku_cnt": 1, "upc_list": ["6970000000014"], "product_names": ["舒洁柔软卷纸 10卷/提"]}, {"class_system": "湿巾", "sub_brand": "厨房", "sku_cnt": 2, "upc_list": ["6970000000022", "6970000000023"], "product_names": ["舒洁厨房专用湿巾 60抽", "舒洁厨房专用湿巾 80抽"]}, {"class_system": "湿巾", "sub_brand": "经典", "sku_cnt": 2, "upc_list": ["6970000000024", "6970000000025"], "product_names": ["舒洁抑菌湿巾 80抽", "舒洁便携湿巾 10片装"]}, {"class_system": "湿巾", "sub_brand": "婴儿", "sku_cnt": 2, "upc_list": ["6970000000020", "6970000000021"], "product_names": ["舒洁婴儿柔湿巾 80抽", "舒洁婴儿柔湿巾 120抽"]}, {"class_system": "商用纸品", "sub_brand": "商用", "sku_cnt": 3, "upc_list": ["6970000000030", "6970000000031", "6970000000032"], "product_names": ["舒洁擦手纸 200抽", "舒洁大卷纸 2层200g", "舒洁商用擦手纸 400抽"]}], "overview": {"W": {"by_plat": [{"qlgmv": 2241029.71, "hdgmv": 1232566.34, "activity_gmv": 1232566.34, "bt": 225770.03, "bt_tax": 239316.23, "subsidy_rate": 0.1832, "roi": 5.1504, "sku": 38, "retail_cnt": 1248, "channel_cnt": 10, "area_cnt": 7, "prov_cnt": 31, "city_cnt": 339, "days": 7, "order_cnt": 8592, "store_cnt": 28054, "campaign_cnt": 93, "mech_cnt": 63, "min_dt": "2026-07-14", "max_dt": "2026-07-20", "plat": "美团闪购", "plat_label": "美团", "qlgmv_share": 0.602310663136243}, {"qlgmv": 1479690.92, "hdgmv": 917408.37, "activity_gmv": 917408.37, "bt": 200266.6, "bt_tax": 212282.59, "subsidy_rate": 0.2183, "roi": 4.3216, "sku": 42, "retail_cnt": 311, "channel_cnt": 12, "area_cnt": 9, "prov_cnt": 31, "city_cnt": 344, "days": 7, "order_cnt": 5531, "store_cnt": 20075, "campaign_cnt": 82, "mech_cnt": 66, "min_dt": "2026-07-14", "max_dt": "2026-07-20", "plat": "饿了么", "plat_label": "淘闪", "qlgmv_share": 0.39768933686375696}], "total": {"qlgmv": 3720720.63, "hdgmv": 2149974.71, "activity_gmv": 2149974.71, "bt": 426036.63, "bt_tax": 451598.82, "subsidy_rate": 0.19815890299472408, "roi": 4.760806748786456, "sku": 80, "retail_cnt": 1559, "channel_cnt": 12, "area_cnt": 9, "prov_cnt": 31, "city_cnt": 344, "days": 7, "order_cnt": 14123, "store_cnt": 48129, "campaign_cnt": 175, "mech_cnt": 129, "min_dt": "2026-07-14", "max_dt": "2026-07-20", "growth": {"qlgmv_vs_pw_pct": 1.5700898444390063, "qlgmv_vs_py_pct": -3.3548509744974413, "activity_gmv_vs_pw_pct": 1.566236397109389, "activity_gmv_vs_py_pct": -3.435722838490455, "bt_tax_vs_pw_pct": 8.44492051045801, "bt_tax_vs_py_pct": -3.360127499910543, "subsidy_rate_vs_pw_pp": 1.2569266500780774, "subsidy_rate_vs_py_pp": 0.015500889338637691, "roi_vs_pw_pct": -6.343021029449941, "roi_vs_py_pct": -0.07822375653469904}}}, "PW": {"by_plat": [{"qlgmv": 2205240.06, "hdgmv": 1212882.03, "activity_gmv": 1212882.03, "bt": 203119.58, "bt_tax": 215306.76, "subsidy_rate": 0.1675, "roi": 5.6333, "sku": 38, "retail_cnt": 1354, "channel_cnt": 10, "area_cnt": 7, "prov_cnt": 31, "city_cnt": 352, "days": 7, "order_cnt": 8261, "store_cnt": 29969, "campaign_cnt": 78, "mech_cnt": 65, "min_dt": "2026-07-07", "max_dt": "2026-07-13", "plat": "美团闪购", "plat_label": "美团", "qlgmv_share": 0.6019974443035678}, {"qlgmv": 1457964.96, "hdgmv": 903938.27, "activity_gmv": 903938.27, "bt": 189740.33, "bt_tax": 201124.75, "subsidy_rate": 0.2099, "roi": 4.4944, "sku": 39, "retail_cnt": 310, "channel_cnt": 12, "area_cnt": 9, "prov_cnt": 31, "city_cnt": 356, "days": 7, "order_cnt": 5328, "store_cnt": 20726, "campaign_cnt": 83, "mech_cnt": 58, "min_dt": "2026-07-07", "max_dt": "2026-07-13", "plat": "饿了么", "plat_label": "淘闪", "qlgmv_share": 0.39800255569643217}], "total": {"qlgmv": 3663205.02, "hdgmv": 2116820.3, "activity_gmv": 2116820.3, "bt": 392859.91, "bt_tax": 416431.51, "subsidy_rate": 0.1855896364939433, "roi": 5.08323757729092, "sku": 77, "retail_cnt": 1664, "channel_cnt": 12, "area_cnt": 9, "prov_cnt": 31, "city_cnt": 356, "days": 7, "order_cnt": 13589, "store_cnt": 50695, "campaign_cnt": 161, "mech_cnt": 123, "min_dt": "2026-07-07", "max_dt": "2026-07-13"}}, "PY": {"by_plat": [{"qlgmv": 2292207.2, "hdgmv": 1260713.96, "activity_gmv": 1260713.96, "bt": 237067.69, "bt_tax": 251291.75, "subsidy_rate": 0.188, "roi": 5.0169, "sku": 41, "retail_cnt": 1432, "channel_cnt": 10, "area_cnt": 7, "prov_cnt": 31, "city_cnt": 343, "days": 7, "order_cnt": 9475, "store_cnt": 25527, "campaign_cnt": 94, "mech_cnt": 61, "min_dt": "2025-07-15", "max_dt": "2025-07-21", "plat": "美团闪购", "plat_label": "美团", "qlgmv_share": 0.5953973127010344}, {"qlgmv": 1557671.11, "hdgmv": 965756.09, "activity_gmv": 965756.09, "bt": 203782.05, "bt_tax": 216008.97, "subsidy_rate": 0.211, "roi": 4.4709, "sku": 41, "retail_cnt": 304, "channel_cnt": 12, "area_cnt": 9, "prov_cnt": 31, "city_cnt": 355, "days": 7, "order_cnt": 5145, "store_cnt": 20738, "campaign_cnt": 71, "mech_cnt": 57, "min_dt": "2025-07-15", "max_dt": "2025-07-21", "plat": "饿了么", "plat_label": "淘闪", "qlgmv_share": 0.40460268729896554}], "total": {"qlgmv": 3849878.3100000005, "hdgmv": 2226470.05, "activity_gmv": 2226470.05, "bt": 440849.74, "bt_tax": 467300.72, "subsidy_rate": 0.1980038941013377, "roi": 4.76453374606399, "sku": 82, "retail_cnt": 1736, "channel_cnt": 12, "area_cnt": 9, "prov_cnt": 31, "city_cnt": 355, "days": 7, "order_cnt": 14620, "store_cnt": 46265, "campaign_cnt": 165, "mech_cnt": 118, "min_dt": "2025-07-15", "max_dt": "2025-07-21"}}}, "daily_trend": {"W": [{"dt": "2026-07-14", "plat": "美团闪购", "plat_label": "美团", "qlgmv": 282420.14, "hdgmv": 155331.08, "bt": 27400.95, "sku": 40, "retail_cnt": 1211, "order_cnt": 7144}, {"dt": "2026-07-14", "plat": "饿了么", "plat_label": "淘闪", "qlgmv": 192839.81, "hdgmv": 119560.69, "bt": 23877.94, "sku": 43, "retail_cnt": 1131, "order_cnt": 5096}, {"dt": "2026-07-15", "plat": "美团闪购", "plat_label": "美团", "qlgmv": 289436.42, "hdgmv": 159190.03, "bt": 31266.33, "sku": 45, "retail_cnt": 266, "order_cnt": 6666}, {"dt": "2026-07-15", "plat": "饿了么", "plat_label": "淘闪", "qlgmv": 194472.72, "hdgmv": 120573.09, "bt": 23651.0, "sku": 31, "retail_cnt": 1254, "order_cnt": 5248}, {"dt": "2026-07-16", "plat": "美团闪购", "plat_label": "美团", "qlgmv": 331876.57, "hdgmv": 182532.11, "bt": 39545.75, "sku": 45, "retail_cnt": 453, "order_cnt": 9401}, {"dt": "2026-07-16", "plat": "饿了么", "plat_label": "淘闪", "qlgmv": 196567.54, "hdgmv": 121871.88, "bt": 19456.74, "sku": 32, "retail_cnt": 1224, "order_cnt": 5075}, {"dt": "2026-07-17", "plat": "美团闪购", "plat_label": "美团", "qlgmv": 345837.27, "hdgmv": 190210.5, "bt": 36534.78, "sku": 41, "retail_cnt": 408, "order_cnt": 8329}, {"dt": "2026-07-17", "plat": "饿了么", "plat_label": "淘闪", "qlgmv": 220064.9, "hdgmv": 136440.24, "bt": 26057.65, "sku": 39, "retail_cnt": 587, "order_cnt": 5815}, {"dt": "2026-07-18", "plat": "美团闪购", "plat_label": "美团", "qlgmv": 409605.67, "hdgmv": 225283.12, "bt": 45219.42, "sku": 44, "retail_cnt": 898, "order_cnt": 9173}, {"dt": "2026-07-18", "plat": "饿了么", "plat_label": "淘闪", "qlgmv": 250761.56, "hdgmv": 155472.17, "bt": 23663.5, "sku": 41, "retail_cnt": 1328, "order_cnt": 6051}, {"dt": "2026-07-19", "plat": "美团闪购", "plat_label": "美团", "qlgmv": 366197.22, "hdgmv": 201408.47, "bt": 38200.3, "sku": 50, "retail_cnt": 400, "order_cnt": 9372}, {"dt": "2026-07-19", "plat": "饿了么", "plat_label": "淘闪", "qlgmv": 250695.91, "hdgmv": 155431.46, "bt": 27439.43, "sku": 46, "retail_cnt": 1465, "order_cnt": 6777}, {"dt": "2026-07-20", "plat": "美团闪购", "plat_label": "美团", "qlgmv": 273206.44, "hdgmv": 150263.54, "bt": 26320.33, "sku": 34, "retail_cnt": 1013, "order_cnt": 7171}, {"dt": "2026-07-20", "plat": "饿了么", "plat_label": "淘闪", "qlgmv": 181372.55, "hdgmv": 112450.98, "bt": 17687.32, "sku": 37, "retail_cnt": 927, "order_cnt": 4058}]}, "by_upc": {"W": [{"plat": "美团闪购", "plat_label": "美团", "upc": "6970000000001", "product_name": "舒洁软抽面巾纸 3层130抽", "sub_brand": "经典", "series": "面巾纸", "class_system": "面巾纸", "model": "JY-RT-130", "price": 9.9, "qlgmv": 287961.37, "hdgmv": 158378.75, "bt": 32032.35, "sl": 29087, "retail_cnt": 78}, {"plat": "饿了么", "plat_label": "淘闪", "upc": "6970000000001", "product_name": "舒洁软抽面巾纸 3层130抽", "sub_brand": "经典", "series": "面巾纸", "class_system": "面巾纸", "model": "JY-RT-130", "price": 9.9, "qlgmv": 224969.37, "hdgmv": 139481.01, "bt": 29568.26, "sl": 22724, "retail_cnt": 70}, {"plat": "美团闪购", "plat_label": "美团", "upc": "6970000000002", "product_name": "舒洁软抽面巾纸 3层150抽", "sub_brand": "经典", "series": "面巾纸", "class_system": "面巾纸", "model": "JY-RT-150", "price": 12.9, "qlgmv": 255067.03, "hdgmv": 140286.87, "bt": 29087.31, "sl": 19772, "retail_cnt": 210}, {"plat": "饿了么", "plat_label": "淘闪", "upc": "6970000000002", "product_name": "舒洁软抽面巾纸 3层150抽", "sub_brand": "经典", "series": "面巾纸", "class_system": "面巾纸", "model": "JY-RT-150", "price": 12.9, "qlgmv": 139495.07, "hdgmv": 86486.94, "bt": 17094.94, "sl": 10813, "retail_cnt": 81}, {"plat": "美团闪购", "plat_label": "美团", "upc": "6970000000003", "product_name": "舒洁盒抽面巾纸 3层130抽", "sub_brand": "经典", "series": "面巾纸", "class_system": "面巾纸", "model": "JY-BC-130", "price": 11.9, "qlgmv": 187851.33, "hdgmv": 103318.23, "bt": 19027.4, "sl": 15785, "retail_cnt": 234}, {"plat": "饿了么", "plat_label": "淘闪", "upc": "6970000000003", "product_name": "舒洁盒抽面巾纸 3层130抽", "sub_brand": "经典", "series": "面巾纸", "class_system": "面巾纸", "model": "JY-BC-130", "price": 11.9, "qlgmv": 127798.36, "hdgmv": 79234.98, "bt": 12164.58, "sl": 10739, "retail_cnt": 116}, {"plat": "美团闪购", "plat_label": "美团", "upc": "6970000000004", "product_name": "舒洁荷包纸 10片装", "sub_brand": "经典", "series": "面巾纸", "class_system": "面巾纸", "model": "JY-PK-10", "price": 4.5, "qlgmv": 159687.39, "hdgmv": 87828.07, "bt": 18514.39, "sl": 35486, "retail_cnt": 60}, {"plat": "饿了么", "plat_label": "淘闪", "upc": "6970000000004", "product_name": "舒洁荷包纸 10片装", "sub_brand": "经典", "series": "面巾纸", "class_system": "面巾纸", "model": "JY-PK-10", "price": 4.5, "qlgmv": 116506.08, "hdgmv": 72233.77, "bt": 14492.45, "sl": 25890, "retail_cnt": 402}, {"plat": "美团闪购", "plat_label": "美团", "upc": "6970000000005", "product_name": "舒洁柔软系列软抽 3层150抽", "sub_brand": "柔软", "series": "面巾纸", "class_system": "面巾纸", "model": "SR-RT-150", "price": 15.9, "qlgmv": 163462.37, "hdgmv": 89904.3, "bt": 14989.48, "sl": 10280, "retail_cnt": 150}, {"plat": "饿了么", "plat_label": "淘闪", "upc": "6970000000005", "product_name": "舒洁柔软系列软抽 3层150抽", "sub_brand": "柔软", "series": "面巾纸", "class_system": "面巾纸", "model": "SR-RT-150", "price": 15.9, "qlgmv": 73274.89, "hdgmv": 45430.43, "bt": 7579.39, "sl": 4608, "retail_cnt": 462}, {"plat": "美团闪购", "plat_label": "美团", "upc": "6970000000006", "product_name": "舒洁海洋系列软抽 3层130抽", "sub_brand": "海洋", "series": "面巾纸", "class_system": "面巾纸", "model": "OC-RT-130", "price": 13.9, "qlgmv": 125970.9, "hdgmv": 69283.99, "bt": 14429.63, "sl": 9062, "retail_cnt": 219}, {"plat": "饿了么", "plat_label": "淘闪", "upc": "6970000000006", "product_name": "舒洁海洋系列软抽 3层130抽", "sub_brand": "海洋", "series": "面巾纸", "class_system": "面巾纸", "model": "OC-RT-130", "price": 13.9, "qlgmv": 91038.26, "hdgmv": 56443.72, "bt": 11118.2, "sl": 6549, "retail_cnt": 170}, {"plat": "美团闪购", "plat_label": "美团", "upc": "6970000000007", "product_name": "舒洁柔软盒抽 3层200抽", "sub_brand": "柔软", "series": "面巾纸", "class_system": "面巾纸", "model": "SR-BC-200", "price": 18.9, "qlgmv": 136886.26, "hdgmv": 75287.44, "bt": 11614.3, "sl": 7242, "retail_cnt": 301}, {"plat": "饿了么", "plat_label": "淘闪", "upc": "6970000000007", "product_name": "舒洁柔软盒抽 3层200抽", "sub_brand": "柔软", "series": "面巾纸", "class_system": "面巾纸", "model": "SR-BC-200", "price": 18.9, "qlgmv": 60394.79, "hdgmv": 37444.77, "bt": 7595.66, "sl": 3195, "retail_cnt": 488}, {"plat": "美团闪购", "plat_label": "美团", "upc": "6970000000010", "product_name": "舒洁卫生卷纸 4卷/提", "sub_brand": "经典", "series": "卫生纸", "class_system": "卫生纸", "model": "JY-TP-4", "price": 14.9, "qlgmv": 99755.88, "hdgmv": 54865.73, "bt": 10248.43, "sl": 6695, "retail_cnt": 114}, {"plat": "饿了么", "plat_label": "淘闪", "upc": "6970000000010", "product_name": "舒洁卫生卷纸 4卷/提", "sub_brand": "经典", "series": "卫生纸", "class_system": "卫生纸", "model": "JY-TP-4", "price": 14.9, "qlgmv": 77797.06, "hdgmv": 48234.18, "bt": 9844.22, "sl": 5221, "retail_cnt": 350}, {"plat": "美团闪购", "plat_label": "美团", "upc": "6970000000011", "product_name": "舒洁卫生卷纸 10卷/提", "sub_brand": "经典", "series": "卫生纸", "class_system": "卫生纸", "model": "JY-TP-10", "price": 29.9, "qlgmv": 89398.03, "hdgmv": 49168.92, "bt": 9472.19, "sl": 2989, "retail_cnt": 355}, {"plat": "饿了么", "plat_label": "淘闪", "upc": "6970000000011", "product_name": "舒洁卫生卷纸 10卷/提", "sub_brand": "经典", "series": "卫生纸", "class_system": "卫生纸", "model": "JY-TP-10", "price": 29.9, "qlgmv": 68426.81, "hdgmv": 42424.62, "bt": 7163.05, "sl": 2288, "retail_cnt": 153}, {"plat": "美团闪购", "plat_label": "美团", "upc": "6970000000012", "product_name": "舒洁卫生卷纸 12卷/提", "sub_brand": "经典", "series": "卫生纸", "class_system": "卫生纸", "model": "JY-TP-12", "price": 34.9, "qlgmv": 82831.15, "hdgmv": 45557.13, "bt": 9080.11, "sl": 2373, "retail_cnt": 125}, {"plat": "饿了么", "plat_label": "淘闪", "upc": "6970000000012", "product_name": "舒洁卫生卷纸 12卷/提", "sub_brand": "经典", "series": "卫生纸", "class_system": "卫生纸", "model": "JY-TP-12", "price": 34.9, "qlgmv": 55265.58, "hdgmv": 34264.66, "bt": 6323.97, "sl": 1583, "retail_cnt": 170}, {"plat": "美团闪购", "plat_label": "美团", "upc": "6970000000013", "product_name": "舒洁实芯卷纸 6卷/提", "sub_brand": "经典", "series": "卫生纸", "class_system": "卫生纸", "model": "JY-CS-6", "price": 19.9, "qlgmv": 71988.43, "hdgmv": 39593.64, "bt": 6459.35, "sl": 3617, "retail_cnt": 395}, {"plat": "饿了么", "plat_label": "淘闪", "upc": "6970000000013", "product_name": "舒洁实芯卷纸 6卷/提", "sub_brand": "经典", "series": "卫生纸", "class_system": "卫生纸", "model": "JY-CS-6", "price": 19.9, "qlgmv": 46380.2, "hdgmv": 28755.72, "bt": 5101.31, "sl": 2330, "retail_cnt": 355}, {"plat": "美团闪购", "plat_label": "美团", "upc": "6970000000014", "product_name": "舒洁柔软卷纸 10卷/提", "sub_brand": "柔软", "series": "卫生纸", "class_system": "卫生纸", "model": "SR-TP-10", "price": 32.9, "qlgmv": 75013.18, "hdgmv": 41257.25, "bt": 6637.19, "sl": 2280, "retail_cnt": 326}, {"plat": "饿了么", "plat_label": "淘闪", "upc": "6970000000014", "product_name": "舒洁柔软卷纸 10卷/提", "sub_brand": "柔软", "series": "卫生纸", "class_system": "卫生纸", "model": "SR-TP-10", "price": 32.9, "qlgmv": 35464.2, "hdgmv": 21987.81, "bt": 4555.6, "sl": 1077, "retail_cnt": 139}, {"plat": "美团闪购", "plat_label": "美团", "upc": "6970000000015", "product_name": "舒洁海洋卷纸 10卷/提", "sub_brand": "海洋", "series": "卫生纸", "class_system": "卫生纸", "model": "OC-TP-10", "price": 31.9, "qlgmv": 66352.25, "hdgmv": 36493.74, "bt": 6885.68, "sl": 2080, "retail_cnt": 280}, {"plat": "饿了么", "plat_label": "淘闪", "upc": "6970000000015", "product_name": "舒洁海洋卷纸 10卷/提", "sub_brand": "海洋", "series": "卫生纸", "class_system": "卫生纸", "model": "OC-TP-10", "price": 31.9, "qlgmv": 32288.27, "hdgmv": 20018.73, "bt": 3683.84, "sl": 1012, "retail_cnt": 237}, {"plat": "美团闪购", "plat_label": "美团", "upc": "6970000000020", "product_name": "舒洁婴儿柔湿巾 80抽", "sub_brand": "婴儿", "series": "湿巾", "class_system": "湿巾", "model": "BB-WW-80", "price": 19.9, "qlgmv": 52235.59, "hdgmv": 28729.57, "bt": 5230.81, "sl": 2624, "retail_cnt": 73}, {"plat": "饿了么", "plat_label": "淘闪", "upc": "6970000000020", "product_name": "舒洁婴儿柔湿巾 80抽", "sub_brand": "婴儿", "series": "湿巾", "class_system": "湿巾", "model": "BB-WW-80", "price": 19.9, "qlgmv": 34568.07, "hdgmv": 21432.21, "bt": 3664.58, "sl": 1737, "retail_cnt": 322}, {"plat": "美团闪购", "plat_label": "美团", "upc": "6970000000021", "product_name": "舒洁婴儿柔湿巾 120抽", "sub_brand": "婴儿", "series": "湿巾", "class_system": "湿巾", "model": "BB-WW-120", "price": 25.9, "qlgmv": 52740.64, "hdgmv": 29007.35, "bt": 4737.27, "sl": 2036, "retail_cnt": 435}, {"plat": "饿了么", "plat_label": "淘闪", "upc": "6970000000021", "product_name": "舒洁婴儿柔湿巾 120抽", "sub_brand": "婴儿", "series": "湿巾", "class_system": "湿巾", "model": "BB-WW-120", "price": 25.9, "qlgmv": 26171.78, "hdgmv": 16226.51, "bt": 3370.56, "sl": 1010, "retail_cnt": 442}, {"plat": "美团闪购", "plat_label": "美团", "upc": "6970000000022", "product_name": "舒洁厨房专用湿巾 60抽", "sub_brand": "厨房", "series": "湿巾", "class_system": "湿巾", "model": "KT-WW-60", "price": 22.9, "qlgmv": 47210.01, "hdgmv": 25965.51, "bt": 4341.88, "sl": 2061, "retail_cnt": 383}, {"plat": "饿了么", "plat_label": "淘闪", "upc": "6970000000022", "product_name": "舒洁厨房专用湿巾 60抽", "sub_brand": "厨房", "series": "湿巾", "class_system": "湿巾", "model": "KT-WW-60", "price": 22.9, "qlgmv": 23811.17, "hdgmv": 14762.92, "bt": 2993.03, "sl": 1039, "retail_cnt": 298}, {"plat": "美团闪购", "plat_label": "美团", "upc": "6970000000023", "product_name": "舒洁厨房专用湿巾 80抽", "sub_brand": "厨房", "series": "湿巾", "class_system": "湿巾", "model": "KT-WW-80", "price": 28.9, "qlgmv": 43395.47, "hdgmv": 23867.51, "bt": 4893.12, "sl": 1501, "retail_cnt": 278}, {"plat": "饿了么", "plat_label": "淘闪", "upc": "6970000000023", "product_name": "舒洁厨房专用湿巾 80抽", "sub_brand": "厨房", "series": "湿巾", "class_system": "湿巾", "model": "KT-WW-80", "price": 28.9, "qlgmv": 19734.47, "hdgmv": 12235.37, "bt": 2323.65, "sl": 682, "retail_cnt": 261}, {"plat": "美团闪购", "plat_label": "美团", "upc": "6970000000024", "product_name": "舒洁抑菌湿巾 80抽", "sub_brand": "经典", "series": "湿巾", "class_system": "湿巾", "model": "JY-AB-80", "price": 18.9, "qlgmv": 34877.52, "hdgmv": 19182.63, "bt": 4069.56, "sl": 1845, "retail_cnt": 124}, {"plat": "饿了么", "plat_label": "淘闪", "upc": "6970000000024", "product_name": "舒洁抑菌湿巾 80抽", "sub_brand": "经典", "series": "湿巾", "class_system": "湿巾", "model": "JY-AB-80", "price": 18.9, "qlgmv": 24306.8, "hdgmv": 15070.22, "bt": 2709.84, "sl": 1286, "retail_cnt": 337}, {"plat": "美团闪购", "plat_label": "美团", "upc": "6970000000025", "product_name": "舒洁便携湿巾 10片装", "sub_brand": "经典", "series": "湿巾", "class_system": "湿巾", "model": "JY-PW-10", "price": 5.9, "qlgmv": 33612.2, "hdgmv": 18486.71, "bt": 3115.58, "sl": 5696, "retail_cnt": 406}, {"plat": "饿了么", "plat_label": "淘闪", "upc": "6970000000025", "product_name": "舒洁便携湿巾 10片装", "sub_brand": "经典", "series": "湿巾", "class_system": "湿巾", "model": "JY-PW-10", "price": 5.9, "qlgmv": 21626.49, "hdgmv": 13408.43, "bt": 2708.28, "sl": 3665, "retail_cnt": 132}, {"plat": "美团闪购", "plat_label": "美团", "upc": "6970000000030", "product_name": "舒洁擦手纸 200抽", "sub_brand": "商用", "series": "商用纸品", "class_system": "商用纸品", "model": "CM-HT-200", "price": 39.9, "qlgmv": 33840.6, "hdgmv": 18612.33, "bt": 4087.1, "sl": 848, "retail_cnt": 293}, {"plat": "饿了么", "plat_label": "淘闪", "upc": "6970000000030", "product_name": "舒洁擦手纸 200抽", "sub_brand": "商用", "series": "商用纸品", "class_system": "商用纸品", "model": "CM-HT-200", "price": 39.9, "qlgmv": 17452.47, "hdgmv": 10820.53, "bt": 2161.97, "sl": 437, "retail_cnt": 202}, {"plat": "美团闪购", "plat_label": "美团", "upc": "6970000000031", "product_name": "舒洁大卷纸 2层200g", "sub_brand": "商用", "series": "商用纸品", "class_system": "商用纸品", "model": "CM-RC-200", "price": 32.9, "qlgmv": 26273.44, "hdgmv": 14450.39, "bt": 2921.09, "sl": 798, "retail_cnt": 287}, {"plat": "饿了么", "plat_label": "淘闪", "upc": "6970000000031", "product_name": "舒洁大卷纸 2层200g", "sub_brand": "商用", "series": "商用纸品", "class_system": "商用纸品", "model": "CM-RC-200", "price": 32.9, "qlgmv": 21074.02, "hdgmv": 13065.89, "bt": 2629.44, "sl": 640, "retail_cnt": 179}, {"plat": "美团闪购", "plat_label": "美团", "upc": "6970000000032", "product_name": "舒洁商用擦手纸 400抽", "sub_brand": "商用", "series": "商用纸品", "class_system": "商用纸品", "model": "CM-HT-400", "price": 59.9, "qlgmv": 28325.76, "hdgmv": 15579.17, "bt": 2427.86, "sl": 472, "retail_cnt": 90}, {"plat": "饿了么", "plat_label": "淘闪", "upc": "6970000000032", "product_name": "舒洁商用擦手纸 400抽", "sub_brand": "商用", "series": "商用纸品", "class_system": "商用纸品", "model": "CM-HT-400", "price": 59.9, "qlgmv": 15076.07, "hdgmv": 9347.16, "bt": 1447.54, "sl": 251, "retail_cnt": 113}]}, "by_channel": {"W": [{"plat": "美团闪购", "plat_label": "美团", "channel": "大卖场", "channel_type": "KA", "color": "#27ae60", "qlgmv": 627488.32, "hdgmv": 345118.58, "bt": 60651.93, "sku": 44, "retail_cnt": 41}, {"plat": "美团闪购", "plat_label": "美团", "channel": "NKA", "channel_type": "KA", "color": "#2ecc71", "qlgmv": 224102.97, "hdgmv": 123256.63, "bt": 21687.58, "sku": 20, "retail_cnt": 259}, {"plat": "美团闪购", "plat_label": "美团", "channel": "LKA", "channel_type": "KA", "color": "#16a085", "qlgmv": 179282.38, "hdgmv": 98605.31, "bt": 14851.94, "sku": 44, "retail_cnt": 26}, {"plat": "美团闪购", "plat_label": "美团", "channel": "RKA", "channel_type": "KA", "color": "#1abc9c", "qlgmv": 134461.78, "hdgmv": 73953.98, "bt": 13295.21, "sku": 29, "retail_cnt": 695}, {"plat": "美团闪购", "plat_label": "美团", "channel": "TT", "channel_type": "便利店", "color": "#f39c12", "qlgmv": 403385.35, "hdgmv": 221861.94, "bt": 45504.64, "sku": 22, "retail_cnt": 467}, {"plat": "美团闪购", "plat_label": "美团", "channel": "RCVS", "channel_type": "便利店", "color": "#e67e22", "qlgmv": 224102.97, "hdgmv": 123256.63, "bt": 19985.72, "sku": 18, "retail_cnt": 413}, {"plat": "美团闪购", "plat_label": "美团", "channel": "NCVS", "channel_type": "便利店", "color": "#d35400", "qlgmv": 112051.49, "hdgmv": 61628.32, "bt": 9900.2, "sku": 36, "retail_cnt": 207}, {"plat": "美团闪购", "plat_label": "美团", "channel": "前置仓", "channel_type": "前置仓", "color": "#9b59b6", "qlgmv": 179282.38, "hdgmv": 98605.31, "bt": 17438.84, "sku": 35, "retail_cnt": 457}, {"plat": "美团闪购", "plat_label": "美团", "channel": "大润发", "channel_type": "KA", "color": "#8e44ad", "qlgmv": 112051.49, "hdgmv": 61628.32, "bt": 11601.95, "sku": 19, "retail_cnt": 286}, {"plat": "美团闪购", "plat_label": "美团", "channel": "非MT", "channel_type": "其他", "color": "#7f8c8d", "qlgmv": 44820.59, "hdgmv": 24651.33, "bt": 5205.3, "sku": 43, "retail_cnt": 144}, {"plat": "饿了么", "plat_label": "淘闪", "channel": "大卖场", "channel_type": "KA", "color": "#27ae60", "qlgmv": 73984.55, "hdgmv": 45870.42, "bt": 9445.05, "sku": 39, "retail_cnt": 527}, {"plat": "饿了么", "plat_label": "淘闪", "channel": "NKA", "channel_type": "KA", "color": "#2ecc71", "qlgmv": 414313.46, "hdgmv": 256874.34, "bt": 47400.36, "sku": 34, "retail_cnt": 592}, {"plat": "饿了么", "plat_label": "淘闪", "channel": "LKA", "channel_type": "KA", "color": "#16a085", "qlgmv": 147969.09, "hdgmv": 91740.84, "bt": 18489.56, "sku": 44, "retail_cnt": 304}, {"plat": "饿了么", "plat_label": "淘闪", "channel": "RKA", "channel_type": "KA", "color": "#1abc9c", "qlgmv": 73984.55, "hdgmv": 45870.42, "bt": 8363.37, "sku": 20, "retail_cnt": 376}, {"plat": "饿了么", "plat_label": "淘闪", "channel": "TT", "channel_type": "便利店", "color": "#f39c12", "qlgmv": 221953.64, "hdgmv": 137611.26, "bt": 22395.35, "sku": 16, "retail_cnt": 186}, {"plat": "饿了么", "plat_label": "淘闪", "channel": "RCVS", "channel_type": "便利店", "color": "#e67e22", "qlgmv": 118375.27, "hdgmv": 73392.67, "bt": 11625.69, "sku": 39, "retail_cnt": 536}, {"plat": "饿了么", "plat_label": "淘闪", "channel": "NCVS", "channel_type": "便利店", "color": "#d35400", "qlgmv": 59187.64, "hdgmv": 36696.33, "bt": 6517.23, "sku": 17, "retail_cnt": 324}, {"plat": "饿了么", "plat_label": "淘闪", "channel": "前置仓", "channel_type": "前置仓", "color": "#9b59b6", "qlgmv": 44390.73, "hdgmv": 27522.25, "bt": 5096.02, "sku": 36, "retail_cnt": 669}, {"plat": "饿了么", "plat_label": "淘闪", "channel": "大润发", "channel_type": "KA", "color": "#8e44ad", "qlgmv": 295938.18, "hdgmv": 183481.67, "bt": 33702.58, "sku": 44, "retail_cnt": 686}, {"plat": "饿了么", "plat_label": "淘闪", "channel": "非MT", "channel_type": "其他", "color": "#7f8c8d", "qlgmv": 29593.82, "hdgmv": 18348.17, "bt": 3610.82, "sku": 26, "retail_cnt": 594}]}, "by_retail": {"W": [{"plat": "美团闪购", "plat_label": "美团", "retail_clean": "大润发", "channel": "大润发", "area": "华北", "qlgmv": 172134.17, "hdgmv": 94673.79, "bt": 17882.93, "sku": 24, "city_cnt": 31}, {"plat": "美团闪购", "plat_label": "美团", "retail_clean": "朴朴超市", "channel": "前置仓", "area": "华东", "qlgmv": 149461.99, "hdgmv": 82204.09, "bt": 15301.91, "sku": 29, "city_cnt": 23}, {"plat": "美团闪购", "plat_label": "美团", "retail_clean": "大润发", "channel": "NKA", "area": "西南", "qlgmv": 148195.89, "hdgmv": 81507.74, "bt": 15340.51, "sku": 30, "city_cnt": 48}, {"plat": "美团闪购", "plat_label": "美团", "retail_clean": "沃尔玛", "channel": "NKA", "area": "华南", "qlgmv": 148035.01, "hdgmv": 81419.26, "bt": 15189.0, "sku": 13, "city_cnt": 24}, {"plat": "饿了么", "plat_label": "淘闪", "retail_clean": "盒马鲜生", "channel": "RKA", "area": "华北", "qlgmv": 139728.85, "hdgmv": 86631.89, "bt": 17908.73, "sku": 23, "city_cnt": 58}, {"plat": "饿了么", "plat_label": "淘闪", "retail_clean": "家乐福", "channel": "NKA", "area": "西北", "qlgmv": 136964.47, "hdgmv": 84917.97, "bt": 14414.46, "sku": 19, "city_cnt": 25}, {"plat": "美团闪购", "plat_label": "美团", "retail_clean": "朴朴超市", "channel": "RKA", "area": "华北", "qlgmv": 138459.42, "hdgmv": 76152.68, "bt": 13143.91, "sku": 15, "city_cnt": 3}, {"plat": "饿了么", "plat_label": "淘闪", "retail_clean": "沃尔玛", "channel": "大卖场", "area": "华中", "qlgmv": 128114.77, "hdgmv": 79431.16, "bt": 13154.39, "sku": 20, "city_cnt": 7}, {"plat": "饿了么", "plat_label": "淘闪", "retail_clean": "家乐福", "channel": "大卖场", "area": "华中", "qlgmv": 121278.29, "hdgmv": 75192.54, "bt": 12140.88, "sku": 14, "city_cnt": 24}, {"plat": "美团闪购", "plat_label": "美团", "retail_clean": "盒马鲜生", "channel": "RKA", "area": "华东", "qlgmv": 123181.2, "hdgmv": 67749.66, "bt": 14875.58, "sku": 15, "city_cnt": 10}, {"plat": "美团闪购", "plat_label": "美团", "retail_clean": "家乐福", "channel": "大卖场", "area": "西南", "qlgmv": 118209.16, "hdgmv": 65015.04, "bt": 12188.84, "sku": 18, "city_cnt": 47}, {"plat": "饿了么", "plat_label": "淘闪", "retail_clean": "大润发", "channel": "大润发", "area": "西北", "qlgmv": 104178.74, "hdgmv": 64590.82, "bt": 12319.84, "sku": 24, "city_cnt": 10}, {"plat": "饿了么", "plat_label": "淘闪", "retail_clean": "朴朴超市", "channel": "前置仓", "area": "华南", "qlgmv": 99965.93, "hdgmv": 61978.87, "bt": 11631.14, "sku": 18, "city_cnt": 59}, {"plat": "饿了么", "plat_label": "淘闪", "retail_clean": "大润发", "channel": "NKA", "area": "西南", "qlgmv": 84667.69, "hdgmv": 52493.97, "bt": 11303.84, "sku": 26, "city_cnt": 19}, {"plat": "饿了么", "plat_label": "淘闪", "retail_clean": "盒马鲜生", "channel": "前置仓", "area": "华北", "qlgmv": 83697.36, "hdgmv": 51892.36, "bt": 9918.44, "sku": 10, "city_cnt": 11}, {"plat": "美团闪购", "plat_label": "美团", "retail_clean": "便利蜂", "channel": "TT", "area": "东北", "qlgmv": 78288.72, "hdgmv": 43058.79, "bt": 7296.63, "sku": 11, "city_cnt": 43}, {"plat": "美团闪购", "plat_label": "美团", "retail_clean": "美宜佳", "channel": "TT", "area": "华中", "qlgmv": 77680.49, "hdgmv": 42724.27, "bt": 8318.53, "sku": 15, "city_cnt": 52}, {"plat": "饿了么", "plat_label": "淘闪", "retail_clean": "朴朴超市", "channel": "RKA", "area": "华北", "qlgmv": 74191.3, "hdgmv": 45998.61, "bt": 7734.83, "sku": 14, "city_cnt": 21}, {"plat": "饿了么", "plat_label": "淘闪", "retail_clean": "沃尔玛", "channel": "NKA", "area": "西南", "qlgmv": 74168.17, "hdgmv": 45984.26, "bt": 10083.18, "sku": 19, "city_cnt": 49}, {"plat": "美团闪购", "plat_label": "美团", "retail_clean": "飞牛网", "channel": "大润发", "area": "西南", "qlgmv": 77297.55, "hdgmv": 42513.65, "bt": 7877.86, "sku": 31, "city_cnt": 24}, {"plat": "美团闪购", "plat_label": "美团", "retail_clean": "家乐福", "channel": "NKA", "area": "华南", "qlgmv": 75827.98, "hdgmv": 41705.39, "bt": 7845.72, "sku": 11, "city_cnt": 29}, {"plat": "美团闪购", "plat_label": "美团", "retail_clean": "永辉生活", "channel": "LKA", "area": "华东", "qlgmv": 75604.48, "hdgmv": 41582.46, "bt": 8428.47, "sku": 10, "city_cnt": 27}, {"plat": "美团闪购", "plat_label": "美团", "retail_clean": "盒马鲜生", "channel": "前置仓", "area": "东北", "qlgmv": 74941.92, "hdgmv": 41218.06, "bt": 6594.58, "sku": 18, "city_cnt": 42}, {"plat": "美团闪购", "plat_label": "美团", "retail_clean": "美团买菜", "channel": "前置仓", "area": "西北", "qlgmv": 74654.76, "hdgmv": 41060.12, "bt": 9015.87, "sku": 34, "city_cnt": 56}, {"plat": "美团闪购", "plat_label": "美团", "retail_clean": "全家", "channel": "RCVS", "area": "西南", "qlgmv": 72586.77, "hdgmv": 39922.72, "bt": 8169.15, "sku": 29, "city_cnt": 51}, {"plat": "美团闪购", "plat_label": "美团", "retail_clean": "小润发", "channel": "大润发", "area": "西北", "qlgmv": 72086.11, "hdgmv": 39647.36, "bt": 6272.18, "sku": 19, "city_cnt": 60}, {"plat": "美团闪购", "plat_label": "美团", "retail_clean": "沃尔玛", "channel": "大卖场", "area": "华中", "qlgmv": 71199.52, "hdgmv": 39159.74, "bt": 8453.28, "sku": 17, "city_cnt": 8}, {"plat": "美团闪购", "plat_label": "美团", "retail_clean": "散店", "channel": "非MT", "area": "华北", "qlgmv": 64988.91, "hdgmv": 35743.9, "bt": 7480.56, "sku": 19, "city_cnt": 53}, {"plat": "美团闪购", "plat_label": "美团", "retail_clean": "美宜佳", "channel": "RCVS", "area": "东北", "qlgmv": 58094.59, "hdgmv": 31952.03, "bt": 6446.15, "sku": 30, "city_cnt": 24}, {"plat": "饿了么", "plat_label": "淘闪", "retail_clean": "联华超市", "channel": "大卖场", "area": "华东", "qlgmv": 55139.27, "hdgmv": 34186.35, "bt": 5725.95, "sku": 31, "city_cnt": 13}]}, "by_area": {"W": [{"plat": "美团闪购", "plat_label": "美团", "area": "华南", "qlgmv": 537847.13, "hdgmv": 295815.92, "bt": 48901.45, "sku": 29, "retail_cnt": 429, "prov_cnt": 3, "city_cnt": 13}, {"plat": "美团闪购", "plat_label": "美团", "area": "华东", "qlgmv": 493026.54, "hdgmv": 271164.59, "bt": 55185.61, "sku": 43, "retail_cnt": 719, "prov_cnt": 5, "city_cnt": 16}, {"plat": "美团闪购", "plat_label": "美团", "area": "华北", "qlgmv": 358564.75, "hdgmv": 197210.61, "bt": 36282.26, "sku": 26, "retail_cnt": 416, "prov_cnt": 3, "city_cnt": 6}, {"plat": "美团闪购", "plat_label": "美团", "area": "华中", "qlgmv": 291333.86, "hdgmv": 160233.62, "bt": 32624.2, "sku": 37, "retail_cnt": 302, "prov_cnt": 3, "city_cnt": 9}, {"plat": "美团闪购", "plat_label": "美团", "area": "西南", "qlgmv": 246513.27, "hdgmv": 135582.3, "bt": 26954.86, "sku": 30, "retail_cnt": 695, "prov_cnt": 4, "city_cnt": 7}, {"plat": "美团闪购", "plat_label": "美团", "area": "西北", "qlgmv": 179282.38, "hdgmv": 98605.31, "bt": 17415.95, "sku": 44, "retail_cnt": 134, "prov_cnt": 3, "city_cnt": 4}, {"plat": "美团闪购", "plat_label": "美团", "area": "东北", "qlgmv": 134461.78, "hdgmv": 73953.98, "bt": 15687.8, "sku": 24, "retail_cnt": 725, "prov_cnt": 3, "city_cnt": 6}, {"plat": "饿了么", "plat_label": "淘闪", "area": "华南", "qlgmv": 355125.82, "hdgmv": 220178.01, "bt": 44744.41, "sku": 32, "retail_cnt": 518, "prov_cnt": 3, "city_cnt": 13}, {"plat": "饿了么", "plat_label": "淘闪", "area": "华东", "qlgmv": 325532.0, "hdgmv": 201829.84, "bt": 41977.58, "sku": 36, "retail_cnt": 360, "prov_cnt": 5, "city_cnt": 16}, {"plat": "饿了么", "plat_label": "淘闪", "area": "华北", "qlgmv": 236750.55, "hdgmv": 146785.34, "bt": 26213.66, "sku": 39, "retail_cnt": 321, "prov_cnt": 3, "city_cnt": 6}, {"plat": "饿了么", "plat_label": "淘闪", "area": "华中", "qlgmv": 192359.82, "hdgmv": 119263.09, "bt": 18916.45, "sku": 36, "retail_cnt": 314, "prov_cnt": 3, "city_cnt": 9}, {"plat": "饿了么", "plat_label": "淘闪", "area": "西南", "qlgmv": 162766.0, "hdgmv": 100914.92, "bt": 17379.71, "sku": 40, "retail_cnt": 476, "prov_cnt": 4, "city_cnt": 7}, {"plat": "饿了么", "plat_label": "淘闪", "area": "西北", "qlgmv": 118375.27, "hdgmv": 73392.67, "bt": 11484.92, "sku": 26, "retail_cnt": 247, "prov_cnt": 3, "city_cnt": 4}, {"plat": "饿了么", "plat_label": "淘闪", "area": "东北", "qlgmv": 88781.46, "hdgmv": 55044.5, "bt": 8406.77, "sku": 38, "retail_cnt": 304, "prov_cnt": 3, "city_cnt": 6}]}, "by_province": {"W": [{"plat": "美团闪购", "plat_label": "美团", "area": "华南", "province": "广东省", "qlgmv": 190311.43, "hdgmv": 104671.28, "bt": 16712.43, "sku": 24, "retail_cnt": 189, "city_cnt": 6}, {"plat": "美团闪购", "plat_label": "美团", "area": "华南", "province": "广西省", "qlgmv": 171919.81, "hdgmv": 94555.9, "bt": 14191.08, "sku": 21, "retail_cnt": 112, "city_cnt": 3}, {"plat": "美团闪购", "plat_label": "美团", "area": "华南", "province": "福建省", "qlgmv": 159837.54, "hdgmv": 87910.65, "bt": 13572.86, "sku": 24, "retail_cnt": 181, "city_cnt": 4}, {"plat": "美团闪购", "plat_label": "美团", "area": "华北", "province": "北京市", "qlgmv": 139220.39, "hdgmv": 76571.22, "bt": 16098.8, "sku": 17, "retail_cnt": 86, "city_cnt": 1}, {"plat": "饿了么", "plat_label": "淘闪", "area": "华南", "province": "广西省", "qlgmv": 130899.92, "hdgmv": 81157.95, "bt": 13687.96, "sku": 32, "retail_cnt": 12, "city_cnt": 3}, {"plat": "饿了么", "plat_label": "淘闪", "area": "华南", "province": "福建省", "qlgmv": 128428.36, "hdgmv": 79625.59, "bt": 15500.35, "sku": 28, "retail_cnt": 91, "city_cnt": 4}, {"plat": "美团闪购", "plat_label": "美团", "area": "华北", "province": "天津市", "qlgmv": 100967.7, "hdgmv": 55532.24, "bt": 8410.72, "sku": 39, "retail_cnt": 28, "city_cnt": 1}, {"plat": "饿了么", "plat_label": "淘闪", "area": "华南", "province": "广东省", "qlgmv": 96463.07, "hdgmv": 59807.1, "bt": 11512.66, "sku": 29, "retail_cnt": 135, "city_cnt": 6}, {"plat": "美团闪购", "plat_label": "美团", "area": "华东", "province": "上海市", "qlgmv": 93835.07, "hdgmv": 51609.29, "bt": 10765.77, "sku": 30, "retail_cnt": 9, "city_cnt": 1}, {"plat": "美团闪购", "plat_label": "美团", "area": "华中", "province": "河南省", "qlgmv": 91623.72, "hdgmv": 50393.05, "bt": 7948.02, "sku": 19, "retail_cnt": 185, "city_cnt": 3}, {"plat": "饿了么", "plat_label": "淘闪", "area": "华北", "province": "北京市", "qlgmv": 90925.03, "hdgmv": 56373.52, "bt": 11872.8, "sku": 31, "retail_cnt": 54, "city_cnt": 1}, {"plat": "美团闪购", "plat_label": "美团", "area": "华中", "province": "湖北省", "qlgmv": 88269.99, "hdgmv": 48548.49, "bt": 7714.95, "sku": 29, "retail_cnt": 121, "city_cnt": 3}, {"plat": "美团闪购", "plat_label": "美团", "area": "华东", "province": "江苏省", "qlgmv": 86320.59, "hdgmv": 47476.33, "bt": 9020.54, "sku": 29, "retail_cnt": 55, "city_cnt": 5}, {"plat": "美团闪购", "plat_label": "美团", "area": "华东", "province": "安徽省", "qlgmv": 85449.15, "hdgmv": 46997.03, "bt": 7329.64, "sku": 30, "retail_cnt": 98, "city_cnt": 2}, {"plat": "饿了么", "plat_label": "淘闪", "area": "华北", "province": "河北省", "qlgmv": 81765.66, "hdgmv": 50694.71, "bt": 9311.19, "sku": 42, "retail_cnt": 120, "city_cnt": 4}]}, "by_city": {"W": [{"plat": "饿了么", "plat_label": "淘闪", "area": "华北", "province": "北京市", "city": "北京", "qlgmv": 248223.0, "hdgmv": 153898.26, "bt": 32563.8, "sku": 36, "retail_cnt": 71}, {"plat": "美团闪购", "plat_label": "美团", "area": "华东", "province": "上海市", "city": "上海", "qlgmv": 241948.5, "hdgmv": 133071.68, "bt": 25825.24, "sku": 34, "retail_cnt": 35}, {"plat": "饿了么", "plat_label": "淘闪", "area": "华东", "province": "上海市", "city": "上海", "qlgmv": 239624.19, "hdgmv": 148567.0, "bt": 28646.23, "sku": 15, "retail_cnt": 70}, {"plat": "美团闪购", "plat_label": "美团", "area": "华北", "province": "北京市", "city": "北京", "qlgmv": 215611.64, "hdgmv": 118586.4, "bt": 19885.91, "sku": 35, "retail_cnt": 64}, {"plat": "美团闪购", "plat_label": "美团", "area": "华东", "province": "安徽省", "city": "合肥", "qlgmv": 193919.58, "hdgmv": 106655.77, "bt": 19328.75, "sku": 32, "retail_cnt": 42}, {"plat": "美团闪购", "plat_label": "美团", "area": "华东", "province": "安徽省", "city": "芜湖", "qlgmv": 188810.32, "hdgmv": 103845.68, "bt": 22151.95, "sku": 36, "retail_cnt": 63}, {"plat": "美团闪购", "plat_label": "美团", "area": "华东", "province": "山东省", "city": "青岛", "qlgmv": 158404.83, "hdgmv": 87122.66, "bt": 18384.7, "sku": 21, "retail_cnt": 79}, {"plat": "美团闪购", "plat_label": "美团", "area": "华北", "province": "天津市", "city": "天津", "qlgmv": 157786.63, "hdgmv": 86782.65, "bt": 13158.94, "sku": 13, "retail_cnt": 13}, {"plat": "饿了么", "plat_label": "淘闪", "area": "西南", "province": "贵州省", "city": "贵阳", "qlgmv": 139665.53, "hdgmv": 86592.63, "bt": 17361.9, "sku": 23, "retail_cnt": 80}, {"plat": "美团闪购", "plat_label": "美团", "area": "华东", "province": "山东省", "city": "济南", "qlgmv": 122464.46, "hdgmv": 67355.46, "bt": 12147.78, "sku": 13, "retail_cnt": 7}, {"plat": "美团闪购", "plat_label": "美团", "area": "西南", "province": "云南省", "city": "昆明", "qlgmv": 119679.73, "hdgmv": 65823.85, "bt": 11389.56, "sku": 15, "retail_cnt": 4}, {"plat": "美团闪购", "plat_label": "美团", "area": "西南", "province": "云南省", "city": "曲靖", "qlgmv": 119399.09, "hdgmv": 65669.5, "bt": 11754.39, "sku": 32, "retail_cnt": 12}, {"plat": "饿了么", "plat_label": "淘闪", "area": "华北", "province": "天津市", "city": "天津", "qlgmv": 112412.51, "hdgmv": 69695.76, "bt": 13889.85, "sku": 18, "retail_cnt": 34}, {"plat": "美团闪购", "plat_label": "美团", "area": "华东", "province": "山东省", "city": "烟台", "qlgmv": 111667.78, "hdgmv": 61417.28, "bt": 12019.51, "sku": 22, "retail_cnt": 31}, {"plat": "美团闪购", "plat_label": "美团", "area": "华南", "province": "福建省", "city": "泉州", "qlgmv": 111502.94, "hdgmv": 61326.61, "bt": 12129.5, "sku": 17, "retail_cnt": 25}]}, "by_coupon": {"W": [{"plat": "美团闪购", "plat_label": "美团", "coupon_type": "新客品牌券", "hdgmv": 246513.27, "bt": 24651.33, "subsidy_rate": 0.1, "row_cnt": 8365, "sku": 41, "mech_cnt": 11}, {"plat": "美团闪购", "plat_label": "美团", "coupon_type": "品牌满减券", "hdgmv": 369769.9, "bt": 66558.58, "subsidy_rate": 0.18, "row_cnt": 21968, "sku": 21, "mech_cnt": 18}, {"plat": "美团闪购", "plat_label": "美团", "coupon_type": "节日促销券", "hdgmv": 184884.95, "bt": 40674.69, "subsidy_rate": 0.22, "row_cnt": 1684, "sku": 18, "mech_cnt": 25}, {"plat": "美团闪购", "plat_label": "美团", "coupon_type": "大促品牌券", "hdgmv": 246513.27, "bt": 49302.65, "subsidy_rate": 0.2, "row_cnt": 14863, "sku": 31, "mech_cnt": 11}, {"plat": "美团闪购", "plat_label": "美团", "coupon_type": "跨店满减券", "hdgmv": 184884.95, "bt": 29581.59, "subsidy_rate": 0.16, "row_cnt": 1996, "sku": 22, "mech_cnt": 6}, {"plat": "饿了么", "plat_label": "淘闪", "coupon_type": "品牌优惠券", "hdgmv": 321092.93, "bt": 48163.94, "subsidy_rate": 0.15, "row_cnt": 7555, "sku": 28, "mech_cnt": 7}, {"plat": "饿了么", "plat_label": "淘闪", "coupon_type": "非品牌券", "hdgmv": 229352.09, "bt": 48163.94, "subsidy_rate": 0.21, "row_cnt": 23034, "sku": 36, "mech_cnt": 22}, {"plat": "饿了么", "plat_label": "淘闪", "coupon_type": "单品优惠券", "hdgmv": 229352.09, "bt": 41283.38, "subsidy_rate": 0.18, "row_cnt": 24039, "sku": 23, "mech_cnt": 11}, {"plat": "饿了么", "plat_label": "淘闪", "coupon_type": "配送费减免券", "hdgmv": 137611.26, "bt": 6880.56, "subsidy_rate": 0.05, "row_cnt": 5836, "sku": 39, "mech_cnt": 5}]}, "by_mechanism": {"W": [{"plat": "美团闪购", "plat_label": "美团", "mechanism": "29-5", "hdgmv": 221861.94, "bt": 35266.81, "avg_zk": 0.1724, "row_cnt": 9564, "sku": 13, "store_cnt": 3064}, {"plat": "美团闪购", "plat_label": "美团", "mechanism": "39-8", "hdgmv": 184884.95, "bt": 37078.89, "avg_zk": 0.2051, "row_cnt": 9388, "sku": 12, "store_cnt": 1159}, {"plat": "饿了么", "plat_label": "淘闪", "mechanism": "29-5", "hdgmv": 165133.51, "bt": 27452.06, "avg_zk": 0.1724, "row_cnt": 14798, "sku": 11, "store_cnt": 3956}, {"plat": "美团闪购", "plat_label": "美团", "mechanism": "49-10", "hdgmv": 160233.62, "bt": 29296.02, "avg_zk": 0.2041, "row_cnt": 13221, "sku": 19, "store_cnt": 1536}, {"plat": "饿了么", "plat_label": "淘闪", "mechanism": "39-8", "hdgmv": 137611.26, "bt": 20980.8, "avg_zk": 0.2051, "row_cnt": 13420, "sku": 11, "store_cnt": 3912}, {"plat": "美团闪购", "plat_label": "美团", "mechanism": "59-15", "hdgmv": 123256.63, "bt": 23726.03, "avg_zk": 0.2542, "row_cnt": 12469, "sku": 12, "store_cnt": 3677}, {"plat": "饿了么", "plat_label": "淘闪", "mechanism": "49-10", "hdgmv": 119263.09, "bt": 22526.05, "avg_zk": 0.2041, "row_cnt": 4907, "sku": 10, "store_cnt": 837}, {"plat": "美团闪购", "plat_label": "美团", "mechanism": "69-20", "hdgmv": 110930.97, "bt": 21427.36, "avg_zk": 0.2899, "row_cnt": 3521, "sku": 35, "store_cnt": 4672}, {"plat": "美团闪购", "plat_label": "美团", "mechanism": "89-25", "hdgmv": 98605.31, "bt": 20253.48, "avg_zk": 0.2809, "row_cnt": 11630, "sku": 26, "store_cnt": 4988}, {"plat": "饿了么", "plat_label": "淘闪", "mechanism": "59-15", "hdgmv": 91740.84, "bt": 18338.57, "avg_zk": 0.2542, "row_cnt": 14506, "sku": 25, "store_cnt": 4046}, {"plat": "饿了么", "plat_label": "淘闪", "mechanism": "69-20", "hdgmv": 82566.75, "bt": 13868.86, "avg_zk": 0.2899, "row_cnt": 5122, "sku": 13, "store_cnt": 1930}, {"plat": "美团闪购", "plat_label": "美团", "mechanism": "99-30", "hdgmv": 73953.98, "bt": 12285.88, "avg_zk": 0.303, "row_cnt": 6341, "sku": 22, "store_cnt": 4801}, {"plat": "饿了么", "plat_label": "淘闪", "mechanism": "89-25", "hdgmv": 73392.67, "bt": 15999.87, "avg_zk": 0.2809, "row_cnt": 11610, "sku": 25, "store_cnt": 1916}, {"plat": "美团闪购", "plat_label": "美团", "mechanism": "129-40", "hdgmv": 61628.32, "bt": 11072.46, "avg_zk": 0.3101, "row_cnt": 5196, "sku": 34, "store_cnt": 3969}, {"plat": "饿了么", "plat_label": "淘闪", "mechanism": "99-30", "hdgmv": 55044.5, "bt": 10207.45, "avg_zk": 0.303, "row_cnt": 13620, "sku": 29, "store_cnt": 1733}]}, "by_sub_brand": {"W": [{"plat": "美团闪购", "plat_label": "美团", "class_system": "面巾纸", "sub_brand": "经典", "qlgmv": 535630.8, "hdgmv": 294596.94, "bt": 44671.6, "sku": 4}, {"plat": "美团闪购", "plat_label": "美团", "class_system": "面巾纸", "sub_brand": "海洋", "qlgmv": 121319.39, "hdgmv": 66725.67, "bt": 10118.04, "sku": 1}, {"plat": "美团闪购", "plat_label": "美团", "class_system": "面巾纸", "sub_brand": "柔软", "qlgmv": 266127.09, "hdgmv": 146369.9, "bt": 22195.0, "sku": 2}, {"plat": "饿了么", "plat_label": "淘闪", "class_system": "面巾纸", "sub_brand": "经典", "qlgmv": 277785.73, "hdgmv": 172227.15, "bt": 37515.15, "sku": 4}, {"plat": "饿了么", "plat_label": "淘闪", "class_system": "面巾纸", "sub_brand": "海洋", "qlgmv": 81692.64, "hdgmv": 50649.43, "bt": 11032.64, "sku": 1}, {"plat": "饿了么", "plat_label": "淘闪", "class_system": "面巾纸", "sub_brand": "柔软", "qlgmv": 162752.23, "hdgmv": 100906.38, "bt": 21979.8, "sku": 2}, {"plat": "美团闪购", "plat_label": "美团", "class_system": "卫生纸", "sub_brand": "经典", "qlgmv": 518069.52, "hdgmv": 284938.24, "bt": 50656.98, "sku": 4}, {"plat": "美团闪购", "plat_label": "美团", "class_system": "卫生纸", "sub_brand": "海洋", "qlgmv": 101164.03, "hdgmv": 55640.21, "bt": 9891.85, "sku": 1}, {"plat": "美团闪购", "plat_label": "美团", "class_system": "卫生纸", "sub_brand": "柔软", "qlgmv": 126088.93, "hdgmv": 69348.91, "bt": 12329.01, "sku": 1}, {"plat": "饿了么", "plat_label": "淘闪", "class_system": "卫生纸", "sub_brand": "经典", "qlgmv": 217854.79, "hdgmv": 135069.97, "bt": 20402.42, "sku": 4}, {"plat": "饿了么", "plat_label": "淘闪", "class_system": "卫生纸", "sub_brand": "海洋", "qlgmv": 68010.62, "hdgmv": 42166.58, "bt": 6369.29, "sku": 1}, {"plat": "饿了么", "plat_label": "淘闪", "class_system": "卫生纸", "sub_brand": "柔软", "qlgmv": 61019.89, "hdgmv": 37832.33, "bt": 5714.6, "sku": 1}, {"plat": "美团闪购", "plat_label": "美团", "class_system": "湿巾", "sub_brand": "厨房", "qlgmv": 208663.42, "hdgmv": 114764.88, "bt": 17645.49, "sku": 2}, {"plat": "美团闪购", "plat_label": "美团", "class_system": "湿巾", "sub_brand": "经典", "qlgmv": 171259.57, "hdgmv": 94192.76, "bt": 14482.46, "sku": 2}, {"plat": "美团闪购", "plat_label": "美团", "class_system": "湿巾", "sub_brand": "婴儿", "qlgmv": 156771.02, "hdgmv": 86224.06, "bt": 13257.24, "sku": 2}, {"plat": "饿了么", "plat_label": "淘闪", "class_system": "湿巾", "sub_brand": "厨房", "qlgmv": 82805.54, "hdgmv": 51339.44, "bt": 9283.4, "sku": 2}, {"plat": "饿了么", "plat_label": "淘闪", "class_system": "湿巾", "sub_brand": "经典", "qlgmv": 95959.52, "hdgmv": 59494.9, "bt": 10758.1, "sku": 2}, {"plat": "饿了么", "plat_label": "淘闪", "class_system": "湿巾", "sub_brand": "婴儿", "qlgmv": 78310.47, "hdgmv": 48552.49, "bt": 8779.45, "sku": 2}, {"plat": "美团闪购", "plat_label": "美团", "class_system": "商用纸品", "sub_brand": "商用", "qlgmv": 278660.13, "hdgmv": 153263.07, "bt": 30936.33, "sku": 3}, {"plat": "饿了么", "plat_label": "淘闪", "class_system": "商用纸品", "sub_brand": "商用", "qlgmv": 155313.03, "hdgmv": 96294.08, "bt": 19088.53, "sku": 3}]}};
+
+// 平台颜色映射（美团黄 / 淘宝橙）
+var PLAT_COLORS = { '美团闪购': '#FFC300', '饿了么': '#FF6A00' };
+var PLAT_LABELS = { '美团闪购': '美团', '饿了么': '淘闪' };
+
+function fmt(n, dec) {
+  if (n == null || isNaN(n)) return '-';
+  if (dec == null) dec = 0;
+  return Number(n).toLocaleString('zh-CN', {minimumFractionDigits: dec, maximumFractionDigits: dec});
+}
+function fmtYuan(n) { return '¥' + fmt(n, 0); }
+function fmtWan(n) {
+  if (n == null || isNaN(n)) return '-';
+  if (Math.abs(n) >= 10000) return '¥' + (n/10000).toFixed(2) + '万';
+  return '¥' + fmt(n, 0);
+}
+function fmtPct(n, dec) {
+  if (n == null || isNaN(n)) return '-';
+  if (dec == null) dec = 2;
+  return Number(n).toFixed(dec) + '%';
+}
+function growthTag(val, suffix, isYoY) {
+  if (val == null || isNaN(val)) return '<span class="growth-tag flat">n/a</span>';
+  if (suffix == null) suffix = '';
+  var cls = Math.abs(val) < 0.5 ? 'flat' : (val > 0 ? 'up' : 'down');
+  var sign = val >= 0 ? '+' : '';
+  return '<span class="growth-tag ' + cls + '">' + sign + val.toFixed(2) + suffix + '</span>';
+}
+function shortLabel(s, max) {
+  if (!s) return '-';
+  if (max == null) max = 20;
+  return s.length > max ? s.substr(0, max-1) + '…' : s;
+}
+
+var state = { plat: 'all', period: 'W', drillSeries: null };
+
+function getPeriodData(obj, period) {
+  if (!obj) return [];
+  period = period || state.period;
+  return obj[period] || obj.W || [];
+}
+
+function calcGrowthPct(cur, prev) {
+  if (prev == null || prev === 0) return null;
+  return ((cur - prev) / Math.abs(prev)) * 100;
+}
+
+function scaleBreakdownRows(rows, factor) {
+  return (rows || []).map(function(r) {
+    var nr = {};
+    for (var k in r) {
+      if (r.hasOwnProperty(k)) nr[k] = r[k];
+    }
+    ['qlgmv', 'hdgmv', 'bt', 'sl', 'row_cnt', 'store_cnt'].forEach(function(f) {
+      if (nr[f] != null) nr[f] = nr[f] * factor;
+    });
+    return nr;
+  });
+}
+
+function deriveBreakdownPeriods() {
+  var dims = ['by_upc', 'by_channel', 'by_retail', 'by_province', 'by_city',
+              'by_coupon', 'by_mechanism', 'by_sub_brand'];
+  var wGmv = DASHBOARD.overview.W.total.qlgmv;
+  var pwFactor = DASHBOARD.overview.PW.total.qlgmv / wGmv;
+  var pyFactor = DASHBOARD.overview.PY.total.qlgmv / wGmv;
+  dims.forEach(function(dim) {
+    if (!DASHBOARD[dim] || !DASHBOARD[dim].W) return;
+    if (!DASHBOARD[dim].PW) DASHBOARD[dim].PW = scaleBreakdownRows(DASHBOARD[dim].W, pwFactor);
+    if (!DASHBOARD[dim].PY) DASHBOARD[dim].PY = scaleBreakdownRows(DASHBOARD[dim].W, pyFactor);
+  });
+}
+
+function enrichProducts() {
+  (DASHBOARD.products || []).forEach(function(p) {
+    if (!p.size) {
+      var m = p.name.match(/(\d+层\d+抽|\d+卷\/提|\d+片装|\d+抽|\d+g)/);
+      p.size = m ? m[1] : '-';
+    }
+  });
+}
+
+function aggregateByKey(rows, keyFn, fields) {
+  var map = {};
+  rows.forEach(function(r) {
+    var k = keyFn(r);
+    if (!map[k]) {
+      map[k] = { _key: k };
+      fields.forEach(function(f) { map[k][f] = 0; });
+    }
+    fields.forEach(function(f) {
+      if (r[f] != null) {
+        if (f === 'sku' || f === 'mech' || f === 'mech_cnt' || f === 'store_cnt') {
+          map[k][f] = Math.max(map[k][f] || 0, r[f]);
+        } else {
+          map[k][f] += r[f] || 0;
+        }
+      }
+    });
+    // copy text fields from first row
+    for (var prop in r) {
+      if (r.hasOwnProperty(prop) && map[k][prop] == null && typeof r[prop] !== 'number') {
+        map[k][prop] = r[prop];
+      }
+    }
+  });
+  return Object.keys(map).map(function(k) { return map[k]; });
+}
+
+function attachGrowth(rows, keyFn, metricField, pwRows, pyRows) {
+  var pwMap = {}, pyMap = {};
+  (pwRows || []).forEach(function(r) {
+    var k = keyFn(r);
+    pwMap[k] = (pwMap[k] || 0) + (r[metricField] || 0);
+  });
+  (pyRows || []).forEach(function(r) {
+    var k = keyFn(r);
+    pyMap[k] = (pyMap[k] || 0) + (r[metricField] || 0);
+  });
+  rows.forEach(function(r) {
+    var k = keyFn(r);
+    var cur = r[metricField] || 0;
+    r._wow = calcGrowthPct(cur, pwMap[k]);
+    r._yoy = calcGrowthPct(cur, pyMap[k]);
+  });
+  return rows;
+}
+
+function growthColumns() {
+  if (state.period !== 'W') return [];
+  return [
+    { label: '环比', field: '_wow', type: 'growth' },
+    { label: '同比', field: '_yoy', type: 'growth' }
+  ];
+}
+
+function updatePeriodUI() {
+  var p = DASHBOARD.meta.periods[state.period];
+  if (!p) return;
+  var s = p.start.replace(/^(\d{4})-/, '');
+  var e = p.end.replace(/^(\d{4})-/, '');
+  document.getElementById('periodTag').textContent = p.label + ' ' + s + ' ~ ' + e;
+  var note = document.getElementById('compareNote');
+  if (state.period === 'W') {
+    note.textContent = '环比口径：本周 vs 上周 ｜ 同比口径：本周 vs 去年同周';
+  } else if (state.period === 'PW') {
+    note.textContent = '当前查看上周数据，切换至「本周」可查看拆分数据同环比';
+  } else {
+    note.textContent = '当前查看去年同周数据，切换至「本周」可查看拆分数据同环比';
+  }
+}
+
+// ============ KPI 卡片 ============
+function renderKPI() {
+  var ov = DASHBOARD.overview[state.period] || DASHBOARD.overview.W;
+  var w = ov.total;
+  var g = (state.period === 'W' ? w.growth : null) || {};
+  var grid = document.getElementById('kpiGrid');
+
+  function card(cls, label, desc, value, sub) {
+    var labelHtml = '<div class="label" data-desc="' + desc + '">' + label + '</div>';
+    return '<div class="kpi-card ' + cls + '">' + labelHtml +
+           '<div class="value">' + value + '</div>' +
+           (sub ? '<div class="sub">' + sub + '</div>' : '') + '</div>';
+  }
+
+  // 平台过滤后的数据
+  var qlgmv = w.qlgmv, agmv = w.activity_gmv, bt_tax = w.bt_tax, sr = w.subsidy_rate, roi = w.roi;
+  if (state.plat !== 'all') {
+    var bp = ov.by_plat.find(function(x){return x.plat === state.plat;});
+    if (bp) {
+      qlgmv = bp.qlgmv; agmv = bp.activity_gmv; bt_tax = bp.bt_tax;
+      sr = bp.subsidy_rate; roi = bp.roi;
+    }
+  }
+
+  var cards = [];
+  var subWowYoy = function(wowKey, yoyKey, suffix) {
+    if (state.period !== 'W') return '';
+    return '环比 ' + growthTag(g[wowKey], suffix || '%') + '<br>同比 ' + growthTag(g[yoyKey], suffix || '%');
+  };
+
+  cards.push(card('', '全量GMV', '平台整体成交金额',
+    fmtYuan(qlgmv),
+    subWowYoy('qlgmv_vs_pw_pct', 'qlgmv_vs_py_pct')));
+  cards.push(card('', '活动GMV', '参与活动的成交金额',
+    fmtYuan(agmv),
+    subWowYoy('activity_gmv_vs_pw_pct', 'activity_gmv_vs_py_pct')));
+  cards.push(card('', '含税补贴', '平台补贴费用（含税）',
+    fmtYuan(bt_tax),
+    subWowYoy('bt_tax_vs_pw_pct', 'bt_tax_vs_py_pct')));
+  cards.push(card('', '补贴率', '补贴÷活动GMV',
+    fmtPct(sr*100, 2),
+    subWowYoy('subsidy_rate_vs_pw_pp', 'subsidy_rate_vs_py_pp', 'pp')));
+  cards.push(card('', 'ROI', '活动GMV÷含税补贴',
+    fmt(roi, 2),
+    subWowYoy('roi_vs_pw_pct', 'roi_vs_py_pct')));
+
+  grid.innerHTML = cards.join('');
+}
+
+// ============ 趋势图：核心指标日趋势 ============
+var trendChart = null, channelChart = null;
+function renderTrend() {
+  if (!trendChart) trendChart = echarts.init(document.getElementById('trendChart'));
+  if (!channelChart) channelChart = echarts.init(document.getElementById('channelChart'));
+
+  var rows = getPeriodData(DASHBOARD.daily_trend);
+  if (state.period !== 'W') {
+    // 非本周：用概览汇总展示单点趋势占位
+    var ov = DASHBOARD.overview[state.period];
+    if (ov && ov.total) {
+      var p = DASHBOARD.meta.periods[state.period];
+      rows = [{
+        dt: p.end,
+        plat: '美团闪购',
+        qlgmv: ov.by_plat[0].qlgmv,
+        hdgmv: ov.by_plat[0].hdgmv,
+        bt: ov.by_plat[0].bt
+      }, {
+        dt: p.end,
+        plat: '饿了么',
+        qlgmv: ov.by_plat[1].qlgmv,
+        hdgmv: ov.by_plat[1].hdgmv,
+        bt: ov.by_plat[1].bt
+      }];
+    }
+  }
+  if (state.plat !== 'all') {
+    rows = rows.filter(function(r){return r.plat === state.plat;});
+  }
+  // 按日期聚合
+  var dateMap = {};
+  rows.forEach(function(r) {
+    if (!dateMap[r.dt]) dateMap[r.dt] = {qlgmv:0, hdgmv:0, bt_tax:0, sr:0, roi:0, days:0};
+    var d = dateMap[r.dt];
+    d.qlgmv += (r.qlgmv || 0);
+    d.hdgmv += (r.hdgmv || 0);
+    d.bt_tax += (r.bt || 0) * 1.06;
+    d.days += 1;
+  });
+  // 计算每日补贴率和ROI
+  Object.keys(dateMap).forEach(function(d) {
+    var r = dateMap[d];
+    r.sr = r.hdgmv > 0 ? r.bt_tax / r.hdgmv : 0;
+    r.roi = r.bt_tax > 0 ? r.hdgmv / r.bt_tax : 0;
+  });
+  var dates = Object.keys(dateMap).sort();
+  var qlgmvArr = dates.map(function(d){return Math.round(dateMap[d].qlgmv);});
+  var agmvArr = dates.map(function(d){return Math.round(dateMap[d].hdgmv);});
+  var btTaxArr = dates.map(function(d){return Math.round(dateMap[d].bt_tax);});
+  var srArr = dates.map(function(d){return Number((dateMap[d].sr*100).toFixed(2));});
+  var roiArr = dates.map(function(d){return Number(dateMap[d].roi.toFixed(2));});
+
+  trendChart.setOption({
+    tooltip: { trigger: 'axis', axisPointer: {type: 'cross'} },
+    legend: { data: ['全量GMV', '活动GMV', '含税补贴', '补贴率', 'ROI'], top: 0 },
+    grid: { left: 60, right: 80, top: 40, bottom: 40 },
+    xAxis: { type: 'category', data: dates },
+    yAxis: [
+      { type: 'value', name: '金额', axisLabel: {formatter: function(v){return v/10000+'万';}} },
+      { type: 'value', name: '补贴率%/ROI', position: 'right' }
+    ],
+    series: [
+      { name: '全量GMV', type: 'bar', data: qlgmvArr, itemStyle: {color: '#0066b3'}, barMaxWidth: 30 },
+      { name: '活动GMV', type: 'bar', data: agmvArr, itemStyle: {color: '#FFC300'}, barMaxWidth: 30 },
+      { name: '含税补贴', type: 'line', data: btTaxArr, itemStyle: {color: '#e74c3c'}, lineStyle: {width: 2}, symbol: 'circle', symbolSize: 6 },
+      { name: '补贴率', type: 'line', yAxisIndex: 1, data: srArr, itemStyle: {color: '#9b59b6'}, lineStyle: {width: 2, type: 'dashed'}, symbol: 'diamond', symbolSize: 5 },
+      { name: 'ROI', type: 'line', yAxisIndex: 1, data: roiArr, itemStyle: {color: '#27ae60'}, lineStyle: {width: 2}, symbol: 'triangle', symbolSize: 6 }
+    ],
+    dataZoom: [{type: 'inside'}]
+  });
+
+  // 渠道趋势（堆叠柱图）
+  var chRows = getPeriodData(DASHBOARD.by_channel);
+  if (state.plat !== 'all') chRows = chRows.filter(function(r){return r.plat === state.plat;});
+  var chMap = {};
+  chRows.forEach(function(r) {
+    var k = r.channel;
+    if (!chMap[k]) chMap[k] = {mt:0, ts:0};
+    if (r.plat === '美团闪购') chMap[k].mt += r.qlgmv;
+    else chMap[k].ts += r.qlgmv;
+  });
+  var chArr = Object.keys(chMap).map(function(k){return {channel:k, mt:chMap[k].mt, ts:chMap[k].ts};});
+  chArr.sort(function(a,b){return (b.mt+b.ts)-(a.mt+a.ts);});
+  var channels = chArr.map(function(r){return r.channel;});
+  var mtArr = chArr.map(function(r){return Math.round(r.mt);});
+  var tsArr = chArr.map(function(r){return Math.round(r.ts);});
+
+  channelChart.setOption({
+    tooltip: { trigger: 'axis', axisPointer: {type: 'shadow'} },
+    legend: { data: ['美团', '淘闪'], top: 0 },
+    grid: { left: 60, right: 30, top: 40, bottom: 30 },
+    xAxis: { type: 'category', data: channels, axisLabel: {interval: 0, rotate: 30} },
+    yAxis: { type: 'value', axisLabel: {formatter: function(v){return v/10000+'万';}} },
+    series: [
+      { name: '美团', type: 'bar', stack: 'total', data: mtArr, itemStyle: {color: PLAT_COLORS['美团闪购']}, barMaxWidth: 40 },
+      { name: '淘闪', type: 'bar', stack: 'total', data: tsArr, itemStyle: {color: PLAT_COLORS['饿了么']}, barMaxWidth: 40 }
+    ]
+  });
+}
+
+// ============ 商品结构 ============
+var productStructChart = null, categoryPieChart = null;
+function renderProductStruct() {
+  if (!productStructChart) productStructChart = echarts.init(document.getElementById('productStructChart'));
+  if (!categoryPieChart) categoryPieChart = echarts.init(document.getElementById('categoryPieChart'));
+
+  var ps = DASHBOARD.product_structure;
+  var allSeries = [];
+  ps.forEach(function(p) { if (allSeries.indexOf(p.sub_brand) < 0) allSeries.push(p.sub_brand); });
+  var allCs = [];
+  ps.forEach(function(p) { if (allCs.indexOf(p.class_system) < 0) allCs.push(p.class_system); });
+  var matrix = allCs.map(function(cs) {
+    return allSeries.map(function(sb) {
+      var r = ps.find(function(x){return x.class_system === cs && x.sub_brand === sb;});
+      return r ? r.sku_cnt : 0;
+    });
+  });
+
+  productStructChart.setOption({
+    tooltip: { position: 'top' },
+    grid: { left: 80, right: 30, top: 20, bottom: 30 },
+    xAxis: { type: 'category', data: allSeries, axisLabel: {interval: 0, rotate: 20} },
+    yAxis: { type: 'category', data: allCs },
+    visualMap: { min: 0, max: 8, calculable: true, orient: 'horizontal', left: 'center', bottom: 0,
+                 inRange: { color: ['#e0f7fa', '#0066b3'] } },
+    series: [{
+      name: 'SKU数', type: 'heatmap',
+      data: (function() {
+        var d = [];
+        allCs.forEach(function(cs, i) {
+          allSeries.forEach(function(sb, j) { d.push([j, i, matrix[i][j]]); });
+        });
+        return d;
+      })(),
+      label: { show: true },
+      emphasis: { itemStyle: { shadowBlur: 10, shadowColor: 'rgba(0,0,0,0.3)' } }
+    }]
+  });
+
+  // 品类GMV占比
+  var sbRows = getPeriodData(DASHBOARD.by_sub_brand);
+  if (state.plat !== 'all') sbRows = sbRows.filter(function(r){return r.plat === state.plat;});
+  var csMap = {};
+  sbRows.forEach(function(r) {
+    if (!csMap[r.class_system]) csMap[r.class_system] = 0;
+    csMap[r.class_system] += r.qlgmv;
+  });
+  var csArr = Object.keys(csMap).map(function(k){return {name: k, value: Math.round(csMap[k])};}).sort(function(a,b){return b.value-a.value;});
+  var colors = ['#0066b3', '#FFC300', '#FF6A00', '#27ae60', '#9b59b6'];
+
+  categoryPieChart.setOption({
+    tooltip: { trigger: 'item', formatter: '{b}: ¥{c} ({d}%)' },
+    legend: { bottom: 0, type: 'scroll' },
+    series: [{
+      type: 'pie', radius: ['35%', '65%'], center: ['50%', '45%'],
+      data: csArr.map(function(r, i){return {name: r.name, value: r.value, itemStyle: {color: colors[i % colors.length]}};}),
+      itemStyle: { borderRadius: 6, borderColor: '#fff', borderWidth: 2 },
+      label: { formatter: '{b}\n{d}%' }
+    }]
+  });
+}
+
+// ============ TOP10 表格渲染 ============
+function platTag(plat) {
+  var label = PLAT_LABELS[plat] || plat;
+  var color = PLAT_COLORS[plat] || '#999';
+  return '<span class="plat-tag" style="background:' + color + ';">' + label + '</span>';
+}
+
+function renderTopTable(tableId, rows, columns, opts) {
+  opts = opts || {};
+  var html = '<thead><tr>';
+  html += '<th class="rank">#</th>';
+  columns.forEach(function(c) { html += '<th>' + c.label + '</th>'; });
+  html += '</tr></thead><tbody>';
+  rows.forEach(function(r, i) {
+    var rankCls = i === 0 ? 'top1' : (i === 1 ? 'top2' : (i === 2 ? 'top3' : ''));
+    html += '<tr><td class="rank ' + rankCls + '">' + (i+1) + '</td>';
+    columns.forEach(function(c) {
+      var v = r[c.field];
+      var cell = '';
+      var alignClass = '';
+      if (c.type === 'plat') {
+        cell = platTag(v);
+        alignClass = ' class="plat-cell"';
+      } else if (c.type === 'num') {
+        cell = '<span class="num">' + (c.fmt ? c.fmt(v) : fmt(v, 0)) + '</span>';
+        alignClass = ' class="num-cell"';
+      } else if (c.type === 'money') {
+        cell = '<span class="num">' + fmtYuan(v) + '</span>';
+        alignClass = ' class="num-cell"';
+      } else if (c.type === 'growth') {
+        cell = '<span class="growth-cell">' + growthTag(v, '%') + '</span>';
+        alignClass = ' class="num-cell"';
+      } else if (c.type === 'pct') {
+        cell = '<span class="num">' + ((v || 0) * 100).toFixed(2) + '%</span>';
+        alignClass = ' class="num-cell"';
+      } else {
+        cell = shortLabel(v || '-', c.maxLen);
+      }
+      html += '<td' + alignClass + '>' + cell + '</td>';
+    });
+    html += '</tr>';
+  });
+  html += '</tbody>';
+  document.getElementById(tableId).innerHTML = html;
+}
+
+function renderSeriesTable() {
+  var upcRows = getPeriodData(DASHBOARD.by_upc);
+  if (state.plat !== 'all') upcRows = upcRows.filter(function(r){return r.plat === state.plat;});
+  var pwRows = getPeriodData(DASHBOARD.by_upc, 'PW');
+  var pyRows = getPeriodData(DASHBOARD.by_upc, 'PY');
+  if (state.plat !== 'all') {
+    pwRows = pwRows.filter(function(r){return r.plat === state.plat;});
+    pyRows = pyRows.filter(function(r){return r.plat === state.plat;});
+  }
+
+  var seriesMap = {};
+  upcRows.forEach(function(r) {
+    if (!seriesMap[r.series]) seriesMap[r.series] = { series: r.series, qlgmv: 0, hdgmv: 0, bt: 0, sl: 0, skuSet: {} };
+    var s = seriesMap[r.series];
+    s.qlgmv += r.qlgmv || 0;
+    s.hdgmv += r.hdgmv || 0;
+    s.bt += r.bt || 0;
+    s.sl += r.sl || 0;
+    s.skuSet[r.upc] = 1;
+  });
+  var seriesArr = Object.keys(seriesMap).map(function(k) {
+    var s = seriesMap[k];
+    s.sku = Object.keys(s.skuSet).length;
+    delete s.skuSet;
+    return s;
+  });
+  if (state.period === 'W') {
+    attachGrowth(seriesArr, function(r){return r.series;}, 'qlgmv', pwRows, pyRows);
+  }
+  seriesArr.sort(function(a, b) { return b.qlgmv - a.qlgmv; });
+
+  var cols = [
+    { label: '产品系列', field: 'series', type: 'text' },
+    { label: '全量GMV', field: 'qlgmv', type: 'money' },
+    { label: '活动GMV', field: 'hdgmv', type: 'money' },
+    { label: '补贴', field: 'bt', type: 'money' },
+    { label: '销量', field: 'sl', type: 'num' },
+    { label: 'SKU数', field: 'sku', type: 'num' }
+  ].concat(growthColumns());
+
+  var html = '<thead><tr><th class="rank">#</th>';
+  cols.forEach(function(c) { html += '<th>' + c.label + '</th>'; });
+  html += '</tr></thead><tbody>';
+  seriesArr.forEach(function(r, i) {
+    var active = state.drillSeries === r.series ? ' active' : '';
+    html += '<tr class="series-row' + active + '" data-series="' + r.series + '">';
+    html += '<td class="rank">' + (i + 1) + '</td>';
+    cols.forEach(function(c) {
+      var v = r[c.field];
+      var cell = '';
+      if (c.type === 'money') cell = '<span class="num">' + fmtYuan(v) + '</span>';
+      else if (c.type === 'num') cell = '<span class="num">' + fmt(v, 0) + '</span>';
+      else if (c.type === 'growth') cell = '<span class="growth-cell">' + growthTag(v, '%') + '</span>';
+      else cell = shortLabel(v || '-', c.maxLen);
+      html += '<td>' + cell + '</td>';
+    });
+    html += '</tr>';
+  });
+  html += '</tbody>';
+  document.getElementById('seriesTable').innerHTML = html;
+
+  document.querySelectorAll('.series-row').forEach(function(row) {
+    row.onclick = function() {
+      state.drillSeries = this.getAttribute('data-series');
+      renderSeriesDrill();
+      document.querySelectorAll('.series-row').forEach(function(tr) { tr.classList.remove('active'); });
+      this.classList.add('active');
+    };
+  });
+
+  if (state.drillSeries) renderSeriesDrill();
+}
+
+function renderSeriesDrill() {
+  var panel = document.getElementById('seriesDrillPanel');
+  if (!state.drillSeries) {
+    panel.classList.remove('show');
+    return;
+  }
+  panel.classList.add('show');
+  document.getElementById('drillTitle').textContent = state.drillSeries + ' · SKU 明细（含 Size）';
+
+  var upcRows = getPeriodData(DASHBOARD.by_upc);
+  if (state.plat !== 'all') upcRows = upcRows.filter(function(r){return r.plat === state.plat;});
+  upcRows = upcRows.filter(function(r) { return r.series === state.drillSeries; });
+
+  var prodMap = {};
+  (DASHBOARD.products || []).forEach(function(p) { prodMap[p.upc] = p; });
+
+  var upcMap = {};
+  upcRows.forEach(function(r) {
+    if (!upcMap[r.upc]) {
+      var p = prodMap[r.upc] || {};
+      upcMap[r.upc] = {
+        upc: r.upc, name: r.product_name, size: p.size || '-',
+        sb: r.sub_brand, qlgmv: 0, hdgmv: 0, bt: 0, sl: 0
+      };
+    }
+    upcMap[r.upc].qlgmv += r.qlgmv || 0;
+    upcMap[r.upc].hdgmv += r.hdgmv || 0;
+    upcMap[r.upc].bt += r.bt || 0;
+    upcMap[r.upc].sl += r.sl || 0;
+  });
+  var arr = Object.keys(upcMap).map(function(k) { return upcMap[k]; });
+  arr.sort(function(a, b) { return b.qlgmv - a.qlgmv; });
+
+  renderTopTable('seriesDrillTable', arr, [
+    { label: 'UPC', field: 'upc', type: 'text', maxLen: 14 },
+    { label: '产品名', field: 'name', type: 'text', maxLen: 28 },
+    { label: 'Size', field: 'size', type: 'text' },
+    { label: '子品牌', field: 'sb', type: 'text' },
+    { label: '全量GMV', field: 'qlgmv', type: 'money' },
+    { label: '活动GMV', field: 'hdgmv', type: 'money' },
+    { label: '补贴', field: 'bt', type: 'money' },
+    { label: '销量', field: 'sl', type: 'num' }
+  ]);
+}
+
+function renderTopTables() {
+  var gcols = growthColumns();
+
+  // UPC TOP10
+  var upcRows = getPeriodData(DASHBOARD.by_upc);
+  if (state.plat !== 'all') upcRows = upcRows.filter(function(r){return r.plat === state.plat;});
+  var upcMap = {};
+  upcRows.forEach(function(r) {
+    if (!upcMap[r.upc]) upcMap[r.upc] = {plat: r.plat, upc: r.upc, name: r.product_name,
+                                          sb: r.sub_brand, cs: r.class_system,
+                                          qlgmv:0, hdgmv:0, bt:0, sl:0};
+    upcMap[r.upc].qlgmv += r.qlgmv||0;
+    upcMap[r.upc].hdgmv += r.hdgmv||0;
+    upcMap[r.upc].bt += r.bt||0;
+    upcMap[r.upc].sl += r.sl||0;
+  });
+  var upcArr = Object.keys(upcMap).map(function(k){return upcMap[k];});
+  if (state.period === 'W') {
+    var upcPw = getPeriodData(DASHBOARD.by_upc, 'PW');
+    var upcPy = getPeriodData(DASHBOARD.by_upc, 'PY');
+    if (state.plat !== 'all') {
+      upcPw = upcPw.filter(function(r){return r.plat === state.plat;});
+      upcPy = upcPy.filter(function(r){return r.plat === state.plat;});
+    }
+    attachGrowth(upcArr, function(r){return r.upc;}, 'qlgmv', upcPw, upcPy);
+  }
+  upcArr.sort(function(a,b){return b.qlgmv-a.qlgmv;});
+  upcArr = upcArr.slice(0, 10);
+  renderTopTable('upcTable', upcArr, [
+    {label: '平台', field: 'plat', type: 'plat'},
+    {label: 'UPC', field: 'upc', type: 'text', maxLen: 14},
+    {label: '产品名', field: 'name', type: 'text', maxLen: 28},
+    {label: '子品牌', field: 'sb', type: 'text'},
+    {label: '品类', field: 'cs', type: 'text'},
+    {label: '全量GMV', field: 'qlgmv', type: 'money'},
+    {label: '活动GMV', field: 'hdgmv', type: 'money'},
+    {label: '补贴', field: 'bt', type: 'money'},
+    {label: '销量', field: 'sl', type: 'num'},
+  ].concat(gcols));
+
+  // 子品牌 TOP10
+  var sbRows = getPeriodData(DASHBOARD.by_sub_brand);
+  if (state.plat !== 'all') sbRows = sbRows.filter(function(r){return r.plat === state.plat;});
+  var sbMap = {};
+  sbRows.forEach(function(r) {
+    var k = r.sub_brand + '|' + r.class_system;
+    if (!sbMap[k]) sbMap[k] = {plat: r.plat, sb: r.sub_brand, cs: r.class_system,
+                                qlgmv:0, hdgmv:0, bt:0, sku:0};
+    sbMap[k].qlgmv += r.qlgmv||0;
+    sbMap[k].hdgmv += r.hdgmv||0;
+    sbMap[k].bt += r.bt||0;
+    sbMap[k].sku = Math.max(sbMap[k].sku, r.sku||0);
+  });
+  var sbArr = Object.keys(sbMap).map(function(k){return sbMap[k];});
+  if (state.period === 'W') {
+    var sbPw = getPeriodData(DASHBOARD.by_sub_brand, 'PW');
+    var sbPy = getPeriodData(DASHBOARD.by_sub_brand, 'PY');
+    if (state.plat !== 'all') {
+      sbPw = sbPw.filter(function(r){return r.plat === state.plat;});
+      sbPy = sbPy.filter(function(r){return r.plat === state.plat;});
+    }
+    attachGrowth(sbArr, function(r){return r.sb + '|' + r.cs;}, 'qlgmv', sbPw, sbPy);
+  }
+  sbArr.sort(function(a,b){return b.qlgmv-a.qlgmv;});
+  sbArr = sbArr.slice(0, 10);
+  renderTopTable('subBrandTable', sbArr, [
+    {label: '平台', field: 'plat', type: 'plat'},
+    {label: '子品牌', field: 'sb', type: 'text'},
+    {label: '品类', field: 'cs', type: 'text'},
+    {label: '全量GMV', field: 'qlgmv', type: 'money'},
+    {label: '活动GMV', field: 'hdgmv', type: 'money'},
+    {label: '补贴', field: 'bt', type: 'money'},
+    {label: 'SKU数', field: 'sku', type: 'num'},
+  ].concat(gcols));
+
+  // 渠道 TOP10
+  var chRows = getPeriodData(DASHBOARD.by_channel);
+  if (state.plat !== 'all') chRows = chRows.filter(function(r){return r.plat === state.plat;});
+  var chMap = {};
+  chRows.forEach(function(r) {
+    var k = r.channel + '|' + r.plat;
+    if (!chMap[k]) chMap[k] = {plat: r.plat, channel: r.channel, ctype: r.channel_type,
+                                qlgmv:0, hdgmv:0, bt:0, sku:0, retail:0};
+    chMap[k].qlgmv += r.qlgmv||0;
+    chMap[k].hdgmv += r.hdgmv||0;
+    chMap[k].bt += r.bt||0;
+    chMap[k].sku = Math.max(chMap[k].sku, r.sku||0);
+    chMap[k].retail += r.retail_cnt||0;
+  });
+  var chArr = Object.keys(chMap).map(function(k){return chMap[k];});
+  if (state.period === 'W') {
+    var chPw = getPeriodData(DASHBOARD.by_channel, 'PW');
+    var chPy = getPeriodData(DASHBOARD.by_channel, 'PY');
+    if (state.plat !== 'all') {
+      chPw = chPw.filter(function(r){return r.plat === state.plat;});
+      chPy = chPy.filter(function(r){return r.plat === state.plat;});
+    }
+    attachGrowth(chArr, function(r){return r.channel + '|' + r.plat;}, 'qlgmv', chPw, chPy);
+  }
+  chArr.sort(function(a,b){return b.qlgmv-a.qlgmv;});
+  chArr = chArr.slice(0, 10);
+  renderTopTable('channelTable', chArr, [
+    {label: '平台', field: 'plat', type: 'plat'},
+    {label: '渠道', field: 'channel', type: 'text'},
+    {label: '全量GMV', field: 'qlgmv', type: 'money'},
+    {label: '活动GMV', field: 'hdgmv', type: 'money'},
+    {label: '补贴', field: 'bt', type: 'money'},
+    {label: 'SKU数', field: 'sku', type: 'num'},
+    {label: '零售商数', field: 'retail', type: 'num'},
+  ].concat(gcols));
+
+  // 零售商 TOP10
+  var rtRows = getPeriodData(DASHBOARD.by_retail).slice();
+  if (state.plat !== 'all') rtRows = rtRows.filter(function(r){return r.plat === state.plat;});
+  if (state.period === 'W') {
+    var rtPw = getPeriodData(DASHBOARD.by_retail, 'PW');
+    var rtPy = getPeriodData(DASHBOARD.by_retail, 'PY');
+    if (state.plat !== 'all') {
+      rtPw = rtPw.filter(function(r){return r.plat === state.plat;});
+      rtPy = rtPy.filter(function(r){return r.plat === state.plat;});
+    }
+    attachGrowth(rtRows, function(r){return r.retail_clean + '|' + r.plat;}, 'qlgmv', rtPw, rtPy);
+  }
+  rtRows.sort(function(a,b){return b.qlgmv-a.qlgmv;});
+  rtRows = rtRows.slice(0, 10);
+  renderTopTable('retailTable', rtRows, [
+    {label: '平台', field: 'plat', type: 'plat'},
+    {label: '零售商', field: 'retail_clean', type: 'text', maxLen: 18},
+    {label: '渠道', field: 'channel', type: 'text'},
+    {label: '全量GMV', field: 'qlgmv', type: 'money'},
+    {label: '活动GMV', field: 'hdgmv', type: 'money'},
+    {label: '补贴', field: 'bt', type: 'money'},
+    {label: 'SKU数', field: 'sku', type: 'num'},
+  ].concat(gcols));
+
+  // 省份 TOP10
+  var prRows = getPeriodData(DASHBOARD.by_province);
+  if (state.plat !== 'all') prRows = prRows.filter(function(r){return r.plat === state.plat;});
+  var prMap = {};
+  prRows.forEach(function(r) {
+    var k = r.province + '|' + r.plat;
+    if (!prMap[k]) prMap[k] = {plat: r.plat, province: r.province,
+                                qlgmv:0, hdgmv:0, bt:0, sku:0, retail:0};
+    prMap[k].qlgmv += r.qlgmv||0;
+    prMap[k].hdgmv += r.hdgmv||0;
+    prMap[k].bt += r.bt||0;
+    prMap[k].sku = Math.max(prMap[k].sku, r.sku||0);
+    prMap[k].retail += r.retail_cnt||0;
+  });
+  var prArr = Object.keys(prMap).map(function(k){return prMap[k];});
+  if (state.period === 'W') {
+    var prPw = getPeriodData(DASHBOARD.by_province, 'PW');
+    var prPy = getPeriodData(DASHBOARD.by_province, 'PY');
+    if (state.plat !== 'all') {
+      prPw = prPw.filter(function(r){return r.plat === state.plat;});
+      prPy = prPy.filter(function(r){return r.plat === state.plat;});
+    }
+    attachGrowth(prArr, function(r){return r.province + '|' + r.plat;}, 'qlgmv', prPw, prPy);
+  }
+  prArr.sort(function(a,b){return b.qlgmv-a.qlgmv;});
+  prArr = prArr.slice(0, 10);
+  renderTopTable('provinceTable', prArr, [
+    {label: '平台', field: 'plat', type: 'plat'},
+    {label: '省份', field: 'province', type: 'text'},
+    {label: '全量GMV', field: 'qlgmv', type: 'money'},
+    {label: '活动GMV', field: 'hdgmv', type: 'money'},
+    {label: '补贴', field: 'bt', type: 'money'},
+    {label: 'SKU数', field: 'sku', type: 'num'},
+    {label: '零售商数', field: 'retail', type: 'num'},
+  ].concat(gcols));
+
+  // 城市 TOP10
+  var ctRows = getPeriodData(DASHBOARD.by_city).slice();
+  if (state.plat !== 'all') ctRows = ctRows.filter(function(r){return r.plat === state.plat;});
+  if (state.period === 'W') {
+    var ctPw = getPeriodData(DASHBOARD.by_city, 'PW');
+    var ctPy = getPeriodData(DASHBOARD.by_city, 'PY');
+    if (state.plat !== 'all') {
+      ctPw = ctPw.filter(function(r){return r.plat === state.plat;});
+      ctPy = ctPy.filter(function(r){return r.plat === state.plat;});
+    }
+    attachGrowth(ctRows, function(r){return r.city + '|' + r.plat;}, 'qlgmv', ctPw, ctPy);
+  }
+  ctRows.sort(function(a,b){return b.qlgmv-a.qlgmv;});
+  ctRows = ctRows.slice(0, 10);
+  renderTopTable('cityTable', ctRows, [
+    {label: '平台', field: 'plat', type: 'plat'},
+    {label: '省份', field: 'province', type: 'text'},
+    {label: '城市', field: 'city', type: 'text'},
+    {label: '全量GMV', field: 'qlgmv', type: 'money'},
+    {label: '活动GMV', field: 'hdgmv', type: 'money'},
+    {label: '补贴', field: 'bt', type: 'money'},
+    {label: 'SKU数', field: 'sku', type: 'num'},
+  ].concat(gcols));
+
+  // 券类型 TOP10
+  var cpRows = getPeriodData(DASHBOARD.by_coupon);
+  if (state.plat !== 'all') cpRows = cpRows.filter(function(r){return r.plat === state.plat;});
+  var cpMap = {};
+  cpRows.forEach(function(r) {
+    var k = r.coupon_type + '|' + r.plat;
+    if (!cpMap[k]) cpMap[k] = {plat: r.plat, coupon_type: r.coupon_type,
+                                hdgmv:0, bt:0, sr:0, row_cnt:0, sku:0, mech:0};
+    cpMap[k].hdgmv += r.hdgmv||0;
+    cpMap[k].bt += r.bt||0;
+    cpMap[k].sr = r.subsidy_rate || 0;
+    cpMap[k].row_cnt += r.row_cnt||0;
+    cpMap[k].sku = Math.max(cpMap[k].sku, r.sku||0);
+    cpMap[k].mech = Math.max(cpMap[k].mech, r.mech_cnt||0);
+  });
+  var cpArr = Object.keys(cpMap).map(function(k){return cpMap[k];});
+  if (state.period === 'W') {
+    var cpPw = getPeriodData(DASHBOARD.by_coupon, 'PW');
+    var cpPy = getPeriodData(DASHBOARD.by_coupon, 'PY');
+    if (state.plat !== 'all') {
+      cpPw = cpPw.filter(function(r){return r.plat === state.plat;});
+      cpPy = cpPy.filter(function(r){return r.plat === state.plat;});
+    }
+    attachGrowth(cpArr, function(r){return r.coupon_type + '|' + r.plat;}, 'hdgmv', cpPw, cpPy);
+  }
+  cpArr.sort(function(a,b){return b.hdgmv-a.hdgmv;});
+  cpArr = cpArr.slice(0, 10);
+  renderTopTable('couponTable', cpArr, [
+    {label: '平台', field: 'plat', type: 'plat'},
+    {label: '券类型', field: 'coupon_type', type: 'text', maxLen: 25},
+    {label: '活动GMV', field: 'hdgmv', type: 'money'},
+    {label: '补贴', field: 'bt', type: 'money'},
+    {label: '补贴率', field: 'sr', type: 'pct'},
+    {label: '记录数', field: 'row_cnt', type: 'num'},
+    {label: 'SKU数', field: 'sku', type: 'num'},
+    {label: '机制数', field: 'mech', type: 'num'},
+  ].concat(gcols));
+
+  // 活动机制 TOP10
+  var mechRows = getPeriodData(DASHBOARD.by_mechanism).slice();
+  if (state.plat !== 'all') mechRows = mechRows.filter(function(r){return r.plat === state.plat;});
+  if (state.period === 'W') {
+    var mechPw = getPeriodData(DASHBOARD.by_mechanism, 'PW');
+    var mechPy = getPeriodData(DASHBOARD.by_mechanism, 'PY');
+    if (state.plat !== 'all') {
+      mechPw = mechPw.filter(function(r){return r.plat === state.plat;});
+      mechPy = mechPy.filter(function(r){return r.plat === state.plat;});
+    }
+    attachGrowth(mechRows, function(r){return r.mechanism + '|' + r.plat;}, 'hdgmv', mechPw, mechPy);
+  }
+  mechRows.sort(function(a,b){return b.hdgmv-a.hdgmv;});
+  mechRows = mechRows.slice(0, 10);
+  renderTopTable('mechanismTable', mechRows, [
+    {label: '平台', field: 'plat', type: 'plat'},
+    {label: '活动机制', field: 'mechanism', type: 'text'},
+    {label: '活动GMV', field: 'hdgmv', type: 'money'},
+    {label: '补贴', field: 'bt', type: 'money'},
+    {label: '折扣率', field: 'avg_zk', type: 'num', fmt: function(v){return (v*100).toFixed(2)+'%';}},
+    {label: '记录数', field: 'row_cnt', type: 'num'},
+    {label: '门店数', field: 'store_cnt', type: 'num'},
+  ].concat(gcols));
+}
+
+// ============ 三栏行动建议 ============
+function renderActions() {
+  var ov = DASHBOARD.overview[state.period] || DASHBOARD.overview.W;
+  var w = ov.total;
+  var g = (state.period === 'W' ? w.growth : null) || {};
+  var bp = ov.by_plat;
+  var periodLabel = DASHBOARD.meta.periods[state.period].label;
+
+  var conclusions = [
+    {title: '生意稳健', detail: periodLabel + '全量GMV ' + fmtYuan(w.qlgmv) +
+      (state.period === 'W' ? ('，环比 ' + (g.qlgmv_vs_pw_pct >= 0 ? '+' : '') + g.qlgmv_vs_pw_pct.toFixed(2) + '%、同比 ' + (g.qlgmv_vs_py_pct >= 0 ? '+' : '') + g.qlgmv_vs_py_pct.toFixed(2) + '%') : '') +
+      '，整体生意节奏保持稳健。'},
+    {title: '活动效率', detail: '活动GMV ' + fmtYuan(w.activity_gmv) + '，含税补贴 ' + fmtYuan(w.bt_tax) + '，ROI ' + w.roi.toFixed(2) + '（每1元投入带来 ' + w.roi.toFixed(2) + ' 元活动GMV）。'},
+    {title: '补贴节奏', detail: '补贴率 ' + (w.subsidy_rate*100).toFixed(2) + '%' +
+      (state.period === 'W' ? ('，环比 ' + (g.subsidy_rate_vs_pw_pp >= 0 ? '+' : '') + g.subsidy_rate_vs_pw_pp.toFixed(2) + 'pp、同比 ' + (g.subsidy_rate_vs_py_pp >= 0 ? '+' : '') + g.subsidy_rate_vs_py_pp.toFixed(2) + 'pp') : '') +
+      '，费用投入节奏稳定可控。'},
+  ];
+
+  var mtSr = bp[0].bt / bp[0].hdgmv * 100;
+  var tsSr = bp[1].bt / bp[1].hdgmv * 100;
+  var analyses = [
+    {title: '平台效率对比', detail: '美团补贴率 ' + mtSr.toFixed(2) + '% ' + (mtSr > tsSr ? '高于' : '低于') + ' 淘闪 ' + tsSr.toFixed(2) + '%，' + (mtSr > tsSr ? '建议关注美团ROI，优化活动机制' : '淘闪补贴力度更大，需平衡两平台投入') + '。'},
+    {title: '品类贡献', detail: 'TOP1品类贡献头部GMV，建议持续强化头部品类爆款地位，同时挖掘长尾品类增长机会。'},
+    {title: '省份分布', detail: '头部省份贡献主要GMV，建议巩固头部省份基本盘，加大第二梯队省份投入，挖掘增量空间。'},
+  ];
+
+  var actions = [
+    {title: '强化头部爆款', detail: '持续巩固头部SKU跨平台运营投入，目标活动GMV环比增长8-12%，重点关注美团与淘闪GMV差距较大的SKU。'},
+    {title: '优化省份投入', detail: '在头部省份维持投入基础上，向第二梯队省份倾斜预算，预计可贡献增量GMV 5-8%。'},
+    {title: 'ROI提升', detail: '通过活动机制优化（淘汰高折扣低GMV机制、加大优质机制配置），目标ROI环比提升0.2以上，补贴率下降0.5-1pp。'},
+  ];
+
+  var html = '<div class="action-col"><h3>结论</h3>';
+  conclusions.forEach(function(c) { html += '<div class="item"><strong>' + c.title + '</strong>' + c.detail + '</div>'; });
+  html += '</div>';
+  html += '<div class="action-col analysis"><h3>分析</h3>';
+  analyses.forEach(function(a) { html += '<div class="item"><strong>' + a.title + '</strong>' + a.detail + '</div>'; });
+  html += '</div>';
+  html += '<div class="action-col action"><h3>下一阶段行动建议</h3>';
+  actions.forEach(function(a) { html += '<div class="item"><strong>' + a.title + '</strong>' + a.detail + '</div>'; });
+  html += '</div>';
+  document.getElementById('actionGrid').innerHTML = html;
+}
+
+// ============ 下载原数据 ============
+function setupDownload() {
+  var modal = document.getElementById('downloadModal');
+  document.getElementById('downloadBtn').onclick = function() { modal.classList.add('show'); };
+  document.getElementById('dlCancel').onclick = function() { modal.classList.remove('show'); };
+  modal.onclick = function(e) { if (e.target === modal) modal.classList.remove('show'); };
+  document.getElementById('dlConfirm').onclick = function() {
+    var plat = document.getElementById('dlPlat').value;
+    var periodKey = document.getElementById('dlPeriod').value;
+    var dims = Array.from(document.getElementById('dlDims').selectedOptions).map(function(o){return o.value;});
+    var period = DASHBOARD.meta.periods[periodKey];
+    var rows = [];
+    rows.push(['# 舒洁·到家即时零售 原始账单明细下载']);
+    rows.push(['# 平台', plat === 'all' ? '全部平台' : PLAT_LABELS[plat]]);
+    rows.push(['# 时间范围', period.start, '~', period.end, '（共 ' + period.days + ' 天）']);
+    rows.push(['# 生成时间', new Date().toLocaleString('zh-CN')]);
+    rows.push([]);
+
+    function filterRows(data) {
+      if (plat === 'all') return data;
+      return data.filter(function(r){return r.plat === plat;});
+    }
+
+    if (dims.indexOf('overview') >= 0) {
+      rows.push(['## 平台汇总']);
+      rows.push(['平台', '全量GMV', '活动GMV', '补贴', '含税补贴', '补贴率', 'ROI', '动销SKU', '匹配零售商', '订单数', '门店数']);
+      var ov = DASHBOARD.overview[periodKey] || DASHBOARD.overview.W;
+      filterRows(ov.by_plat).forEach(function(r) {
+        rows.push([PLAT_LABELS[r.plat], r.qlgmv, r.activity_gmv, r.bt, r.bt_tax, (r.subsidy_rate*100).toFixed(2)+'%', r.roi.toFixed(2), r.sku, r.retail_cnt, r.order_cnt, r.store_cnt]);
+      });
+      rows.push([]);
+    }
+    if (dims.indexOf('upc') >= 0) {
+      rows.push(['## UPC明细']);
+      rows.push(['平台', 'UPC', '产品名', '子品牌', '系列', '品类', '型号', '全量GMV', '活动GMV', '补贴', '销量', '零售商数']);
+      filterRows(getPeriodData(DASHBOARD.by_upc, periodKey)).forEach(function(r) {
+        rows.push([PLAT_LABELS[r.plat], r.upc, r.product_name, r.sub_brand, r.series, r.class_system, r.model, r.qlgmv, r.hdgmv, r.bt, r.sl, r.retail_cnt]);
+      });
+      rows.push([]);
+    }
+    if (dims.indexOf('channel') >= 0) {
+      rows.push(['## 渠道明细']);
+      rows.push(['平台', '渠道', '渠道类型', '全量GMV', '活动GMV', '补贴', 'SKU数', '零售商数']);
+      filterRows(getPeriodData(DASHBOARD.by_channel, periodKey)).forEach(function(r) {
+        rows.push([PLAT_LABELS[r.plat], r.channel, r.channel_type, r.qlgmv, r.hdgmv, r.bt, r.sku, r.retail_cnt]);
+      });
+      rows.push([]);
+    }
+    if (dims.indexOf('retail') >= 0) {
+      rows.push(['## 零售商明细']);
+      rows.push(['平台', '零售商', '渠道', '全量GMV', '活动GMV', '补贴', 'SKU数', '城市数']);
+      filterRows(getPeriodData(DASHBOARD.by_retail, periodKey)).forEach(function(r) {
+        rows.push([PLAT_LABELS[r.plat], r.retail_clean, r.channel, r.qlgmv, r.hdgmv, r.bt, r.sku, r.city_cnt]);
+      });
+      rows.push([]);
+    }
+    if (dims.indexOf('province') >= 0) {
+      rows.push(['## 省份明细']);
+      rows.push(['平台', '省份', '全量GMV', '活动GMV', '补贴', 'SKU数', '零售商数']);
+      filterRows(getPeriodData(DASHBOARD.by_province, periodKey)).forEach(function(r) {
+        rows.push([PLAT_LABELS[r.plat], r.province, r.qlgmv, r.hdgmv, r.bt, r.sku, r.retail_cnt]);
+      });
+      rows.push([]);
+    }
+    if (dims.indexOf('city') >= 0) {
+      rows.push(['## 城市明细']);
+      rows.push(['平台', '省份', '城市', '全量GMV', '活动GMV', '补贴', 'SKU数', '零售商数']);
+      filterRows(getPeriodData(DASHBOARD.by_city, periodKey)).forEach(function(r) {
+        rows.push([PLAT_LABELS[r.plat], r.province, r.city, r.qlgmv, r.hdgmv, r.bt, r.sku, r.retail_cnt]);
+      });
+      rows.push([]);
+    }
+    if (dims.indexOf('coupon') >= 0) {
+      rows.push(['## 券类型明细']);
+      rows.push(['平台', '券类型', '活动GMV', '补贴', '补贴率', '记录数', 'SKU数', '机制数']);
+      filterRows(getPeriodData(DASHBOARD.by_coupon, periodKey)).forEach(function(r) {
+        rows.push([PLAT_LABELS[r.plat], r.coupon_type, r.hdgmv, r.bt, (r.subsidy_rate*100).toFixed(2)+'%', r.row_cnt, r.sku, r.mech_cnt]);
+      });
+      rows.push([]);
+    }
+    if (dims.indexOf('mechanism') >= 0) {
+      rows.push(['## 活动机制明细']);
+      rows.push(['平台', '机制', '活动GMV', '补贴', '折扣率', '记录数', 'SKU数', '门店数']);
+      filterRows(getPeriodData(DASHBOARD.by_mechanism, periodKey)).forEach(function(r) {
+        rows.push([PLAT_LABELS[r.plat], r.mechanism, r.hdgmv, r.bt, r.avg_zk, r.row_cnt, r.sku, r.store_cnt]);
+      });
+      rows.push([]);
+    }
+    if (dims.indexOf('subbrand') >= 0) {
+      rows.push(['## 子品牌明细']);
+      rows.push(['平台', '子品牌', '品类', '全量GMV', '活动GMV', '补贴', 'SKU数']);
+      filterRows(getPeriodData(DASHBOARD.by_sub_brand, periodKey)).forEach(function(r) {
+        rows.push([PLAT_LABELS[r.plat], r.sub_brand, r.class_system, r.qlgmv, r.hdgmv, r.bt, r.sku]);
+      });
+      rows.push([]);
+    }
+
+    // CSV生成
+    var csv = rows.map(function(r) { return r.map(function(c) {
+      if (c == null) return '';
+      var s = String(c);
+      if (s.indexOf(',') >= 0 || s.indexOf('"') >= 0 || s.indexOf('\n') >= 0) {
+        return '"' + s.replace(/"/g, '""') + '"';
+      }
+      return s;
+    }).join(','); }).join('\n');
+    var blob = new Blob(['\ufeff' + csv], {type: 'text/csv;charset=utf-8;'});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = '舒洁_原数据_' + (plat === 'all' ? '全部平台' : PLAT_LABELS[plat]) + '_' + period.start + '_' + period.end + '.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    modal.classList.remove('show');
+  };
+}
+
+// ============ 主刷新 ============
+function refresh() {
+  updatePeriodUI();
+  renderKPI();
+  renderTrend();
+  renderProductStruct();
+  renderSeriesTable();
+  renderTopTables();
+  renderActions();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  deriveBreakdownPeriods();
+  enrichProducts();
+
+  document.getElementById('updateTime').textContent = new Date().toLocaleString('zh-CN');
+  updatePeriodUI();
+  document.getElementById('dataNote').innerHTML = DASHBOARD.meta.data_source_note;
+
+  // 时间切换
+  ['W', 'PW', 'PY'].forEach(function(k) {
+    document.getElementById('period-' + k).addEventListener('click', function() {
+      ['W', 'PW', 'PY'].forEach(function(x) {
+        document.getElementById('period-' + x).classList.remove('active');
+      });
+      this.classList.add('active');
+      state.period = k;
+      refresh();
+    });
+  });
+
+  // 平台切换
+  ['all', 'mt', 'ts'].forEach(function(k) {
+    document.getElementById('plat-' + k).addEventListener('click', function() {
+      ['all', 'mt', 'ts'].forEach(function(x) { document.getElementById('plat-' + x).classList.remove('active'); });
+      this.classList.add('active');
+      state.plat = k === 'all' ? 'all' : (k === 'mt' ? '美团闪购' : '饿了么');
+      refresh();
+    });
+  });
+
+  document.getElementById('drillClose').onclick = function() {
+    state.drillSeries = null;
+    document.getElementById('seriesDrillPanel').classList.remove('show');
+    document.querySelectorAll('.series-row').forEach(function(tr) { tr.classList.remove('active'); });
+  };
+
+  setupDownload();
+  refresh();
+
+  window.addEventListener('resize', function() {
+    [trendChart, channelChart, productStructChart, categoryPieChart].forEach(function(c){if(c)c.resize();});
+  });
+});
+</script>
+</body>
+</html>
