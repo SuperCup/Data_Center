@@ -30,14 +30,7 @@ const SessionDrawer: React.FC<Props> = ({
   const [keyword, setKeyword] = React.useState('');
 
   const grouped = React.useMemo(() => {
-    const order: CapabilityType[] = [
-      'query',
-      'diagnose',
-      'analyze',
-      'action',
-      'opportunity',
-      'report',
-    ];
+    const order: CapabilityType[] = ['instant', 'report'];
     const q = keyword.trim();
     return order
       .map((type) => ({

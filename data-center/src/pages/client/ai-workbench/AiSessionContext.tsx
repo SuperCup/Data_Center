@@ -11,7 +11,6 @@ import {
 import {
   DeleteOutlined,
   EditOutlined,
-  InboxOutlined,
   MoreOutlined,
   PushpinFilled,
   PushpinOutlined,
@@ -196,7 +195,6 @@ export function SessionListSlot() {
     activeSessionId,
     typingSessionId,
     openSession,
-    archiveSession,
     removeSession,
     renameSession,
     togglePinSession,
@@ -290,15 +288,6 @@ export function SessionListSlot() {
                             onClick: ({ domEvent }) => {
                               domEvent.stopPropagation();
                               openRename(s);
-                            },
-                          },
-                          {
-                            key: 'archive',
-                            icon: <InboxOutlined />,
-                            label: '归档',
-                            onClick: ({ domEvent }) => {
-                              domEvent.stopPropagation();
-                              archiveSession(s.id);
                             },
                           },
                           { type: 'divider' },

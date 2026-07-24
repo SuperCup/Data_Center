@@ -4,10 +4,6 @@ import {
   RobotOutlined,
   SendOutlined,
   SearchOutlined,
-  AlertOutlined,
-  BarChartOutlined,
-  RocketOutlined,
-  CompassOutlined,
   FormOutlined,
   PaperClipOutlined,
   LinkOutlined,
@@ -58,11 +54,7 @@ interface MentionState {
 }
 
 const CAP_ICONS: Record<CapabilityType, React.ReactNode> = {
-  query: <SearchOutlined />,
-  diagnose: <AlertOutlined />,
-  analyze: <BarChartOutlined />,
-  action: <RocketOutlined />,
-  opportunity: <CompassOutlined />,
+  instant: <SearchOutlined />,
   report: <FormOutlined />,
 };
 
@@ -351,7 +343,7 @@ const AiWorkbench: React.FC = () => {
         {
           id: sid!,
           title: displayText.slice(0, 18),
-          type: selectedCapability || 'query',
+          type: selectedCapability || 'instant',
           updatedAt: '刚刚',
           preview: displayText,
         },
@@ -734,6 +726,7 @@ const AiWorkbench: React.FC = () => {
             key={c.type}
             type="button"
             className="ai-wb-skill"
+            title={c.desc}
             onClick={() => selectCapability(c.type)}
           >
             {CAP_ICONS[c.type]}

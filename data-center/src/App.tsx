@@ -45,9 +45,7 @@ import AiWorkbench from './pages/client/ai-workbench/AiWorkbench';
 import AiWorkspaceLayout from './pages/client/ai-workbench/AiWorkspaceLayout';
 import KnowledgeBase from './pages/client/ai-workbench/KnowledgeBase';
 import MemoryManager from './pages/client/ai-workbench/MemoryManager';
-import ArtifactsCenter from './pages/client/ai-workbench/ArtifactsCenter';
 import AttachmentsWarehouse from './pages/client/ai-workbench/AttachmentsWarehouse';
-import SessionArchive from './pages/client/ai-workbench/SessionArchive';
 // 登录页面
 import Login from './pages/auth/Login';
 
@@ -97,9 +95,7 @@ function App() {
             <Route index element={<AiWorkbench />} />
             <Route path="knowledge" element={<KnowledgeBase />} />
             <Route path="memory" element={<MemoryManager />} />
-            <Route path="artifacts" element={<ArtifactsCenter />} />
             <Route path="attachments" element={<AttachmentsWarehouse />} />
-            <Route path="archive" element={<SessionArchive />} />
           </Route>
           <Route index element={<AllActivities />} />
         </Route>

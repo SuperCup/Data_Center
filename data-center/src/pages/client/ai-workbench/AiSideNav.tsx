@@ -3,20 +3,12 @@ import {
   PlusOutlined,
   BookOutlined,
   BulbOutlined,
-  FileTextOutlined,
   PaperClipOutlined,
-  InboxOutlined,
 } from '@ant-design/icons';
 import { useLocation, useNavigate } from 'react-router-dom';
 import './aiWorkbench.css';
 
-export type AiNavKey =
-  | 'chat'
-  | 'knowledge'
-  | 'memory'
-  | 'artifacts'
-  | 'attachments'
-  | 'archive';
+export type AiNavKey = 'chat' | 'knowledge' | 'memory' | 'attachments';
 
 interface Props {
   sessionSlot?: React.ReactNode;
@@ -33,13 +25,9 @@ const AiSideNav: React.FC<Props> = ({ sessionSlot, onNewChat }) => {
       ? 'knowledge'
       : path.endsWith('/memory')
         ? 'memory'
-        : path.endsWith('/artifacts')
-          ? 'artifacts'
-          : path.endsWith('/attachments')
-            ? 'attachments'
-            : path.endsWith('/archive')
-              ? 'archive'
-              : 'chat';
+        : path.endsWith('/attachments')
+          ? 'attachments'
+          : 'chat';
 
   return (
     <aside className="ai-wb-sider">
@@ -66,27 +54,11 @@ const AiSideNav: React.FC<Props> = ({ sessionSlot, onNewChat }) => {
         </button>
         <button
           type="button"
-          className={`ai-wb-nav-btn ${active === 'artifacts' ? 'active' : ''}`}
-          onClick={() => navigate('/client/ai/artifacts')}
-        >
-          <FileTextOutlined />
-          <span className="ai-wb-nav-label">产物仓库</span>
-        </button>
-        <button
-          type="button"
           className={`ai-wb-nav-btn ${active === 'attachments' ? 'active' : ''}`}
           onClick={() => navigate('/client/ai/attachments')}
         >
           <PaperClipOutlined />
           <span className="ai-wb-nav-label">附件仓库</span>
-        </button>
-        <button
-          type="button"
-          className={`ai-wb-nav-btn ${active === 'archive' ? 'active' : ''}`}
-          onClick={() => navigate('/client/ai/archive')}
-        >
-          <InboxOutlined />
-          <span className="ai-wb-nav-label">会话归档</span>
         </button>
       </div>
 
